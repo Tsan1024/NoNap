@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.4] - 2026-06-02
+
+### Fixed
+- The switch kept asking for the password even after the permission was correctly
+  installed. The app pre-checked the grant with `sudo -l`, but listing sudo privileges
+  itself needs authentication even when a NOPASSWD rule is present, so the check always
+  read "not installed" and re-prompted. The app no longer pre-checks: it just toggles,
+  and only offers the one-time setup if the toggle genuinely doesn't engage.
+
 ## [1.2.3] - 2026-06-02
 
 ### Fixed
@@ -104,7 +113,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README in 6 languages (English, 简体中文, Español, 日本語, Français, Deutsch).
 - MIT license, security model (`SECURITY.md`), and community-health files.
 
-[Unreleased]: https://github.com/Aboudjem/Sleepless/compare/v1.2.3...HEAD
+[Unreleased]: https://github.com/Aboudjem/Sleepless/compare/v1.2.4...HEAD
+[1.2.4]: https://github.com/Aboudjem/Sleepless/compare/v1.2.3...v1.2.4
 [1.2.3]: https://github.com/Aboudjem/Sleepless/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/Aboudjem/Sleepless/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/Aboudjem/Sleepless/compare/v1.2.0...v1.2.1

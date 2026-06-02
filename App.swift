@@ -360,20 +360,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func switchToggled(_ sender: NSSwitch) {
         let wantOn = sender.state == .on
-        // First time turning on without the permission: set it up IN-APP via one native
-        // macOS auth (Touch ID / password), no Terminal. After that it never asks again.
-        if wantOn && !grantInstalled() {
-            guard installGrantViaAuth() else { refresh(); return }  // declined/failed -> reflect true (off) state
-        }
         setDisableSleep(wantOn)
         refresh()                              // re-read TRUE state; switch reflects reality, not the click
-        if wantOn && !isOn { notify("Couldn't keep awake. The permission isn't set up yet.") }
+        // If turning ON didn't actually engage, the one-time permission isn't set up yet.
+        // Offer the native setup, then retry once. We do NOT pre-check the grant: `sudo -l`
+        // needs auth even when the pmset NOPASSWD rule IS present, so we just try and only
+        // prompt on a real failure (otherwise it would re-ask forever even when set up).
+        if wantOn && !isOn {
+            if installGrantViaAuth() { setDisableSleep(true); refresh() }
+            if !isOn { notify("Couldn't keep awake. The permission isn't set up yet.") }
+        }
         if isOn, autoOffMinutes > 0 { startKeepAwakeTimer(minutes: autoOffMinutes) }
-    }
-
-    // True only when the tightly-scoped NOPASSWD grant for pmset disablesleep is present.
-    private func grantInstalled() -> Bool {
-        runCapture("/usr/bin/sudo", ["-n", "-l", "/usr/bin/pmset"]).contains("disablesleep")
     }
 
     // Install the one-time scoped grant via a SINGLE native macOS authorization (the
@@ -406,9 +403,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         proc.standardOutput = Pipe(); proc.standardError = Pipe()
         do { try proc.run(); proc.waitUntilExit() }
         catch { notify("Couldn't start the one-time setup."); return false }
-        if grantInstalled() { return true }
-        // -128 = the user cancelled the auth sheet; stay quiet then. Otherwise it genuinely failed.
-        if proc.terminationStatus != 0 && proc.terminationStatus != 128 {
+        if proc.terminationStatus == 0 { return true }   // grant.sh installed the rule successfully
+        if proc.terminationStatus != 128 {               // 128 = user cancelled the auth sheet
             notify("Setup didn't complete. Try again, or run grant.sh from the app bundle.")
         }
         return false
