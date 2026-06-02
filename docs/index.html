@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sleepless — keep your MacBook awake with the lid closed</title>
+<meta name="description" content="Sleepless keeps your MacBook awake with the lid closed, on battery, with no external display. A native menu-bar app using pmset disablesleep, with an auto-off timer and a battery-floor cutoff. Open source, MIT.">
+<link rel="canonical" href="https://aboudjem.github.io/Sleepless/">
+<meta name="theme-color" content="#0a0812">
+
+<!-- Open Graph / social -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sleepless — keep your MacBook awake with the lid closed">
+<meta property="og:description" content="Native macOS menu-bar app that keeps your MacBook awake lid-closed, on battery, no external display. pmset disablesleep, done safely. Open source, MIT.">
+<meta property="og:url" content="https://aboudjem.github.io/Sleepless/">
+<meta property="og:image" content="https://aboudjem.github.io/Sleepless/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sleepless — keep your MacBook awake with the lid closed">
+<meta name="twitter:description" content="Native macOS menu-bar app. Lid closed, on battery, no external display. pmset disablesleep, done safely. Open source, MIT.">
+<meta name="twitter:image" content="https://aboudjem.github.io/Sleepless/og.png">
+
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+
+<!-- Fonts: Clash Display (display) via Fontshare, Space Grotesk (body) via Google -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- JSON-LD: software application + FAQ (GEO) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Sleepless",
+  "operatingSystem": "macOS 26 (Apple Silicon)",
+  "applicationCategory": "UtilitiesApplication",
+  "description": "A native macOS menu-bar app that keeps your MacBook awake with the lid closed, on battery, with no external display, using pmset disablesleep, with an auto-off timer and a battery-floor cutoff.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "license": "https://opensource.org/licenses/MIT",
+  "url": "https://github.com/Aboudjem/Sleepless",
+  "author": { "@type": "Person", "name": "Adam Boudjemaa" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"How do I keep my MacBook awake with the lid closed without a monitor?","acceptedAnswer":{"@type":"Answer","text":"Install Sleepless, click the coffee cup in the menu bar, flip the switch on, and close the lid. It keeps the Mac awake on battery with no external display, using pmset disablesleep. No dummy HDMI plug or clamshell adapter is needed."}},
+    {"@type":"Question","name":"Why does my MacBook sleep when I close the lid even with Amphetamine or KeepingYouAwake?","acceptedAnswer":{"@type":"Answer","text":"Those tools are built on macOS power assertions, which stop the idle timer but cannot override the hardware lid-close trigger. KeepingYouAwake wraps caffeinate, which its maintainer confirms cannot do lid-close. pmset disablesleep, which Sleepless uses, is a lower-level setting that can."}},
+    {"@type":"Question","name":"Does pmset disablesleep still work on Apple Silicon?","acceptedAnswer":{"@type":"Answer","text":"pmset -a disablesleep 1 still sets the SleepDisabled flag on Apple Silicon and, in firsthand reports, keeps a MacBook awake with the lid closed on battery, but Apple does not officially document the setting, so its exact behavior can vary by model and macOS version. Most claims that it stopped working actually describe caffeinate, a different mechanism."}},
+    {"@type":"Question","name":"Do I need a dummy HDMI display plug to use clamshell mode?","acceptedAnswer":{"@type":"Answer","text":"No. Apple's official clamshell mode needs external power and a display, but Sleepless keeps the Mac awake with the lid closed on battery alone, with no display and no HDMI dongle."}}
+  ]
+}
+</script>
+
+<style>
+  :root{
+    --bg:#0a0812; --bg2:#120a1f; --panel:#15101f; --panel-2:#1b1430;
+    --ink:#f4f1fb; --muted:#a99fc4; --faint:#7d7398;
+    --cyan:#00D4FF; --pink:#FF006E; --violet:#7C3AED;
+    --line:rgba(124,58,237,.22); --line-2:rgba(0,212,255,.18);
+    --radius:16px; --maxw:1080px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Space Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(1100px 600px at 78% -8%, rgba(0,212,255,.10), transparent 60%),
+      radial-gradient(900px 540px at 10% 0%, rgba(255,0,110,.10), transparent 55%),
+      radial-gradient(1000px 700px at 50% 110%, rgba(124,58,237,.14), transparent 60%);
+  }
+  a{color:var(--cyan); text-decoration:none}
+  a:hover{text-decoration:underline}
+  h1,h2,h3{font-family:"Clash Display",-apple-system,BlinkMacSystemFont,sans-serif; line-height:1.1; letter-spacing:-.01em; margin:0}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 22px}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:22px 22px; max-width:var(--maxw); margin:0 auto}
+  .brand{display:flex; align-items:center; gap:10px; font-family:"Clash Display"; font-weight:700; font-size:20px}
+  .brand img{width:30px; height:30px; border-radius:8px}
+  .nav-links{display:flex; gap:22px; font-size:15px}
+  .nav-links a{color:var(--muted)}
+  .nav-links a:hover{color:var(--ink); text-decoration:none}
+
+  /* Hero */
+  .hero{text-align:center; padding:64px 0 36px}
+  .hero img.app-icon{width:104px; height:104px; border-radius:24px; box-shadow:0 18px 60px rgba(124,58,237,.45), 0 0 0 1px rgba(255,255,255,.06)}
+  .hero h1{font-size:clamp(40px,7vw,76px); font-weight:700; margin:22px 0 0}
+  .grad{background:linear-gradient(100deg,var(--cyan),var(--violet) 55%,var(--pink)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .tag{font-size:clamp(17px,2.4vw,22px); color:var(--muted); max-width:660px; margin:18px auto 0}
+  .tag b{color:var(--ink); font-weight:600}
+  .cta{display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-top:30px}
+  .btn{display:inline-flex; align-items:center; gap:9px; padding:13px 22px; border-radius:12px; font-weight:600; font-size:15px; border:1px solid transparent; transition:transform .15s ease, box-shadow .15s ease}
+  .btn:hover{text-decoration:none; transform:translateY(-2px)}
+  .btn-primary{background:linear-gradient(100deg,var(--cyan),var(--violet)); color:#0a0812; box-shadow:0 10px 30px rgba(0,212,255,.28)}
+  .btn-ghost{background:rgba(255,255,255,.04); color:var(--ink); border-color:var(--line)}
+  .brewbar{display:inline-flex; align-items:center; gap:12px; margin:26px auto 0; padding:10px 12px 10px 18px; background:var(--panel); border:1px solid var(--line); border-radius:12px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:14px; color:var(--ink)}
+  .brewbar .dollar{color:var(--faint)}
+  .copy{cursor:pointer; border:1px solid var(--line-2); background:rgba(0,212,255,.08); color:var(--cyan); padding:6px 12px; border-radius:8px; font:inherit; font-size:13px}
+  .copy:hover{background:rgba(0,212,255,.16)}
+  .meta{margin-top:18px; color:var(--faint); font-size:14px}
+
+  .shot{margin:30px auto 0; max-width:820px}
+  .shot img{width:100%; border-radius:var(--radius); border:1px solid var(--line); box-shadow:0 24px 70px rgba(0,0,0,.5)}
+
+  section{padding:52px 0}
+  .eyebrow{font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--cyan); font-weight:600}
+  h2.sec{font-size:clamp(28px,4vw,40px); font-weight:700; margin:10px 0 8px}
+  .lead{color:var(--muted); max-width:720px; font-size:17px}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:18px; margin-top:30px}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel-2)); border:1px solid var(--line); border-radius:var(--radius); padding:22px}
+  .card .ico{font-size:24px}
+  .card h3{font-size:18px; font-weight:600; margin:12px 0 6px; font-family:"Space Grotesk"}
+  .card p{color:var(--muted); font-size:15px; margin:0}
+
+  .table-wrap{overflow-x:auto; margin-top:26px; border:1px solid var(--line); border-radius:var(--radius)}
+  table{border-collapse:collapse; width:100%; min-width:560px; font-size:15px}
+  th,td{padding:14px 16px; text-align:center; border-bottom:1px solid rgba(255,255,255,.06)}
+  th:first-child,td:first-child{text-align:left; color:var(--muted)}
+  thead th{background:rgba(124,58,237,.10); font-family:"Space Grotesk"; font-weight:600; color:var(--ink)}
+  tbody tr:last-child td{border-bottom:none}
+  .me{background:rgba(0,212,255,.06)}
+  .me td{color:var(--ink); font-weight:500}
+  .yes{color:#3ddc97} .no{color:#ff5d73} .warn{color:#ffc24b}
+  .fn{color:var(--faint); font-size:13px; margin-top:12px; max-width:880px}
+
+  details{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:0 18px; margin-top:12px}
+  details[open]{background:var(--panel-2)}
+  summary{cursor:pointer; padding:16px 0; font-weight:600; list-style:none; color:var(--ink)}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+"; float:right; color:var(--cyan); font-size:20px; line-height:1}
+  details[open] summary::after{content:"–"}
+  details p{color:var(--muted); margin:0 0 16px; font-size:15px}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; background:rgba(0,212,255,.08); color:var(--cyan); padding:1px 6px; border-radius:5px; font-size:.9em}
+
+  .trust{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-top:28px}
+  .trust div{border:1px solid var(--line-2); border-radius:12px; padding:18px; background:rgba(0,212,255,.03)}
+  .trust b{display:block; color:var(--ink); font-family:"Clash Display"; font-size:17px; margin-bottom:4px}
+  .trust span{color:var(--muted); font-size:14px}
+
+  footer{border-top:1px solid var(--line); margin-top:30px; padding:34px 0 60px; color:var(--faint); font-size:14px; text-align:center}
+  footer a{color:var(--muted)}
+  .footlinks{display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin-bottom:16px}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="brand" href="#top"><img src="icon.png" alt="Sleepless icon"> Sleepless</a>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#compare">Compare</a>
+    <a href="#faq">FAQ</a>
+    <a href="https://github.com/Aboudjem/Sleepless">GitHub</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <img class="app-icon" src="icon.png" alt="Sleepless app icon, a coffee cup">
+    <h1>Keep your Mac awake,<br><span class="grad">lid closed.</span></h1>
+    <p class="tag"><b>Sleepless keeps your MacBook awake with the lid closed, on battery, with no external display.</b> One native menu-bar switch, with an auto-off timer and a battery-floor cutoff so you never drain it flat.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/Aboudjem/Sleepless/releases/latest">Download for macOS</a>
+      <a class="btn btn-ghost" href="https://github.com/Aboudjem/Sleepless">View source on GitHub</a>
+    </div>
+    <div class="brewbar">
+      <span><span class="dollar">$</span> brew install --cask aboudjem/tap/sleepless</span>
+      <button class="copy" id="copyBrew" data-cmd="brew install --cask aboudjem/tap/sleepless">Copy</button>
+    </div>
+    <p class="meta">macOS 26 · Apple Silicon · MIT · no Dock icon, no daemon, no kext</p>
+    <div class="shot"><img src="demo.gif" alt="Sleepless demo: flip the switch, set an auto-off timer, drag the battery-floor slider"></div>
+  </div>
+</header>
+
+<section id="why">
+  <div class="wrap">
+    <p class="eyebrow">The one that actually does it</p>
+    <h2 class="sec">Why other keep-awake apps can't do this</h2>
+    <p class="lead">Most keep-awake apps (KeepingYouAwake, Caffeine, Theine, and the built-in <code>caffeinate</code>) ride on macOS power assertions. Assertions stop the idle timer, but they can't override the hardware lid-close trigger, so a closed lid still sleeps the Mac. The KeepingYouAwake maintainer says it outright: "caffeinate doesn't support this." The one setting that overrides lid-close sleep is <code>pmset disablesleep</code>. Sleepless toggles exactly that, reads the value back so the menu bar never lies, and wraps it in safety nets.</p>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <p class="eyebrow">Small on purpose</p>
+    <h2 class="sec">Everything it does, nothing it doesn't</h2>
+    <div class="grid">
+      <div class="card"><div class="ico">☕</div><h3>One switch</h3><p>Click the coffee cup in the menu bar and flip the toggle. Empty cup is off, full cup is awake, full cup with a dot is awake on battery with the safety net live.</p></div>
+      <div class="card"><div class="ico">⏲️</div><h3>Auto-off timer</h3><p>Keep awake for 1 or 2 hours with a live countdown, then it turns itself off. In memory only, so quitting or rebooting clears it.</p></div>
+      <div class="card"><div class="ico">🔋</div><h3>Battery-floor cutoff</h3><p>Pick a floor from 5 to 50% (default 15%). On battery, it turns itself off before you run flat.</p></div>
+      <div class="card"><div class="ico">🪫</div><h3>Low Power Mode aware</h3><p>On battery, if Low Power Mode is on, Sleepless steps aside and lets the Mac sleep.</p></div>
+      <div class="card"><div class="ico">🖥️</div><h3>No display, no dongle</h3><p>Just the lid closed, on battery. No external monitor, no dummy HDMI plug, no clamshell adapter.</p></div>
+      <div class="card"><div class="ico">🪶</div><h3>Tiny and native</h3><p>One AppKit file with SF Symbols. No Dock icon, no background daemon, no kext, no dependencies.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <p class="eyebrow">How it works</p>
+    <h2 class="sec">One setting, flipped safely</h2>
+    <p class="lead">Sleepless toggles <code>pmset disablesleep</code>, which flips the kernel's <code>SleepDisabled</code> flag, then reverts it at your battery floor, in Low Power Mode, or when the timer ends. A reboot also resets it. Because a GUI app can't type a password, the installer adds a tightly scoped <code>/etc/sudoers.d</code> rule (root-owned, <code>0440</code>) that permits exactly two commands and nothing else:</p>
+    <div class="table-wrap" style="margin-top:18px"><table><tbody><tr class="me"><td style="text-align:left;padding:16px"><code>&lt;you&gt; ALL=(root) NOPASSWD: /usr/bin/pmset -a disablesleep 0, /usr/bin/pmset -a disablesleep 1</code></td></tr></tbody></table></div>
+    <div class="trust">
+      <div><b>Can't be widened</b><span>sudoers matches arguments literally with no wildcards, so any other command re-prompts for a password.</span></div>
+      <div><b>No helper to hijack</b><span>It calls Apple's /usr/bin/pmset directly with an argv array. No daemon, no shell, no helper script.</span></div>
+      <div><b>Always reversible</b><span>A reboot resets the flag, the floor and timer turn it off, and uninstall.sh removes the grant and proves it.</span></div>
+      <div><b>Verifiable downloads</b><span>Releases ship SHA-256 sums and a Sigstore build-provenance attestation. No Apple account needed to check.</span></div>
+    </div>
+    <p class="lead" style="margin-top:22px">Full threat model, the undocumented-but-real <code>disablesleep</code> evidence, and how to verify a download: <a href="https://github.com/Aboudjem/Sleepless/blob/main/SECURITY.md">SECURITY.md</a> and <a href="https://github.com/Aboudjem/Sleepless/blob/main/docs/AUDIT.md">AUDIT.md</a>.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <p class="eyebrow">As of 2026-06</p>
+    <h2 class="sec">Sleepless vs the alternatives</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>Sleepless</th><th>Amphetamine</th><th>KeepingYouAwake</th><th>caffeinate</th></tr></thead>
+        <tbody>
+          <tr class="me"><td>Awake, lid closed, no monitor</td><td class="yes">Yes ¹</td><td class="warn">Flaky ²</td><td class="no">No ³</td><td class="no">No</td></tr>
+          <tr><td>On battery</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Lid open</td><td class="warn">Partial ⁴</td></tr>
+          <tr><td>Auto-off timer</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td></tr>
+          <tr><td>Auto-off on low battery</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td></tr>
+          <tr><td>Open source</td><td class="yes">MIT</td><td class="no">App Store</td><td class="yes">MIT</td><td class="warn">Apple</td></tr>
+          <tr><td>Cost</td><td class="yes">Free</td><td class="yes">Free</td><td class="yes">Free</td><td class="yes">Free</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fn">¹ Sleepless uses <code>pmset disablesleep</code>, the mechanism built for lid-close, and reads the flag back so the UI reflects reality; behavior on any keep-awake tool is hardware and macOS-version dependent. ² Amphetamine documents closed-display mode but is widely reported to fail on Apple Silicon when the power source changes (Amphetamine-Enhancer #28); the app itself is closed source. ³ KeepingYouAwake cannot keep the lid closed by design, since it wraps <code>caffeinate</code> (issue #66). ⁴ <code>caffeinate -i</code> runs on battery; <code>-s</code> is AC-only.</p>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <p class="eyebrow">Questions</p>
+    <h2 class="sec">FAQ</h2>
+    <details><summary>How do I keep my MacBook awake with the lid closed without a monitor?</summary><p>Install Sleepless, click the coffee cup in the menu bar, flip the switch on, and close the lid. It keeps the Mac awake on battery with no external display, using <code>pmset disablesleep</code>. No dummy HDMI plug or clamshell adapter is needed.</p></details>
+    <details><summary>Why does my MacBook sleep when I close the lid even with Amphetamine or KeepingYouAwake?</summary><p>Those tools are built on macOS power assertions, which stop the idle timer but cannot override the hardware lid-close trigger. KeepingYouAwake wraps <code>caffeinate</code>, which its maintainer confirms cannot do lid-close. <code>pmset disablesleep</code>, which Sleepless uses, is a lower-level setting that can.</p></details>
+    <details><summary>Does pmset disablesleep still work on Apple Silicon (M1/M2/M3)?</summary><p><code>pmset -a disablesleep 1</code> still sets the <code>SleepDisabled</code> flag on Apple Silicon and, in firsthand reports, keeps a MacBook awake with the lid closed on battery, but Apple does not officially document the setting, so its exact behavior can vary by model and macOS version. Verify it with <code>pmset -g | grep SleepDisabled</code>. Most claims that it stopped working describe <code>caffeinate</code>, a different mechanism.</p></details>
+    <details><summary>Is it safe to run a MacBook with the lid closed? Will it overheat or drain the battery?</summary><p>It is safe for light, unattended work like downloads, syncs, or a hotspot. Heavy sustained load with the lid fully closed reduces airflow, so use judgement there. Sleepless turns itself off at the floor you set and in Low Power Mode, and the auto-off timer caps how long it stays on.</p></details>
+    <details><summary>Does Sleepless require sudo, a kernel extension, or a background daemon?</summary><p>It needs one tightly scoped <code>sudo</code> grant (two exact <code>pmset</code> commands, nothing else) so a GUI app can flip the setting without a password prompt. There is no kernel extension and no background daemon. The whole app is a single AppKit file.</p></details>
+    <details><summary>Can I run AI agents or long jobs overnight with the lid closed?</summary><p>Yes. Switch Sleepless on, set a battery floor, close the lid, and an agent run, build, render, or training job keeps going. Plug in for an all-nighter, or stay on battery with a floor and timer so it stops itself before the battery runs low.</p></details>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footlinks">
+      <a href="https://github.com/Aboudjem/Sleepless">GitHub</a>
+      <a href="https://github.com/Aboudjem/Sleepless/blob/main/README.md">Docs</a>
+      <a href="https://github.com/Aboudjem/Sleepless/blob/main/SECURITY.md">Security</a>
+      <a href="https://github.com/Aboudjem/Sleepless/blob/main/docs/AUDIT.md">Audit</a>
+      <a href="https://github.com/Aboudjem/Sleepless/releases/latest">Releases</a>
+    </div>
+    <p>Open source, MIT licensed. Built by <a href="https://github.com/Aboudjem">Adam Boudjemaa</a>.<br>Sleepless is not affiliated with Apple. macOS is a trademark of Apple Inc.</p>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var b=document.getElementById('copyBrew');
+    if(b&&navigator.clipboard){b.addEventListener('click',function(){
+      navigator.clipboard.writeText(b.dataset.cmd).then(function(){
+        var t=b.textContent; b.textContent='Copied'; setTimeout(function(){b.textContent=t;},1400);
+      });
+    });}
+  })();
+</script>
+</body>
+</html>
