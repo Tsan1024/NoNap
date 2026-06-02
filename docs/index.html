@@ -3,33 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sleepless: keep your MacBook awake with the lid closed</title>
+<title>Sleepless: keep your Mac awake with the lid closed</title>
 <meta name="description" content="Sleepless keeps your MacBook awake with the lid closed, on battery, with no external display. A native menu-bar app using pmset disablesleep, with an auto-off timer and a battery-floor cutoff. Open source, MIT.">
 <link rel="canonical" href="https://aboudjem.github.io/Sleepless/">
-<meta name="theme-color" content="#0a0812">
+<meta name="theme-color" content="#FBFAF8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16140F" media="(prefers-color-scheme: dark)">
 
-<!-- Open Graph / social -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="Sleepless: keep your MacBook awake with the lid closed">
+<meta property="og:title" content="Sleepless: keep your Mac awake with the lid closed">
 <meta property="og:description" content="Native macOS menu-bar app that keeps your MacBook awake lid-closed, on battery, no external display. pmset disablesleep, done safely. Open source, MIT.">
 <meta property="og:url" content="https://aboudjem.github.io/Sleepless/">
 <meta property="og:image" content="https://aboudjem.github.io/Sleepless/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Sleepless: keep your MacBook awake with the lid closed">
+<meta name="twitter:title" content="Sleepless: keep your Mac awake with the lid closed">
 <meta name="twitter:description" content="Native macOS menu-bar app. Lid closed, on battery, no external display. pmset disablesleep, done safely. Open source, MIT.">
 <meta name="twitter:image" content="https://aboudjem.github.io/Sleepless/og.png">
 
 <link rel="icon" type="image/png" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 
-<!-- Fonts: Clash Display (display) via Fontshare, Space Grotesk (body) via Google -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://api.fontshare.com" crossorigin>
-<link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&display=swap" rel="stylesheet">
 
-<!-- JSON-LD: software application + FAQ (GEO) -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -59,124 +55,188 @@
 
 <style>
   :root{
-    --bg:#0a0812; --bg2:#120a1f; --panel:#15101f; --panel-2:#1b1430;
-    --ink:#f4f1fb; --muted:#a99fc4; --faint:#7d7398;
-    --cyan:#00D4FF; --pink:#FF006E; --violet:#7C3AED;
-    --line:rgba(124,58,237,.22); --line-2:rgba(0,212,255,.18);
-    --radius:16px; --maxw:1080px;
+    --bg:#FBFAF8; --bg-elevated:#FFFFFF; --bg-sunken:#F2F0EC;
+    --ink:#1A1714; --ink-2:#52493F; --ink-3:#8A7F73; --line:#E7E2DA;
+    --accent:#B45309; --accent-hover:#92400E; --accent-soft:#FDF3E7;
+    --ok:#15803D; --no:#B42318; --warn:#B45309; --btn-ink:#FFFFFF;
+    --maxw:1040px; --radius:12px;
+    --shadow-sm:0 1px 2px rgba(26,23,20,.06),0 1px 1px rgba(26,23,20,.04);
+    --shadow-lg:0 24px 60px -20px rgba(26,23,20,.22),0 8px 20px -12px rgba(26,23,20,.14);
+    --font-sans:"Inter Tight","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --font-body:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --font-mono:ui-monospace,"SF Mono","Berkeley Mono",Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#16140F; --bg-elevated:#211D17; --bg-sunken:#1C1813;
+      --ink:#F4F0E8; --ink-2:#C2B8A8; --ink-3:#8A7F6F; --line:#332D24;
+      --accent:#F0A35E; --accent-hover:#F6B878; --accent-soft:#241B12;
+      --ok:#4ADE80; --no:#F87171; --warn:#F0A35E; --btn-ink:#1A1714;
+      --shadow-lg:0 24px 60px -20px rgba(0,0,0,.6),0 8px 20px -12px rgba(0,0,0,.4);
+    }
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
-  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
   body{
     margin:0; background:var(--bg); color:var(--ink);
-    font-family:"Space Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-    line-height:1.6; -webkit-font-smoothing:antialiased;
-    background-image:
-      radial-gradient(1100px 600px at 78% -8%, rgba(0,212,255,.10), transparent 60%),
-      radial-gradient(900px 540px at 10% 0%, rgba(255,0,110,.10), transparent 55%),
-      radial-gradient(1000px 700px at 50% 110%, rgba(124,58,237,.14), transparent 60%);
+    font-family:var(--font-body); font-size:16px; line-height:1.55;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
   }
-  a{color:var(--cyan); text-decoration:none}
-  a:hover{text-decoration:underline}
-  h1,h2,h3{font-family:"Clash Display",-apple-system,BlinkMacSystemFont,sans-serif; line-height:1.1; letter-spacing:-.01em; margin:0}
-  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 22px}
-  .nav{display:flex; align-items:center; justify-content:space-between; padding:22px 22px; max-width:var(--maxw); margin:0 auto}
-  .brand{display:flex; align-items:center; gap:10px; font-family:"Clash Display"; font-weight:700; font-size:20px}
-  .brand img{width:30px; height:30px; border-radius:8px}
-  .nav-links{display:flex; gap:22px; font-size:15px}
-  .nav-links a{color:var(--muted)}
+  a{color:var(--accent); text-decoration:none}
+  a:hover{color:var(--accent-hover); text-decoration:underline}
+  h1,h2,h3{font-family:var(--font-sans); letter-spacing:-.015em; margin:0}
+  code{font-family:var(--font-mono); font-size:.9em; background:var(--bg-sunken); color:var(--accent); padding:1px 6px; border-radius:5px; border:1px solid var(--line)}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 24px}
+  .eyebrow{font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); font-weight:600; margin:0 0 10px}
+  h2.sec{font-size:clamp(26px,3.4vw,34px); font-weight:700; margin:0 0 10px}
+  .lead{color:var(--ink-2); max-width:64ch; font-size:18px; margin:0}
+  section{padding:80px 0}
+  @media(max-width:640px){section{padding:52px 0}}
+
+  /* Nav */
+  .nav{position:sticky; top:0; z-index:50; backdrop-filter:saturate(120%) blur(12px); background:color-mix(in srgb, var(--bg) 82%, transparent); border-bottom:1px solid transparent; transition:border-color .2s ease}
+  .nav.scrolled{border-bottom-color:var(--line)}
+  .nav-in{display:flex; align-items:center; justify-content:space-between; max-width:var(--maxw); margin:0 auto; padding:14px 24px}
+  .brand{display:flex; align-items:center; gap:10px; font-family:var(--font-sans); font-weight:700; font-size:18px; color:var(--ink)}
+  .brand:hover{text-decoration:none}
+  .brand img{width:26px; height:26px; border-radius:7px}
+  .nav-links{display:flex; gap:24px; font-size:15px}
+  .nav-links a{color:var(--ink-2)}
   .nav-links a:hover{color:var(--ink); text-decoration:none}
+  @media(max-width:640px){.nav-links a:not(:last-child){display:none}}
 
   /* Hero */
-  .hero{text-align:center; padding:64px 0 36px}
-  .hero img.app-icon{width:104px; height:104px; border-radius:24px; box-shadow:0 18px 60px rgba(124,58,237,.45), 0 0 0 1px rgba(255,255,255,.06)}
-  .hero h1{font-size:clamp(40px,7vw,76px); font-weight:700; margin:22px 0 0}
-  .grad{background:linear-gradient(100deg,var(--cyan),var(--violet) 55%,var(--pink)); -webkit-background-clip:text; background-clip:text; color:transparent}
-  .tag{font-size:clamp(17px,2.4vw,22px); color:var(--muted); max-width:660px; margin:18px auto 0}
-  .tag b{color:var(--ink); font-weight:600}
-  .cta{display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-top:30px}
-  .btn{display:inline-flex; align-items:center; gap:9px; padding:13px 22px; border-radius:12px; font-weight:600; font-size:15px; border:1px solid transparent; transition:transform .15s ease, box-shadow .15s ease}
-  .btn:hover{text-decoration:none; transform:translateY(-2px)}
-  .btn-primary{background:linear-gradient(100deg,var(--cyan),var(--violet)); color:#0a0812; box-shadow:0 10px 30px rgba(0,212,255,.28)}
-  .btn-ghost{background:rgba(255,255,255,.04); color:var(--ink); border-color:var(--line)}
-  .brewbar{display:inline-flex; align-items:center; gap:12px; margin:26px auto 0; padding:10px 12px 10px 18px; background:var(--panel); border:1px solid var(--line); border-radius:12px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:14px; color:var(--ink)}
-  .brewbar .dollar{color:var(--faint)}
-  .copy{cursor:pointer; border:1px solid var(--line-2); background:rgba(0,212,255,.08); color:var(--cyan); padding:6px 12px; border-radius:8px; font:inherit; font-size:13px}
-  .copy:hover{background:rgba(0,212,255,.16)}
-  .meta{margin-top:18px; color:var(--faint); font-size:14px}
+  .hero{display:grid; grid-template-columns:1.05fr .95fr; gap:48px; align-items:center; padding:72px 0 56px}
+  @media(max-width:860px){.hero{grid-template-columns:1fr; gap:36px; text-align:center; padding:48px 0 32px}}
+  .hero-icon{width:64px; height:64px; border-radius:16px; box-shadow:var(--shadow-sm); margin-bottom:22px}
+  @media(max-width:860px){.hero-icon{margin-inline:auto}}
+  .hero h1{font-size:clamp(38px,5.4vw,58px); font-weight:700; letter-spacing:-.022em; line-height:1.05; color:var(--ink)}
+  .hero h1 .muted{color:var(--ink-2)}
+  .hero .lead{margin-top:18px; font-size:18px}
+  @media(max-width:860px){.hero .lead{margin-inline:auto}}
+  .cta{display:flex; gap:12px; margin-top:28px; flex-wrap:wrap}
+  @media(max-width:860px){.cta{justify-content:center}}
+  .btn{display:inline-flex; align-items:center; gap:8px; padding:12px 20px; border-radius:10px; font-weight:600; font-size:15px; font-family:var(--font-body); border:1px solid transparent; transition:transform .16s ease, box-shadow .16s ease, background .16s ease}
+  .btn:hover{text-decoration:none; transform:translateY(-1px)}
+  .btn-primary{background:var(--accent); color:var(--btn-ink); box-shadow:var(--shadow-sm)}
+  .btn-primary:hover{background:var(--accent-hover); color:var(--btn-ink)}
+  .btn-ghost{background:transparent; color:var(--ink); border-color:var(--line)}
+  .btn-ghost:hover{background:var(--bg-sunken); color:var(--ink)}
+  .brewbar{display:inline-flex; align-items:center; gap:12px; margin-top:20px; padding:10px 10px 10px 16px; background:var(--bg-sunken); border:1px solid var(--line); border-radius:10px; font-family:var(--font-mono); font-size:13.5px; color:var(--ink)}
+  @media(max-width:860px){.brewbar{margin-inline:auto}}
+  .brewbar .dollar{color:var(--ink-3)}
+  .copy{cursor:pointer; border:1px solid var(--line); background:var(--bg-elevated); color:var(--ink-2); padding:6px 12px; border-radius:7px; font:inherit; font-size:12px}
+  .copy:hover{border-color:var(--accent); color:var(--accent)}
+  .meta{margin-top:16px; color:var(--ink-3); font-size:13px}
+  @media(max-width:860px){.meta{text-align:center}}
+  .shot-plate{background:var(--bg-sunken); border:1px solid var(--line); border-radius:20px; padding:22px; display:flex; justify-content:center}
+  .shot-plate img{max-width:100%; height:auto; border-radius:12px; box-shadow:var(--shadow-lg)}
 
-  .shot{margin:30px auto 0; max-width:820px}
-  .shot img{width:100%; border-radius:var(--radius); border:1px solid var(--line); box-shadow:0 24px 70px rgba(0,0,0,.5)}
+  /* generic card grid */
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:28px}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+  .tile{background:var(--bg-elevated); border:1px solid var(--line); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow-sm)}
+  .tile .ic{width:22px; height:22px; color:var(--accent); margin-bottom:10px}
+  .tile h3{font-size:16px; font-weight:600; font-family:var(--font-body); margin:0 0 4px}
+  .tile p{margin:0; color:var(--ink-2); font-size:14.5px}
 
-  section{padding:52px 0}
-  .eyebrow{font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--cyan); font-weight:600}
-  h2.sec{font-size:clamp(28px,4vw,40px); font-weight:700; margin:10px 0 8px}
-  .lead{color:var(--muted); max-width:720px; font-size:17px}
+  /* mechanism steps */
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:26px}
+  @media(max-width:760px){.steps{grid-template-columns:1fr}}
+  .step{border:1px solid var(--line); border-radius:var(--radius); padding:20px; background:var(--bg-elevated)}
+  .step .n{font-family:var(--font-mono); color:var(--accent); font-weight:600; font-size:14px}
+  .step p{margin:8px 0 0; color:var(--ink-2); font-size:14.5px}
+  .quote{margin:24px 0 0; padding:14px 18px; border-left:3px solid var(--accent); background:var(--bg-sunken); border-radius:0 8px 8px 0; color:var(--ink); font-size:15px}
+  .quote cite{display:block; margin-top:6px; color:var(--ink-3); font-style:normal; font-family:var(--font-mono); font-size:12.5px}
 
-  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:18px; margin-top:30px}
-  .card{background:linear-gradient(180deg,var(--panel),var(--panel-2)); border:1px solid var(--line); border-radius:var(--radius); padding:22px}
-  .card .ico{font-size:24px}
-  .card h3{font-size:18px; font-weight:600; margin:12px 0 6px; font-family:"Space Grotesk"}
-  .card p{color:var(--muted); font-size:15px; margin:0}
+  /* feature spec list */
+  .specs{display:grid; grid-template-columns:1fr 1fr; gap:0 44px; margin-top:28px}
+  @media(max-width:640px){.specs{grid-template-columns:1fr}}
+  .spec{display:grid; grid-template-columns:22px 1fr; gap:14px; padding:16px 0; border-bottom:1px solid var(--line)}
+  .spec svg{width:20px; height:20px; color:var(--ink-2); margin-top:2px}
+  .spec h3{font-size:16px; font-weight:600; font-family:var(--font-body); margin:0 0 2px}
+  .spec p{margin:0; color:var(--ink-2); font-size:14.5px}
 
-  .table-wrap{overflow-x:auto; margin-top:26px; border:1px solid var(--line); border-radius:var(--radius)}
-  table{border-collapse:collapse; width:100%; min-width:560px; font-size:15px}
-  th,td{padding:14px 16px; text-align:center; border-bottom:1px solid rgba(255,255,255,.06)}
-  th:first-child,td:first-child{text-align:left; color:var(--muted)}
-  thead th{background:rgba(124,58,237,.10); font-family:"Space Grotesk"; font-weight:600; color:var(--ink)}
+  /* code block */
+  .codeblock{margin-top:22px; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; background:var(--bg-sunken)}
+  .codeblock .fname{padding:8px 14px; font-family:var(--font-mono); font-size:12px; color:var(--ink-3); border-bottom:1px solid var(--line); background:var(--bg-elevated)}
+  .codeblock pre{margin:0; padding:14px; overflow-x:auto; font-family:var(--font-mono); font-size:13px; color:var(--ink); line-height:1.5}
+
+  /* comparison table */
+  .table-wrap{margin-top:26px; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; overflow-x:auto; background:var(--bg-elevated)}
+  table{border-collapse:collapse; width:100%; min-width:600px; font-size:14.5px}
+  th,td{padding:13px 16px; text-align:center; border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left; color:var(--ink-2); font-weight:500}
+  thead th{background:var(--bg-sunken); font-weight:600; color:var(--ink)}
+  thead th.me{background:var(--accent-soft)}
+  tbody td.me{background:var(--accent-soft)}
+  .me-h{display:inline-flex; align-items:center; gap:7px}
+  .me-h img{width:18px; height:18px; border-radius:5px}
   tbody tr:last-child td{border-bottom:none}
-  .me{background:rgba(0,212,255,.06)}
-  .me td{color:var(--ink); font-weight:500}
-  .yes{color:#3ddc97} .no{color:#ff5d73} .warn{color:#ffc24b}
-  .fn{color:var(--faint); font-size:13px; margin-top:12px; max-width:880px}
+  .yes{color:var(--ok); font-weight:600}.no{color:var(--no)}.warn{color:var(--warn)}
+  .fn{color:var(--ink-3); font-size:13px; margin-top:14px; max-width:880px}
 
-  details{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:0 18px; margin-top:12px}
-  details[open]{background:var(--panel-2)}
-  summary{cursor:pointer; padding:16px 0; font-weight:600; list-style:none; color:var(--ink)}
+  /* FAQ */
+  details{border:1px solid var(--line); border-radius:var(--radius); margin-top:10px; background:var(--bg-elevated); overflow:hidden}
+  summary{cursor:pointer; padding:16px 18px; font-weight:600; list-style:none; color:var(--ink); display:flex; justify-content:space-between; align-items:center; gap:16px}
   summary::-webkit-details-marker{display:none}
-  summary::after{content:"+"; float:right; color:var(--cyan); font-size:20px; line-height:1}
-  details[open] summary::after{content:"–"}
-  details p{color:var(--muted); margin:0 0 16px; font-size:15px}
-  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; background:rgba(0,212,255,.08); color:var(--cyan); padding:1px 6px; border-radius:5px; font-size:.9em}
+  summary::after{content:""; width:9px; height:9px; border-right:2px solid var(--accent); border-bottom:2px solid var(--accent); transform:rotate(45deg); transition:transform .2s ease; flex:none; margin-right:4px}
+  details[open] summary::after{transform:rotate(225deg)}
+  details[open]{box-shadow:var(--shadow-sm)}
+  details p{padding:0 18px 18px; margin:0; color:var(--ink-2); font-size:15px}
 
-  .trust{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-top:28px}
-  .trust div{border:1px solid var(--line-2); border-radius:12px; padding:18px; background:rgba(0,212,255,.03)}
-  .trust b{display:block; color:var(--ink); font-family:"Clash Display"; font-size:17px; margin-bottom:4px}
-  .trust span{color:var(--muted); font-size:14px}
+  /* install band */
+  .band{background:var(--bg-sunken); border-top:1px solid var(--line); border-bottom:1px solid var(--line); text-align:center}
+  .band .wrap{padding:64px 24px}
+  .band img{width:56px; height:56px; border-radius:14px; box-shadow:var(--shadow-sm)}
+  .band h2{margin:18px 0 8px}
+  .band .lead{margin:0 auto}
+  .band .row{display:flex; gap:12px; justify-content:center; align-items:center; flex-wrap:wrap; margin-top:24px}
 
-  footer{border-top:1px solid var(--line); margin-top:30px; padding:34px 0 60px; color:var(--faint); font-size:14px; text-align:center}
-  footer a{color:var(--muted)}
-  .footlinks{display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin-bottom:16px}
+  footer{padding:40px 0 64px; color:var(--ink-3); font-size:14px; text-align:center; border-top:1px solid var(--line)}
+  footer a{color:var(--ink-2)}
+  .footlinks{display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin-bottom:14px}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; scroll-behavior:auto!important}
+  }
 </style>
 </head>
 <body>
 
-<nav class="nav">
-  <a class="brand" href="#top"><img src="icon.png" alt="Sleepless icon"> Sleepless</a>
-  <div class="nav-links">
-    <a href="#how">How it works</a>
-    <a href="#compare">Compare</a>
-    <a href="#faq">FAQ</a>
-    <a href="https://github.com/Aboudjem/Sleepless">GitHub</a>
+<nav class="nav" id="nav">
+  <div class="nav-in">
+    <a class="brand" href="#top"><img src="icon.png" alt="">Sleepless</a>
+    <div class="nav-links">
+      <a href="#why">How it works</a>
+      <a href="#compare">Compare</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/Aboudjem/Sleepless">GitHub</a>
+    </div>
   </div>
 </nav>
 
-<header class="hero" id="top">
-  <div class="wrap">
-    <img class="app-icon" src="icon.png" alt="Sleepless app icon, a coffee cup">
-    <h1>Keep your Mac awake,<br><span class="grad">lid closed.</span></h1>
-    <p class="tag"><b>Sleepless keeps your MacBook awake with the lid closed, on battery, with no external display.</b> One native menu-bar switch, with an auto-off timer and a battery-floor cutoff so you never drain it flat.</p>
-    <div class="cta">
-      <a class="btn btn-primary" href="https://github.com/Aboudjem/Sleepless/releases/latest">Download for macOS</a>
-      <a class="btn btn-ghost" href="https://github.com/Aboudjem/Sleepless">View source on GitHub</a>
+<header id="top">
+  <div class="wrap hero">
+    <div class="hero-copy">
+      <img class="hero-icon" src="icon.png" alt="Sleepless app icon, a coffee cup">
+      <h1>Keep your Mac awake.<br><span class="muted">Lid closed.</span></h1>
+      <p class="lead">Sleepless keeps your MacBook awake with the lid closed, on battery, with no external display. One native menu-bar switch, with an auto-off timer and a battery-floor cutoff so you never drain it flat.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="https://github.com/Aboudjem/Sleepless/releases/latest">Download for macOS</a>
+        <a class="btn btn-ghost" href="https://github.com/Aboudjem/Sleepless">View source on GitHub</a>
+      </div>
+      <div class="brewbar">
+        <span><span class="dollar">$ </span>brew install --cask aboudjem/tap/sleepless</span>
+        <button class="copy" id="copyBrew" data-cmd="brew install --cask aboudjem/tap/sleepless">Copy</button>
+      </div>
+      <p class="meta">macOS 26 · Apple Silicon · MIT · no Dock icon, no daemon, no kext</p>
     </div>
-    <div class="brewbar">
-      <span><span class="dollar">$</span> brew install --cask aboudjem/tap/sleepless</span>
-      <button class="copy" id="copyBrew" data-cmd="brew install --cask aboudjem/tap/sleepless">Copy</button>
+    <div class="hero-visual">
+      <div class="shot-plate">
+        <img src="screenshot-popover.png" alt="The Sleepless menu-bar popover: a switch, an auto-off timer, a battery-floor slider, and a launch-at-login toggle">
+      </div>
     </div>
-    <p class="meta">macOS 26 · Apple Silicon · MIT · no Dock icon, no daemon, no kext</p>
-    <div class="shot"><img src="demo.gif" alt="Sleepless demo: flip the switch, set an auto-off timer, drag the battery-floor slider"></div>
   </div>
 </header>
 
@@ -184,7 +244,13 @@
   <div class="wrap">
     <p class="eyebrow">The one that actually does it</p>
     <h2 class="sec">Why other keep-awake apps can't do this</h2>
-    <p class="lead">Most keep-awake apps (KeepingYouAwake, Caffeine, Theine, and the built-in <code>caffeinate</code>) ride on macOS power assertions. Assertions stop the idle timer, but they can't override the hardware lid-close trigger, so a closed lid still sleeps the Mac. The KeepingYouAwake maintainer says it outright: "caffeinate doesn't support this." The one setting that overrides lid-close sleep is <code>pmset disablesleep</code>. Sleepless toggles exactly that, reads the value back so the menu bar never lies, and wraps it in safety nets.</p>
+    <p class="lead">Most keep-awake apps ride on macOS power assertions. Assertions stop the idle timer, but they can't override the hardware lid-close trigger, so a closed lid still sleeps the Mac. Sleepless flips the one setting that can.</p>
+    <div class="steps">
+      <div class="step"><span class="n">01</span><p>Power assertions (Caffeine, Theine, <code>caffeinate</code>) stop the idle timer, but not the lid-close trigger.</p></div>
+      <div class="step"><span class="n">02</span><p>So a closed lid still sleeps the Mac, even with Amphetamine or KeepingYouAwake.</p></div>
+      <div class="step"><span class="n">03</span><p><code>pmset disablesleep</code> overrides lid-close sleep. Sleepless flips exactly that, reads it back, and adds safety nets.</p></div>
+    </div>
+    <blockquote class="quote">“I will probably never support this option because <code>caffeinate</code> doesn't support this. KYA uses <code>caffeinate</code> under the hood.”<cite>KeepingYouAwake maintainer, issue #66</cite></blockquote>
   </div>
 </section>
 
@@ -192,13 +258,31 @@
   <div class="wrap">
     <p class="eyebrow">Small on purpose</p>
     <h2 class="sec">Everything it does, nothing it doesn't</h2>
-    <div class="grid">
-      <div class="card"><div class="ico">☕</div><h3>One switch</h3><p>Click the coffee cup in the menu bar and flip the toggle. Empty cup is off, full cup is awake, full cup with a dot is awake on battery with the safety net live.</p></div>
-      <div class="card"><div class="ico">⏲️</div><h3>Auto-off timer</h3><p>Keep awake for 1 or 2 hours with a live countdown, then it turns itself off. In memory only, so quitting or rebooting clears it.</p></div>
-      <div class="card"><div class="ico">🔋</div><h3>Battery-floor cutoff</h3><p>Pick a floor from 5 to 50% (default 15%). On battery, it turns itself off before you run flat.</p></div>
-      <div class="card"><div class="ico">🪫</div><h3>Low Power Mode aware</h3><p>On battery, if Low Power Mode is on, Sleepless steps aside and lets the Mac sleep.</p></div>
-      <div class="card"><div class="ico">🖥️</div><h3>No display, no dongle</h3><p>Just the lid closed, on battery. No external monitor, no dummy HDMI plug, no clamshell adapter.</p></div>
-      <div class="card"><div class="ico">🪶</div><h3>Tiny and native</h3><p>One AppKit file with SF Symbols. No Dock icon, no background daemon, no kext, no dependencies.</p></div>
+    <div class="specs">
+      <div class="spec">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="5"/><circle cx="16" cy="12" r="3"/></svg>
+        <div><h3>One switch</h3><p>Click the coffee cup, flip the toggle. Empty cup is off, full cup is awake, full cup with a dot is awake on battery.</p></div>
+      </div>
+      <div class="spec">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2"/><path d="M9 2h6"/></svg>
+        <div><h3>Auto-off timer</h3><p>Keep awake for 1 or 2 hours with a live countdown, then it turns itself off. In memory only.</p></div>
+      </div>
+      <div class="spec">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="10" rx="2.5"/><path d="M22 11v2"/><path d="M5.5 10v4"/></svg>
+        <div><h3>Battery-floor cutoff</h3><p>Pick a floor from 5 to 50% (default 15%). On battery, it turns itself off before you run flat.</p></div>
+      </div>
+      <div class="spec">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13c0-5 5-9 16-9 0 9-4 16-9 16Z"/><path d="M4 20c4-5 7-7 11-8"/></svg>
+        <div><h3>Low Power Mode aware</h3><p>On battery, if Low Power Mode is on, Sleepless steps aside and lets the Mac sleep.</p></div>
+      </div>
+      <div class="spec">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m4 3 16 16"/></svg>
+        <div><h3>No display, no dongle</h3><p>Just the lid closed, on battery. No external monitor, no dummy HDMI plug.</p></div>
+      </div>
+      <div class="spec">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4 9 15M20 4l-7 16-3-7-7-3 17-6Z"/></svg>
+        <div><h3>Tiny and native</h3><p>One AppKit file with SF Symbols. No Dock icon, no background daemon, no kext, no dependencies.</p></div>
+      </div>
     </div>
   </div>
 </section>
@@ -207,15 +291,18 @@
   <div class="wrap">
     <p class="eyebrow">How it works</p>
     <h2 class="sec">One setting, flipped safely</h2>
-    <p class="lead">Sleepless toggles <code>pmset disablesleep</code>, which flips the kernel's <code>SleepDisabled</code> flag, then reverts it at your battery floor, in Low Power Mode, or when the timer ends. A reboot also resets it. Because a GUI app can't type a password, the installer adds a tightly scoped <code>/etc/sudoers.d</code> rule (root-owned, <code>0440</code>) that permits exactly two commands and nothing else:</p>
-    <div class="table-wrap" style="margin-top:18px"><table><tbody><tr class="me"><td style="text-align:left;padding:16px"><code>&lt;you&gt; ALL=(root) NOPASSWD: /usr/bin/pmset -a disablesleep 0, /usr/bin/pmset -a disablesleep 1</code></td></tr></tbody></table></div>
-    <div class="trust">
-      <div><b>Can't be widened</b><span>sudoers matches arguments literally with no wildcards, so any other command re-prompts for a password.</span></div>
-      <div><b>No helper to hijack</b><span>It calls Apple's /usr/bin/pmset directly with an argv array. No daemon, no shell, no helper script.</span></div>
-      <div><b>Always reversible</b><span>A reboot resets the flag, the floor and timer turn it off, and uninstall.sh removes the grant and proves it.</span></div>
-      <div><b>Verifiable downloads</b><span>Releases ship SHA-256 sums and a Sigstore build-provenance attestation. No Apple account needed to check.</span></div>
+    <p class="lead">Sleepless toggles <code>pmset disablesleep</code>, which flips the kernel's <code>SleepDisabled</code> flag, then reverts it at your battery floor, in Low Power Mode, or when the timer ends. A reboot also resets it. Because a GUI app can't type a password, the installer adds a tightly scoped sudoers rule that permits exactly two commands and nothing else.</p>
+    <div class="codeblock">
+      <div class="fname">/etc/sudoers.d/sleepless</div>
+      <pre>&lt;you&gt; ALL=(root) NOPASSWD: /usr/bin/pmset -a disablesleep 0, /usr/bin/pmset -a disablesleep 1</pre>
     </div>
-    <p class="lead" style="margin-top:22px">Full threat model, the undocumented-but-real <code>disablesleep</code> evidence, and how to verify a download: <a href="https://github.com/Aboudjem/Sleepless/blob/main/SECURITY.md">SECURITY.md</a> and <a href="https://github.com/Aboudjem/Sleepless/blob/main/docs/AUDIT.md">AUDIT.md</a>.</p>
+    <div class="grid2">
+      <div class="tile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg><h3>Can't be widened</h3><p>sudoers matches arguments literally with no wildcards, so any other command re-prompts for a password.</p></div>
+      <div class="tile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><h3>No helper to hijack</h3><p>It calls Apple's /usr/bin/pmset directly with an argv array. No daemon, no shell, no helper script.</p></div>
+      <div class="tile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg><h3>Always reversible</h3><p>A reboot resets the flag, the floor and timer turn it off, and uninstall.sh removes the grant and proves it.</p></div>
+      <div class="tile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg><h3>Verifiable downloads</h3><p>Releases ship SHA-256 sums and a Sigstore build-provenance attestation. No Apple account needed to check.</p></div>
+    </div>
+    <p class="lead" style="margin-top:22px; font-size:16px">Full threat model and verification: <a href="https://github.com/Aboudjem/Sleepless/blob/main/SECURITY.md">SECURITY.md</a> and <a href="https://github.com/Aboudjem/Sleepless/blob/main/docs/AUDIT.md">AUDIT.md</a>.</p>
   </div>
 </section>
 
@@ -225,14 +312,14 @@
     <h2 class="sec">Sleepless vs the alternatives</h2>
     <div class="table-wrap">
       <table>
-        <thead><tr><th></th><th>Sleepless</th><th>Amphetamine</th><th>KeepingYouAwake</th><th>caffeinate</th></tr></thead>
+        <thead><tr><th></th><th class="me"><span class="me-h"><img src="icon.png" alt="">Sleepless</span></th><th>Amphetamine</th><th>KeepingYouAwake</th><th>caffeinate</th></tr></thead>
         <tbody>
-          <tr class="me"><td>Awake, lid closed, no monitor</td><td class="yes">Yes ¹</td><td class="warn">Flaky ²</td><td class="no">No ³</td><td class="no">No</td></tr>
-          <tr><td>On battery</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Lid open</td><td class="warn">Partial ⁴</td></tr>
-          <tr><td>Auto-off timer</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td></tr>
-          <tr><td>Auto-off on low battery</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td></tr>
-          <tr><td>Open source</td><td class="yes">MIT</td><td class="no">App Store</td><td class="yes">MIT</td><td class="warn">Apple</td></tr>
-          <tr><td>Cost</td><td class="yes">Free</td><td class="yes">Free</td><td class="yes">Free</td><td class="yes">Free</td></tr>
+          <tr><td>Awake, lid closed, no monitor</td><td class="me yes">Yes ¹</td><td class="warn">Flaky ²</td><td class="no">No ³</td><td class="no">No</td></tr>
+          <tr><td>On battery</td><td class="me yes">Yes</td><td class="yes">Yes</td><td>Lid open</td><td class="warn">Partial ⁴</td></tr>
+          <tr><td>Auto-off timer</td><td class="me yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td></tr>
+          <tr><td>Auto-off on low battery</td><td class="me yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td></tr>
+          <tr><td>Open source</td><td class="me yes">MIT</td><td class="no">App Store</td><td class="yes">MIT</td><td class="warn">Apple</td></tr>
+          <tr><td>Cost</td><td class="me yes">Free</td><td class="yes">Free</td><td class="yes">Free</td><td class="yes">Free</td></tr>
         </tbody>
       </table>
     </div>
@@ -253,6 +340,18 @@
   </div>
 </section>
 
+<section class="band">
+  <div class="wrap">
+    <img src="icon.png" alt="Sleepless app icon">
+    <h2 class="sec">Keep it awake in two minutes</h2>
+    <p class="lead">Install with Homebrew, or build it from source and read every line first.</p>
+    <div class="row">
+      <div class="brewbar"><span><span class="dollar">$ </span>brew install --cask aboudjem/tap/sleepless</span><button class="copy" data-cmd="brew install --cask aboudjem/tap/sleepless">Copy</button></div>
+      <a class="btn btn-primary" href="https://github.com/Aboudjem/Sleepless/releases/latest">Download for macOS</a>
+    </div>
+  </div>
+</section>
+
 <footer>
   <div class="wrap">
     <div class="footlinks">
@@ -268,12 +367,13 @@
 
 <script>
   (function(){
-    var b=document.getElementById('copyBrew');
-    if(b&&navigator.clipboard){b.addEventListener('click',function(){
-      navigator.clipboard.writeText(b.dataset.cmd).then(function(){
-        var t=b.textContent; b.textContent='Copied'; setTimeout(function(){b.textContent=t;},1400);
-      });
-    });}
+    var b=document.querySelectorAll('.copy');
+    b.forEach(function(btn){ if(navigator.clipboard) btn.addEventListener('click',function(){
+      navigator.clipboard.writeText(btn.dataset.cmd).then(function(){ var t=btn.textContent; btn.textContent='Copied'; setTimeout(function(){btn.textContent=t;},1400); });
+    });});
+    var nav=document.getElementById('nav');
+    var onScroll=function(){ nav.classList.toggle('scrolled', window.scrollY>8); };
+    onScroll(); window.addEventListener('scroll', onScroll, {passive:true});
   })();
 </script>
 </body>
