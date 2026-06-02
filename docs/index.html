@@ -74,7 +74,7 @@
   @property --angle{ syntax:"<angle>"; inherits:false; initial-value:0deg; }
 
   *{box-sizing:border-box}
-  html{scroll-behavior:smooth}
+  html{scroll-behavior:smooth; overflow-x:clip}
   body{
     margin:0; background:var(--bg); color:var(--ink);
     font-family:var(--font-sans); font-size:16px; line-height:1.6;
@@ -145,9 +145,10 @@
   @keyframes spin{to{--angle:360deg}}
   .btn-ghost{background:var(--glass-2); color:var(--ink); border-color:var(--glass-brd); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px)}
   .btn-ghost:hover{border-color:var(--accent); color:var(--ink)}
-  .brewbar{display:inline-flex; align-items:center; gap:12px; margin-top:22px; padding:11px 11px 11px 16px;
+  .brewbar{display:inline-flex; align-items:center; gap:12px; margin-top:22px; padding:11px 11px 11px 16px; max-width:100%; flex-wrap:wrap;
     background:var(--glass); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); border:1px solid var(--glass-brd);
     border-radius:12px; font-family:var(--font-mono); font-size:13.5px; color:var(--ink); box-shadow:var(--glass-shadow)}
+  .brewbar>span{min-width:0; overflow-wrap:anywhere}
   @media(max-width:880px){.brewbar{margin-inline:auto}}
   .brewbar .dollar{color:var(--accent)}
   .copy{cursor:pointer; border:1px solid var(--glass-brd); background:rgba(124,122,160,.1); color:var(--ink-2); padding:6px 12px; border-radius:8px; font:inherit; font-size:12px; transition:.15s}
@@ -196,7 +197,7 @@
 
   /* ---------- mechanism steps ---------- */
   .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:30px}
-  @media(max-width:760px){.steps{grid-template-columns:1fr}}
+  @media(max-width:860px){.steps{grid-template-columns:1fr}}
   .step{padding:22px}
   .step .n{font-family:var(--font-mono); font-weight:500; font-size:14px; background:var(--grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent}
   .step p{margin:10px 0 0; color:var(--ink-2); font-size:14.5px}
