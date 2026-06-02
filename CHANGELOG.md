@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.6] - 2026-06-03
+
+### Fixed
+- The switch could still show a password prompt or look like it "wouldn't stay on" in
+  edge cases, because the app judged success by re-reading the sleep state with a second
+  `pmset` call right after toggling, rather than trusting whether the privileged command
+  actually ran. If anything flipped sleep back off between those two steps (a safety net
+  firing, or a momentary empty read), the app mistook it for a missing permission and
+  re-prompted. Sleepless now decides purely from `sudo`'s own exit status: a successful
+  toggle never re-prompts, and the one-time setup is offered only when `sudo` genuinely
+  reports the passwordless grant is missing. A safety-net turn-off is never confused with
+  a permission problem.
+
+### Changed
+- The privileged toggle now captures its real exit status and stderr (previously
+  discarded) and runs with its input detached from any terminal, so a GUI launch can
+  never stall on a prompt and the app always knows whether the toggle worked.
+
 ## [1.2.5] - 2026-06-02
 
 ### Fixed

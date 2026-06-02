@@ -360,24 +360,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func switchToggled(_ sender: NSSwitch) {
-        let wantOn = sender.state == .on
-        setDisableSleep(wantOn)
-        // Check the IMMEDIATE result, BEFORE any safety net runs. This separates a real sudo
-        // failure ("grant missing", so prompt for setup) from a safety net legitimately turning
-        // it back off (Low Power Mode / battery floor) — which must NOT trigger a setup prompt.
-        let applied = readSleepDisabled()
-        if wantOn && !applied {
-            if installGrantViaAuth() { setDisableSleep(true) }
-            if !readSleepDisabled() {
-                sender.state = .off
+        if performToggle(wantOn: sender.state == .on) {
+            sender.state = .off   // setup needed / failed: reflect reality (performToggle notified)
+        }
+    }
+
+    // Core keep-awake toggle, decoupled from the UI sender. Returns true ONLY when the user
+    // must act (the passwordless grant is missing and setup did not complete) so the caller can
+    // reflect OFF. The decision to prompt is made on the REAL sudo result (see setDisableSleep),
+    // never by re-reading SleepDisabled: a successful sudo means the command ran, even if a
+    // safety net (Low Power Mode / battery floor) legitimately turns sleep back on afterwards —
+    // which must NOT be mistaken for "permission missing" and trigger a password prompt. This
+    // unobservable, state-proxy decision is what made earlier releases re-prompt spuriously.
+    @discardableResult
+    private func performToggle(wantOn: Bool) -> Bool {
+        var result = setDisableSleep(wantOn)
+        // Only a genuinely MISSING grant warrants the one-time native-auth setup. A successful
+        // sudo (.ok) — or any other failure — never re-prompts here.
+        if wantOn, result == .grantMissing {
+            if installGrantViaAuth() { result = setDisableSleep(true) }
+            if result != .ok {
                 notify("Couldn't keep awake. The permission isn't set up yet.")
-                return
+                return true
             }
         }
-        // A deliberate turn-on wins over the Low Power Mode auto-off (the hard 15% floor still cuts in).
-        userForcedOn = wantOn && readSleepDisabled()
+        // A deliberate, successful turn-on wins over the Low Power Mode auto-off (hard floor still wins).
+        userForcedOn = wantOn && result == .ok
         refresh()                              // applies UI + safety nets; switch reflects reality
         if isOn, autoOffMinutes > 0 { startKeepAwakeTimer(minutes: autoOffMinutes) }
+        return false
     }
 
     // Install the one-time scoped grant via a SINGLE native macOS authorization (the
@@ -559,10 +570,57 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         renderText()
     }
 
-    private func setDisableSleep(_ on: Bool) {
-        // sudo -n: never prompt (GUI app has no TTY). The exact argument vector
-        // matches the NOPASSWD sudoers grant, so this runs without a password.
-        _ = runCapture("/usr/bin/sudo", ["-n", "/usr/bin/pmset", "-a", "disablesleep", on ? "1" : "0"])
+    // Result of the privileged keep-awake toggle, based on sudo's REAL exit status — not on a
+    // second, independent state read. `.ok` = the command ran; `.grantMissing` = the passwordless
+    // sudoers grant isn't installed (sudo -n refused), the one case that warrants setup; `.failed`
+    // = any other error. Using sudo's own result (instead of re-reading SleepDisabled) is the fix:
+    // a safety net flipping sleep back on must never look like "permission missing" and re-prompt.
+    private enum ToggleResult: Equatable { case ok, grantMissing, failed(String) }
+
+    @discardableResult
+    private func setDisableSleep(_ on: Bool) -> ToggleResult {
+        // sudo -n: never prompt (GUI app has no TTY). The exact argument vector matches the
+        // NOPASSWD sudoers grant, so this runs without a password.
+        let (exit, _, err) = runPrivileged(["-n", "/usr/bin/pmset", "-a", "disablesleep", on ? "1" : "0"])
+        let result: ToggleResult
+        if exit == 0 {
+            result = .ok
+        } else if err.range(of: "a password is required", options: .caseInsensitive) != nil
+               || err.range(of: "not allowed", options: .caseInsensitive) != nil
+               || err.range(of: "may not run", options: .caseInsensitive) != nil {
+            result = .grantMissing   // grant absent/removed -> sudo -n refused to run passwordless
+        } else {
+            result = .failed(err.isEmpty ? "exit \(exit)" : err.trimmingCharacters(in: .whitespacesAndNewlines))
+        }
+        return result
+    }
+
+    // Run a privileged command via sudo, capturing exit status + stderr (which the generic
+    // runCapture discards). stdin is /dev/null so a GUI process with no controlling TTY can
+    // never block on a prompt. This is what lets the app KNOW whether its own toggle worked.
+    private func runPrivileged(_ args: [String]) -> (exit: Int32, out: String, err: String) {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
+        process.arguments = args
+        var env = ProcessInfo.processInfo.environment
+        env["PATH"] = "/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin"
+        env["HOME"] = FileManager.default.homeDirectoryForCurrentUser.path
+        process.environment = env
+        let outPipe = Pipe(), errPipe = Pipe()
+        process.standardOutput = outPipe
+        process.standardError = errPipe
+        process.standardInput = FileHandle.nullDevice
+        do { try process.run() }
+        catch {
+            NSLog("Sleepless: failed to launch sudo: %@", error.localizedDescription)
+            return (-1, "", "launch failed: \(error.localizedDescription)")
+        }
+        let outData = outPipe.fileHandleForReading.readDataToEndOfFile()
+        let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        return (process.terminationStatus,
+                String(data: outData, encoding: .utf8) ?? "",
+                String(data: errData, encoding: .utf8) ?? "")
     }
 
     // MARK: - Battery + Low-Power-Mode safety nets (silent; no extra UI) — Feature 3
