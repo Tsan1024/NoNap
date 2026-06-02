@@ -60,6 +60,6 @@ launchctl bootstrap "gui/$(id -u)" "$LAUNCH_AGENT" 2>/dev/null || true
 open "$APP"
 
 echo ""
-echo "✅ Installed. The moon is in your menu bar — click it to toggle."
+echo "✅ Installed. The coffee cup is in your menu bar — click it to toggle."
 echo "   Turn ON, close the lid: your Mac stays awake on battery (auto-off at the floor you set)."
 echo "   To remove everything (including the grant): ./uninstall.sh"

@@ -1,10 +1,11 @@
 // Sleepless app icon generator (native, AppKit-rendered).
 //
-// Renders the SAME crescent the menu bar uses -- Apple's `moon.fill` SF Symbol,
-// drawn in white on a continuous-curvature ("squircle") violet glass plate -- so
-// the Dock/Finder icon is brand-consistent with the native menu-bar glyph and
-// never the hand-rolled look that read "cheap". Each iconset size is rendered
-// directly from the vector symbol (no raster downscaling) for crisp edges.
+// Renders the SAME coffee cup the menu bar uses -- Apple's `cup.and.saucer.fill`
+// SF Symbol, drawn in white on a continuous-curvature ("squircle") violet glass
+// plate -- so the Dock/Finder icon is brand-consistent with the native menu-bar
+// glyph and never the hand-rolled look that read "cheap". The full cup is the
+// "caffeinated / kept awake" mark. Each iconset size is rendered directly from the
+// vector symbol (no raster downscaling) for crisp edges.
 //
 // Build + run:  swiftc -O -framework AppKit make-icon.swift -o /tmp/mkicon && /tmp/mkicon [outDir]
 // Then:         iconutil -c icns Sleepless.iconset -o Sleepless.icns
@@ -70,9 +71,9 @@ func renderIcon(_ S: CGFloat) -> NSBitmapImageRep {
                           endCenter: gc, endRadius: plate.width * 0.62, options: [])
     cg.restoreGState()
 
-    // Native moon.fill crescent, white, centered, ~56% of plate width.
+    // Native cup.and.saucer.fill, white, centered, ~56% of plate width.
     let cfg = NSImage.SymbolConfiguration(pointSize: plate.width * 0.62, weight: .regular)
-    if let sym = NSImage(systemSymbolName: "moon.fill", accessibilityDescription: nil)?
+    if let sym = NSImage(systemSymbolName: "cup.and.saucer.fill", accessibilityDescription: nil)?
         .withSymbolConfiguration(cfg) {
         let sz = sym.size
         let scale = (plate.width * 0.56) / max(sz.width, sz.height)
