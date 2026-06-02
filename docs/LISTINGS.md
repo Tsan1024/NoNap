@@ -85,7 +85,7 @@ Mode)" (App Store). No entry named exactly "Sleepless" exists yet.
   > **License:** MIT (free, open source)
   >
   > Paste-ready list line:
-  > `- [Sleepless](https://github.com/Aboudjem/Sleepless) by [Adam Boudjemaa](https://github.com/Aboudjem) — Keeps your MacBook awake with the lid closed on battery, with no external display and a battery-floor auto-off — Free, open source`
+  > `- [Sleepless](https://github.com/Aboudjem/Sleepless) by [Adam Boudjemaa](https://github.com/Aboudjem). Keeps your MacBook awake with the lid closed on battery, with no external display and a battery-floor auto-off. Free, open source.`
   >
   > Note: this is "Sleepless" by Aboudjem, distinct from the existing "Sleepless Mac"
   > (gsurma) and "Sleep Blocker (Sleepless Mode)" entries already in the Caffeinators list.
@@ -152,11 +152,11 @@ Pitch the lid-closed-on-battery angle + the security model, with the demo GIF.
 
 ## E. Blocked / cannot submit
 
-- **Homebrew core cask** — self-submission needs 90 forks / 90 watchers / 225★ (or 75★ if an
+- **Homebrew core cask**: self-submission needs 90 forks / 90 watchers / 225★ (or 75★ if an
   unaffiliated person submits). Sleepless is far under, so stay on `aboudjem/tap`. Revisit after
   225★. https://docs.brew.sh/Acceptable-Casks
-- **Changelog Nightly** — algorithmic from GitHub Archive; can't submit, only earned via a
+- **Changelog Nightly**: algorithmic from GitHub Archive; can't submit, only earned via a
   star-velocity spike. Coordinate with a launch.
-- **Slant** — a conflict-of-interest rule bars the owner from self-adding; needs a neutral user.
-- **matteocrippa/awesome-swift** — curates libraries, not apps; out of scope.
-- **Mac App Store** — permanently ineligible (root escalation, see SECURITY.md). Not a channel.
+- **Slant**: a conflict-of-interest rule bars the owner from self-adding; needs a neutral user.
+- **matteocrippa/awesome-swift**: curates libraries, not apps; out of scope.
+- **Mac App Store**: permanently ineligible (root escalation, see SECURITY.md). Not a channel.

@@ -98,7 +98,7 @@ Note: ad-hoc-signed, unnotarized binaries draw more *heuristic* flags than notar
 read any detection in context. A clean result is reassuring, not absolute; pair it with the
 attestation above.
 
-<!-- VirusTotal permalink for the v1.1.0 release: PENDING — add the public analysis URL here
+<!-- VirusTotal permalink for the v1.1.0 release: PENDING. Add the public analysis URL here
      after uploading the release zip. -->
 
 **Public VirusTotal report:** _to be added once the v1.1.0 zip is uploaded._
