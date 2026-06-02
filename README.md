@@ -84,7 +84,7 @@ Downloaded a release? You can confirm it is genuinely this project's build, with
 
 ```sh
 shasum -a 256 -c SHA256SUMS
-gh attestation verify Sleepless-*.app.zip -R Aboudjem/Sleepless
+gh attestation verify Sleepless-*.zip -R Aboudjem/Sleepless
 ```
 
 The full verification walkthrough is in [docs/AUDIT.md](docs/AUDIT.md).

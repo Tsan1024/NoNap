@@ -33,7 +33,7 @@ shasum -a 256 -c SHA256SUMS
 
 # 2. Provenance: this exact zip was built by Sleepless's GitHub Actions release
 #    workflow, from this repo, at the released commit (SLSA Build L2, Sigstore-signed).
-gh attestation verify Sleepless-<version>.app.zip -R Aboudjem/Sleepless
+gh attestation verify Sleepless-<version>.zip -R Aboudjem/Sleepless
 ```
 
 What each one proves:
@@ -64,7 +64,7 @@ swiftc -O -parse-as-library -target arm64-apple-macos13.0 \
   -framework AppKit -framework ServiceManagement App.swift -o /tmp/Sleepless-rebuilt
 
 # Unzip the release and compare the Mach-O inside the bundle.
-ditto -x -k Sleepless-<version>.app.zip /tmp/rel
+ditto -x -k Sleepless-<version>.zip /tmp/rel
 shasum -a 256 /tmp/Sleepless-rebuilt /tmp/rel/Sleepless.app/Contents/MacOS/Sleepless
 ```
 
@@ -90,7 +90,7 @@ non-commercial, results public) for a multi-engine scan:
 # With a free VirusTotal API key:
 curl -s --request POST --url https://www.virustotal.com/api/v3/files \
   --header "x-apikey: $VT_API_KEY" \
-  --form file=@Sleepless-<version>.app.zip
+  --form file=@Sleepless-<version>.zip
 # …then open the returned analysis URL, or just drag the zip onto virustotal.com.
 ```
 

@@ -52,7 +52,7 @@ jobs:
         id: zip
         run: |
           set -euo pipefail
-          ASSET="Sleepless-${{ steps.ver.outputs.version }}.app.zip"
+          ASSET="Sleepless-${{ steps.ver.outputs.version }}.zip"
           ditto -c -k --keepParent "dist/Sleepless.app" "$ASSET"
           echo "asset=$ASSET" >> "$GITHUB_OUTPUT"
           ls -la "$ASSET"

@@ -86,7 +86,7 @@ Ein Release heruntergeladen? Du kannst ohne Apple-Konto bestätigen, dass es wir
 
 ```sh
 shasum -a 256 -c SHA256SUMS
-gh attestation verify Sleepless-*.app.zip -R Aboudjem/Sleepless
+gh attestation verify Sleepless-*.zip -R Aboudjem/Sleepless
 ```
 
 Die vollständige Anleitung zur Überprüfung steht in [docs/AUDIT.md](docs/AUDIT.md).

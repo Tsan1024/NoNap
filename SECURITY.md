@@ -120,7 +120,7 @@ project's build, with no Apple account and no shared secret:
 
 ```sh
 shasum -a 256 -c SHA256SUMS                                  # bytes match what was published
-gh attestation verify Sleepless-<version>.app.zip -R Aboudjem/Sleepless   # built by this repo's release workflow
+gh attestation verify Sleepless-<version>.zip -R Aboudjem/Sleepless   # built by this repo's release workflow
 ```
 
 The full walkthrough (what each check proves, how to reproduce the build, and a VirusTotal

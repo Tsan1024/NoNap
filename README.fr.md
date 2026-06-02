@@ -86,7 +86,7 @@ Vous avez téléchargé une version ? Vous pouvez confirmer qu'il s'agit bien de
 
 ```sh
 shasum -a 256 -c SHA256SUMS
-gh attestation verify Sleepless-*.app.zip -R Aboudjem/Sleepless
+gh attestation verify Sleepless-*.zip -R Aboudjem/Sleepless
 ```
 
 Le guide de vérification complet se trouve dans [docs/AUDIT.md](docs/AUDIT.md).

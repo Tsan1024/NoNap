@@ -84,7 +84,7 @@ cd Sleepless && ./install.sh
 
 ```sh
 shasum -a 256 -c SHA256SUMS
-gh attestation verify Sleepless-*.app.zip -R Aboudjem/Sleepless
+gh attestation verify Sleepless-*.zip -R Aboudjem/Sleepless
 ```
 
 El recorrido completo de verificación está en [docs/AUDIT.md](docs/AUDIT.md).
