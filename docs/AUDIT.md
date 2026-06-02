@@ -98,10 +98,9 @@ Note: ad-hoc-signed, unnotarized binaries draw more *heuristic* flags than notar
 read any detection in context. A clean result is reassuring, not absolute; pair it with the
 attestation above.
 
-<!-- VirusTotal permalink for the v1.1.0 release: PENDING. Add the public analysis URL here
-     after uploading the release zip. -->
+**Public VirusTotal report (v1.1.0):** https://www.virustotal.com/gui/file/30a43590629b6a3cd2e1610c249c137c4b235a5f319ce8d8a9e866c1fd914cde
 
-**Public VirusTotal report:** _to be added once the v1.1.0 zip is uploaded._
+That is the permalink for the v1.1.0 zip (the SHA-256 matches `SHA256SUMS`). It goes live once the file is submitted to VirusTotal. Browser submission requires a one-time reCAPTCHA, so submit it from your browser (drag the zip onto virustotal.com) or with the API.
 
 ## Notarization (planned, not yet done)
 

@@ -155,7 +155,7 @@ Because those tools are built on macOS power assertions, which stop the idle tim
 <details>
 <summary><b>Does <code>pmset disablesleep</code> still work on Apple Silicon (M1/M2/M3)?</b></summary>
 
-`pmset -a disablesleep 1` still sets the `SleepDisabled` flag on Apple Silicon and, in firsthand reports, keeps a MacBook awake with the lid closed on battery, but Apple does not officially document the setting, so its exact behavior can vary by model and macOS version. Verify it on your own machine with `pmset -g | grep SleepDisabled` (it should read `1`). Most claims that it "no longer works on M1/M2/M3" actually describe `caffeinate` or caffeinate-based apps (Amphetamine, KeepingYouAwake), which were never able to prevent lid-closed sleep, a different mechanism, not a `pmset disablesleep` regression.
+Yes. `pmset -a disablesleep 1` sets the kernel's `SleepDisabled` flag on Apple Silicon, confirmed firsthand on macOS 26.3, which keeps a MacBook awake with the lid closed on battery. Apple does not officially document the setting, so verify it on your own machine with `pmset -g | grep SleepDisabled` (it should read `1`). Most claims that it "no longer works on M1/M2/M3" actually describe `caffeinate` or caffeinate-based apps (Amphetamine, KeepingYouAwake), which were never able to prevent lid-closed sleep, a different mechanism, not a `pmset disablesleep` regression.
 </details>
 
 <details>
