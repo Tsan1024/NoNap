@@ -9,6 +9,42 @@ The automatable awesome-list PRs were opened separately (see the final report fo
 
 ---
 
+## Launch strategy (what actually moves stars)
+
+This is drawn from a forensic study of 7 repos that broke out on GitHub. The honest takeaways,
+so you spend effort where it pays:
+
+- **A cold "Show HN" from an unknown author was the breakout in 0 of the studied repos.** Cold
+  author Show HN posts flopped (1–3 points) every time. The breakouts came from **borrowed
+  reach**: a third party submitting it to HN, an influencer's blog/post, or an existing personal
+  audience. Post Show HN anyway (it is cheap and the ceiling is huge if it lands), but do not
+  count on it, and do not fake a third-party submission.
+- **Stack channels in the same window.** Every breakout clustered its channels tightly: repo +
+  blog + a social post + a directory, within roughly a day. Simultaneity is what crosses the
+  velocity threshold that HN and GitHub Trending reward. Pick a launch day and fire the
+  human-channel drafts close together, not spread over weeks.
+- **GitHub Trending amplifies, it does not originate.** Trending compounds a signal that another
+  channel already created. Engineer to land on it (a tight burst of stars in one day), do not
+  expect to seed a launch there.
+- **The demo is the product.** Every winner is graspable in one sentence and one screenshot. Lead
+  every post with the demo GIF and the one-line hook ("keep your MacBook awake with the lid
+  closed, on battery"), not with a feature list.
+- **Realistic outcome:** roughly **+30 to +400 stars in week one** from a well-stacked launch. A
+  four-figure result only happens if a real third party (an influencer, a newsletter, a stranger
+  on HN) carries the demo, which you cannot manufacture, only earn with a genuinely good demo.
+
+**Channel order, best first:** (1) a genuinely viral demo that a third party carries to HN; (2)
+your own X/audience or an influencer's amplification; (3) niche Reddit (r/macapps, r/SideProject,
+r/swift); (4) a dev.to or personal blog post; (5) Product Hunt; (6) GitHub Trending as the
+amplifier; (7) awesome-lists and directories as a long-tail drip.
+
+**Plan a second wave.** Sustained repos re-accelerate on shipped releases and big-creator
+pickups, not just the launch. Save a v1.2 (a documented feature like a global hotkey, or the
+notarized build) as a reason to post again, and treat any newsletter or YouTube pickup as a
+fresh launch window.
+
+---
+
 ## 1. Show HN
 
 - **When:** Tue–Thu, roughly 7–10am Pacific (so you can sit in the thread). Ranking is
