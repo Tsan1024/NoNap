@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-06-02
+
+### Fixed
+- The keep-awake switch no longer snaps back with no explanation when the one-time
+  passwordless grant is missing. If turning it on cannot engage `disablesleep`,
+  Sleepless now shows a short alert that names the cause and offers to copy the
+  `grant.sh` command or open Terminal, so the toggle is never a silent dead end.
+
+### Added
+- A brief pulse on the menu-bar cup whenever the state changes, so the empty-cup to
+  full-cup transition is easy to notice.
+
 ## [1.2.0] - 2026-06-02
 
 ### Changed
@@ -72,7 +84,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README in 6 languages (English, 简体中文, Español, 日本語, Français, Deutsch).
 - MIT license, security model (`SECURITY.md`), and community-health files.
 
-[Unreleased]: https://github.com/Aboudjem/Sleepless/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/Aboudjem/Sleepless/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/Aboudjem/Sleepless/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/Aboudjem/Sleepless/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/Aboudjem/Sleepless/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Aboudjem/Sleepless/releases/tag/v1.0.0

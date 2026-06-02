@@ -359,9 +359,59 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func switchToggled(_ sender: NSSwitch) {
-        setDisableSleep(sender.state == .on)
+        let wantOn = sender.state == .on
+        setDisableSleep(wantOn)
         refresh()                              // re-read TRUE state; switch reflects reality, not the click
+        // If the user asked to turn ON but the TRUE state didn't change, the passwordless
+        // grant almost certainly isn't installed (sudo -n failed). Explain it instead of
+        // silently snapping the switch back, which reads as "the toggle is broken".
+        if wantOn && !isOn { presentGrantNeeded() }
         if isOn, autoOffMinutes > 0 { startKeepAwakeTimer(minutes: autoOffMinutes) }
+    }
+
+    // True only when the tightly-scoped NOPASSWD grant for pmset disablesleep is present.
+    private func grantInstalled() -> Bool {
+        runCapture("/usr/bin/sudo", ["-n", "-l", "/usr/bin/pmset"]).contains("disablesleep")
+    }
+
+    // Actionable guidance when the toggle can't engage because the grant is missing.
+    private func presentGrantNeeded() {
+        let grantPath = (Bundle.main.resourcePath.map { $0 + "/grant.sh" }) ?? "grant.sh"
+        let alert = NSAlert()
+        alert.alertStyle = .informational
+        alert.messageText = "Sleepless needs a one-time permission"
+        alert.informativeText = """
+        To keep your Mac awake with the lid closed, Sleepless flips a protected macOS setting (pmset disablesleep). That needs a one-time passwordless grant, which isn't installed yet, so the switch can't turn on.
+
+        Run this once in Terminal, then flip the switch again:
+
+        \(grantPath)
+        """
+        alert.addButton(withTitle: "Copy command")
+        alert.addButton(withTitle: "Open Terminal")
+        alert.addButton(withTitle: "Later")
+        NSApp.activate(ignoringOtherApps: true)
+        switch alert.runModal() {
+        case .alertFirstButtonReturn:
+            let pb = NSPasteboard.general; pb.clearContents(); pb.setString("\"\(grantPath)\"", forType: .string)
+        case .alertSecondButtonReturn:
+            NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app"))
+        default: break
+        }
+    }
+
+    // A brief, subtle pulse on the menu-bar glyph whenever the state (and thus the cup
+    // shape) changes, so the change is noticeable. Opacity-only: no layer geometry is
+    // mutated, so it can't shift the status item on any macOS version.
+    private func pulseStatusItem() {
+        guard let b = statusItem.button else { return }
+        b.wantsLayer = true
+        let pulse = CABasicAnimation(keyPath: "opacity")
+        pulse.fromValue = 0.3
+        pulse.toValue = 1.0
+        pulse.duration = 0.34
+        pulse.timingFunction = CAMediaTimingFunction(name: .easeOut)
+        b.layer?.add(pulse, forKey: "statePulse")
     }
 
     @objc private func poll() { refresh() }
@@ -456,7 +506,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             armed = onBattery && discharging
         }
         if let button = statusItem.button {
-            button.image = on ? (armed ? armedGlyph : onGlyph) : offGlyph
+            let newImage = on ? (armed ? armedGlyph : onGlyph) : offGlyph
+            if button.image !== newImage {   // state (cup shape) changed -> swap + pulse
+                button.image = newImage
+                pulseStatusItem()
+            }
             button.toolTip = on
                 ? (armed
                     ? "Sleepless: on (battery). Auto-off at \(batteryFloorPercent)% or in Low Power Mode."
