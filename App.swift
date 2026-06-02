@@ -102,11 +102,20 @@ private final class FlippedView: NSView { override var isFlipped: Bool { true } 
 // material that samples the desktop/windows behind it (system light/dark aware).
 private final class GlassView: NSVisualEffectView { override var isFlipped: Bool { true } }
 
-// Decorative overlay that is genuinely non-interactive: hitTest returns nil so
-// mouse events fall through to the controls beneath it (enforced by design, not
-// by z-order accident). Used for the violet tint wash over the glass.
-private final class PassthroughView: NSView {
-    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+// Inset grouping "card" (System Settings rhythm): a flipped, layer-backed container
+// with a subtle, appearance-adaptive fill and continuous-corner rounding. It groups
+// related controls so the popover reads as a calm settings panel rather than a dense
+// form. The fill is re-resolved on light/dark changes via updateLayer.
+private final class CardView: NSView {
+    override var isFlipped: Bool { true }
+    override var wantsUpdateLayer: Bool { true }
+    override func updateLayer() {
+        let dark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        layer?.backgroundColor = (dark ? NSColor.white.withAlphaComponent(0.06)
+                                       : NSColor.black.withAlphaComponent(0.04)).cgColor
+        layer?.cornerRadius = 9
+        layer?.cornerCurve = .continuous
+    }
 }
 
 @MainActor
@@ -136,8 +145,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var countdownTicker: Timer?      // 1 Hz label refresh, only while the popover is open
     private var timerEndDate: Date?
 
-    private let popoverWidth: CGFloat = 300
-    private let popoverHeight: CGFloat = 336
+    private let popoverWidth: CGFloat = 320
+    private let popoverHeight: CGFloat = 432
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -160,142 +169,124 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Popover content (native NSSwitch toggle, macOS-aligned)
     private func makeContentController() -> NSViewController {
-        let W = popoverWidth, pad: CGFloat = 18
+        let W = popoverWidth, pad: CGFloat = 16
         let contentW = W - pad * 2
+        let ci: CGFloat = 12                 // card inner padding
+        let cw = contentW - ci * 2           // card inner content width
 
-        // Frosted-glass base: blurred translucent material that samples what's
-        // behind the popover. `.popover` material + `.behindWindow` blending is
-        // the macOS-native "glassmorphism" recipe; it stays legible in light and
-        // dark and follows the system vibrancy so labels read crisply on top.
+        // Standard system popover material: untinted, no forced emphasis, so it reads
+        // as a first-party control (like the Wi-Fi / Sound / Battery popovers), not a
+        // themed panel. NSPopover supplies its own corner, shadow, and arrow.
         let root = GlassView(frame: NSRect(x: 0, y: 0, width: W, height: popoverHeight))
         root.material = .popover
         root.blendingMode = .behindWindow
-        root.state = .active
-        root.isEmphasized = true
-        root.wantsLayer = true
-        root.layer?.cornerRadius = 11
-        root.layer?.cornerCurve = .continuous
-        root.layer?.masksToBounds = true
+        root.state = .followsWindowActiveState
 
-        // Faint violet brand wash over the frost (matches the app icon's hue).
-        let tint = PassthroughView(frame: root.bounds)
-        tint.autoresizingMask = [.width, .height]
-        tint.wantsLayer = true
-        tint.layer?.backgroundColor = NSColor(srgbRed: 0.58, green: 0.45, blue: 1.0, alpha: 0.07).cgColor
-        root.addSubview(tint)
-
-        // Header: small coffee mark + "Sleepless"
-        let mark = NSImageView(frame: NSRect(x: pad, y: 16, width: 18, height: 18))
+        // Header: small coffee mark + "Sleepless" (quiet system glyph, not a branded logo)
+        let mark = NSImageView(frame: NSRect(x: pad, y: 14, width: 18, height: 18))
         let headerCup = makeCupGlyph(.on); headerCup.isTemplate = true
         mark.image = headerCup
         mark.contentTintColor = .labelColor
         root.addSubview(mark)
         let title = makeLabel("Sleepless", font: .systemFont(ofSize: 14, weight: .semibold), color: .labelColor)
-        title.frame = NSRect(x: pad + 24, y: 16, width: contentW - 24, height: 20)
+        title.frame = NSRect(x: pad + 24, y: 14, width: contentW - 24, height: 20)
         root.addSubview(title)
 
-        // Toggle row: descriptive label (left) + NSSwitch (right)
-        let rowLabel = makeLabel("Keep awake with lid closed", font: .systemFont(ofSize: 13), color: .labelColor)
-        rowLabel.frame = NSRect(x: pad, y: 50, width: 180, height: 22)
-        root.addSubview(rowLabel)
+        // Grouped inset cards (System Settings rhythm) replace per-row hairline separators.
+        func makeCard(_ rect: NSRect) -> CardView {
+            let c = CardView(frame: rect)
+            c.wantsLayer = true
+            root.addSubview(c)
+            return c
+        }
+        let swProto = NSSwitch().intrinsicContentSize
+        let swW = swProto.width > 0 ? swProto.width : 38
+        let swH = swProto.height > 0 ? swProto.height : 21
 
+        // GROUP 1 — main switch + state caption
+        let g1y: CGFloat = 46, g1h: CGFloat = 84
+        let g1 = makeCard(NSRect(x: pad, y: g1y, width: contentW, height: g1h))
+        let rowLabel = makeLabel("Keep awake with lid closed", font: .systemFont(ofSize: 13), color: .labelColor)
+        rowLabel.frame = NSRect(x: ci, y: ci, width: cw - swW - 8, height: 22)
+        g1.addSubview(rowLabel)
         toggleSwitch = NSSwitch()
         toggleSwitch.target = self
         toggleSwitch.action = #selector(switchToggled(_:))
-        let sw = toggleSwitch.intrinsicContentSize
-        let swW = sw.width > 0 ? sw.width : 38
-        let swH = sw.height > 0 ? sw.height : 21
-        toggleSwitch.frame = NSRect(x: W - pad - swW, y: 50 + (22 - swH) / 2, width: swW, height: swH)
-        root.addSubview(toggleSwitch)
-
-        // State caption (wraps up to 2 lines)
-        captionLabel = makeLabel("", font: .systemFont(ofSize: 11), color: .secondaryLabelColor)
-        captionLabel.frame = NSRect(x: pad, y: 80, width: contentW, height: 32)
+        toggleSwitch.frame = NSRect(x: contentW - ci - swW, y: ci + (22 - swH) / 2, width: swW, height: swH)
+        g1.addSubview(toggleSwitch)
+        captionLabel = makeLabel("", font: .systemFont(ofSize: 12), color: .secondaryLabelColor)
+        captionLabel.frame = NSRect(x: ci, y: ci + 30, width: cw, height: 32)
         captionLabel.usesSingleLineMode = false
         captionLabel.lineBreakMode = .byWordWrapping
         captionLabel.maximumNumberOfLines = 2
         captionLabel.cell?.wraps = true
-        root.addSubview(captionLabel)
+        g1.addSubview(captionLabel)
 
-        let sep1 = NSBox(frame: NSRect(x: pad, y: 120, width: contentW, height: 1))
-        sep1.boxType = .separator
-        root.addSubview(sep1)
-
-        // Auto-off timer: label (left) + segmented [Off | 1h | 2h] (right) + countdown line
+        // GROUP 2 — auto-off timer (label + segmented [Off | 1h | 2h] + countdown)
+        let g2y = g1y + g1h + 12, g2h: CGFloat = 78
+        let g2 = makeCard(NSRect(x: pad, y: g2y, width: contentW, height: g2h))
         let timerLabel = makeLabel("Auto-off timer", font: .systemFont(ofSize: 13), color: .labelColor)
-        timerLabel.frame = NSRect(x: pad, y: 133, width: 120, height: 20)
-        root.addSubview(timerLabel)
-
+        timerLabel.frame = NSRect(x: ci, y: ci + 3, width: 110, height: 22)
+        g2.addSubview(timerLabel)
         autoOffControl = NSSegmentedControl(labels: ["Off", "1h", "2h"],
                                             trackingMode: .selectOne,
                                             target: self, action: #selector(autoOffChanged(_:)))
         autoOffControl.selectedSegment = 0
-        autoOffControl.controlSize = .small
-        autoOffControl.segmentStyle = .rounded
+        autoOffControl.controlSize = .regular
+        autoOffControl.segmentStyle = .automatic
         autoOffControl.sizeToFit()
         let segSize = autoOffControl.frame.size
-        let segW = segSize.width > 0 ? segSize.width : 132
-        autoOffControl.frame = NSRect(x: W - pad - segW, y: 131, width: segW, height: max(segSize.height, 22))
-        root.addSubview(autoOffControl)
+        let segW = segSize.width > 0 ? segSize.width : 150
+        autoOffControl.frame = NSRect(x: contentW - ci - segW, y: ci, width: segW, height: max(segSize.height, 24))
+        g2.addSubview(autoOffControl)
+        countdownLabel = makeLabel("", font: .systemFont(ofSize: 12), color: .secondaryLabelColor)
+        countdownLabel.frame = NSRect(x: ci, y: ci + 36, width: cw, height: 16)
+        g2.addSubview(countdownLabel)
 
-        countdownLabel = makeLabel("", font: .systemFont(ofSize: 11), color: .secondaryLabelColor)
-        countdownLabel.frame = NSRect(x: pad, y: 160, width: contentW, height: 16)
-        root.addSubview(countdownLabel)
-
-        let sep2 = NSBox(frame: NSRect(x: pad, y: 182, width: contentW, height: 1))
-        sep2.boxType = .separator
-        root.addSubview(sep2)
-
-        // Battery-floor setting: label + live value + draggable slider
+        // GROUP 3 — battery-floor (label + value + slider + min/max hints)
+        let g3y = g2y + g2h + 12, g3h: CGFloat = 92
+        let g3 = makeCard(NSRect(x: pad, y: g3y, width: contentW, height: g3h))
         let floorLabel = makeLabel("Auto-off at low battery", font: .systemFont(ofSize: 13), color: .labelColor)
-        floorLabel.frame = NSRect(x: pad, y: 194, width: contentW - 54, height: 18)
-        root.addSubview(floorLabel)
-
+        floorLabel.frame = NSRect(x: ci, y: ci, width: cw - 54, height: 18)
+        g3.addSubview(floorLabel)
         floorValueLabel = makeLabel("\(batteryFloorPercent)%", font: .systemFont(ofSize: 13, weight: .semibold), color: .secondaryLabelColor)
         floorValueLabel.alignment = .right
-        floorValueLabel.frame = NSRect(x: W - pad - 54, y: 194, width: 54, height: 18)
-        root.addSubview(floorValueLabel)
-
+        floorValueLabel.frame = NSRect(x: contentW - ci - 54, y: ci, width: 54, height: 18)
+        g3.addSubview(floorValueLabel)
         floorSlider = NSSlider(value: Double(batteryFloorPercent), minValue: Double(floorMin), maxValue: Double(floorMax),
                                target: self, action: #selector(floorSliderChanged(_:)))
         floorSlider.isContinuous = true          // live update while dragging
-        floorSlider.controlSize = .small
-        floorSlider.frame = NSRect(x: pad, y: 218, width: contentW, height: 20)
-        root.addSubview(floorSlider)
-
-        let minHint = makeLabel("\(floorMin)%", font: .systemFont(ofSize: 9), color: .tertiaryLabelColor)
-        minHint.frame = NSRect(x: pad, y: 239, width: 30, height: 12)
-        root.addSubview(minHint)
-        let maxHint = makeLabel("\(floorMax)%", font: .systemFont(ofSize: 9), color: .tertiaryLabelColor)
+        floorSlider.controlSize = .regular
+        floorSlider.frame = NSRect(x: ci, y: ci + 26, width: cw, height: 20)
+        g3.addSubview(floorSlider)
+        let minHint = makeLabel("\(floorMin)%", font: .systemFont(ofSize: 10), color: .tertiaryLabelColor)
+        minHint.frame = NSRect(x: ci, y: ci + 50, width: 34, height: 13)
+        g3.addSubview(minHint)
+        let maxHint = makeLabel("\(floorMax)%", font: .systemFont(ofSize: 10), color: .tertiaryLabelColor)
         maxHint.alignment = .right
-        maxHint.frame = NSRect(x: W - pad - 30, y: 239, width: 30, height: 12)
-        root.addSubview(maxHint)
+        maxHint.frame = NSRect(x: contentW - ci - 34, y: ci + 50, width: 34, height: 13)
+        g3.addSubview(maxHint)
 
-        let sep3 = NSBox(frame: NSRect(x: pad, y: 256, width: contentW, height: 1))
-        sep3.boxType = .separator
-        root.addSubview(sep3)
-
-        // Launch at login (off by default; never auto-enables sleep prevention)
+        // GROUP 4 — launch at login (off by default; never auto-enables sleep prevention)
+        let g4y = g3y + g3h + 12, g4h: CGFloat = 46
+        let g4 = makeCard(NSRect(x: pad, y: g4y, width: contentW, height: g4h))
         let loginLabel = makeLabel("Launch at login", font: .systemFont(ofSize: 13), color: .labelColor)
-        loginLabel.frame = NSRect(x: pad, y: 268, width: 180, height: 22)
-        root.addSubview(loginLabel)
-
+        loginLabel.frame = NSRect(x: ci, y: ci, width: cw - swW - 8, height: 22)
+        g4.addSubview(loginLabel)
         loginSwitch = NSSwitch()
         loginSwitch.target = self
         loginSwitch.action = #selector(loginToggled(_:))
         loginSwitch.state = loginItemEnabled() ? .on : .off
-        loginSwitch.frame = NSRect(x: W - pad - swW, y: 268 + (22 - swH) / 2, width: swW, height: swH)
-        root.addSubview(loginSwitch)
+        loginSwitch.frame = NSRect(x: contentW - ci - swW, y: ci + (22 - swH) / 2, width: swW, height: swH)
+        g4.addSubview(loginSwitch)
 
-        let sep4 = NSBox(frame: NSRect(x: pad, y: 298, width: contentW, height: 1))
-        sep4.boxType = .separator
-        root.addSubview(sep4)
-
+        // Footer — Quit (separated by space, not a hairline)
         let quit = NSButton(title: "Quit Sleepless", target: self, action: #selector(quit))
-        quit.controlSize = .small
+        quit.controlSize = .regular
+        quit.bezelStyle = .rounded
         quit.sizeToFit()
         let qs = quit.frame.size
-        quit.frame = NSRect(x: W - pad - qs.width, y: 306, width: qs.width, height: qs.height)
+        quit.frame = NSRect(x: W - pad - qs.width, y: g4y + g4h + 12, width: qs.width, height: qs.height)
         root.addSubview(quit)
 
         let vc = NSViewController()
