@@ -126,7 +126,7 @@ fresh launch window.
 - **Name:** Sleepless
 - **Tagline (≤60 chars):** `Keep your Mac awake with the lid closed`
 - **Assets:** gallery images **1270×760**, thumbnail **240×240** (reuse the violet brand +
-  crescent; `assets/social-preview.png` is a good base), a short demo (use `assets/demo.gif`).
+  coffee cup; `assets/social-preview.png` is a good base), a short demo (use `assets/demo.gif`).
 - **Topics:** Mac, Developer Tools, Productivity, Open Source.
 - **First maker comment:**
 

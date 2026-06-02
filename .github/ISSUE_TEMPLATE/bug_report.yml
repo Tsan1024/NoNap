@@ -21,7 +21,7 @@ body:
     attributes:
       label: Steps to reproduce
       placeholder: |
-        1. Click the moon in the menu bar
+        1. Click the coffee cup in the menu bar
         2. Toggle the switch on
         3. Close the lid (on battery)
     validations:
