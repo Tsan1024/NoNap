@@ -394,7 +394,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         guard let res = Bundle.main.resourcePath else { return false }
         let grant = res + "/grant.sh"
-        let shellCmd = "/bin/bash '\(grant)' --yes"
+        // Pass the REAL user: under the native auth sheet grant.sh runs as root with
+        // SUDO_USER unset, so without this the grant would be written for "root" (useless).
+        let shellCmd = "SLEEPLESS_USER='\(NSUserName())' /bin/bash '\(grant)' --yes"
         // escape for an AppleScript string literal, then run with one native auth sheet
         let escaped = shellCmd.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")
         let osa = "do shell script \"\(escaped)\" with administrator privileges"

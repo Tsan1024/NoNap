@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.3] - 2026-06-02
+
+### Fixed
+- The one-time setup installed the grant for the wrong user. Under the native auth
+  sheet, grant.sh runs as root with `SUDO_USER` unset, so it wrote the rule for `root`
+  instead of the real user, which meant the switch never engaged and kept re-asking for
+  the password. The app now passes the real user, and grant.sh refuses to write a
+  root-owned grant (falling back to the console user). Re-toggling overwrites the bad
+  rule automatically.
+
 ## [1.2.2] - 2026-06-02
 
 ### Changed
@@ -94,7 +104,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README in 6 languages (English, 简体中文, Español, 日本語, Français, Deutsch).
 - MIT license, security model (`SECURITY.md`), and community-health files.
 
-[Unreleased]: https://github.com/Aboudjem/Sleepless/compare/v1.2.2...HEAD
+[Unreleased]: https://github.com/Aboudjem/Sleepless/compare/v1.2.3...HEAD
+[1.2.3]: https://github.com/Aboudjem/Sleepless/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/Aboudjem/Sleepless/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/Aboudjem/Sleepless/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/Aboudjem/Sleepless/compare/v1.1.0...v1.2.0

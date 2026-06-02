@@ -9,7 +9,18 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SUDOERS_DST="/etc/sudoers.d/sleepless-disablesleep"
-USER_NAME="${SUDO_USER:-$(id -un)}"   # honor the real user when run via sudo/osascript-as-root
+# Resolve the REAL user. Prefer SLEEPLESS_USER (the app passes it, because under the native
+# auth sheet this script runs as root with SUDO_USER unset), then SUDO_USER, then the caller.
+USER_NAME="${SLEEPLESS_USER:-${SUDO_USER:-$(id -un)}}"
+# Never install a root-owned grant (it is useless and not what the user wants): if we somehow
+# resolved to root/empty, fall back to the GUI console user, and refuse if still unresolved.
+if [ -z "$USER_NAME" ] || [ "$USER_NAME" = "root" ]; then
+  USER_NAME="$(stat -f%Su /dev/console 2>/dev/null || true)"
+fi
+if [ -z "$USER_NAME" ] || [ "$USER_NAME" = "root" ]; then
+  echo "error: could not resolve a non-root user for the grant; refusing to install." >&2
+  exit 1
+fi
 
 # Run privileged steps with sudo normally, but directly when we are ALREADY root (e.g. the
 # app installs this via one native macOS auth sheet, so there is no Terminal + no sudo prompt).
