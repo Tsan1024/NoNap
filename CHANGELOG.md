@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.5] - 2026-06-02
+
+### Fixed
+- In Low Power Mode the switch would not stay on and the password prompt kept
+  reappearing. Cause: the Low Power Mode safety net turned it back off, and the app
+  misread that off-state as a missing permission and re-prompted. The app now checks
+  the toggle's immediate result (before any safety net) to decide if setup is needed,
+  so a safety-net turn-off never triggers a setup prompt.
+
+### Changed
+- A deliberate turn-on now overrides the Low Power Mode auto-off for that session, so
+  the switch stays on when you explicitly ask for it. The hard battery floor (default
+  15%) still always cuts in to protect against draining the Mac flat.
+
 ## [1.2.4] - 2026-06-02
 
 ### Fixed
@@ -113,7 +127,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README in 6 languages (English, 简体中文, Español, 日本語, Français, Deutsch).
 - MIT license, security model (`SECURITY.md`), and community-health files.
 
-[Unreleased]: https://github.com/Aboudjem/Sleepless/compare/v1.2.4...HEAD
+[Unreleased]: https://github.com/Aboudjem/Sleepless/compare/v1.2.5...HEAD
+[1.2.5]: https://github.com/Aboudjem/Sleepless/compare/v1.2.4...v1.2.5
 [1.2.4]: https://github.com/Aboudjem/Sleepless/compare/v1.2.3...v1.2.4
 [1.2.3]: https://github.com/Aboudjem/Sleepless/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/Aboudjem/Sleepless/compare/v1.2.1...v1.2.2

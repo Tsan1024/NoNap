@@ -163,6 +163,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var clickMonitor: Any?
     private var batteryFloorPercent = floorDefault
     private var isOn = false
+    private var userForcedOn = false   // user deliberately turned it on; honor over the Low Power Mode auto-off (the hard battery floor still wins)
 
     // Auto-off timer (in-memory; dies on quit, never survives a reboot)
     private var autoOffMinutes = 0           // 0 = none (stay on until off), 60, or 120
@@ -361,15 +362,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func switchToggled(_ sender: NSSwitch) {
         let wantOn = sender.state == .on
         setDisableSleep(wantOn)
-        refresh()                              // re-read TRUE state; switch reflects reality, not the click
-        // If turning ON didn't actually engage, the one-time permission isn't set up yet.
-        // Offer the native setup, then retry once. We do NOT pre-check the grant: `sudo -l`
-        // needs auth even when the pmset NOPASSWD rule IS present, so we just try and only
-        // prompt on a real failure (otherwise it would re-ask forever even when set up).
-        if wantOn && !isOn {
-            if installGrantViaAuth() { setDisableSleep(true); refresh() }
-            if !isOn { notify("Couldn't keep awake. The permission isn't set up yet.") }
+        // Check the IMMEDIATE result, BEFORE any safety net runs. This separates a real sudo
+        // failure ("grant missing", so prompt for setup) from a safety net legitimately turning
+        // it back off (Low Power Mode / battery floor) — which must NOT trigger a setup prompt.
+        let applied = readSleepDisabled()
+        if wantOn && !applied {
+            if installGrantViaAuth() { setDisableSleep(true) }
+            if !readSleepDisabled() {
+                sender.state = .off
+                notify("Couldn't keep awake. The permission isn't set up yet.")
+                return
+            }
         }
+        // A deliberate turn-on wins over the Low Power Mode auto-off (the hard 15% floor still cuts in).
+        userForcedOn = wantOn && readSleepDisabled()
+        refresh()                              // applies UI + safety nets; switch reflects reality
         if isOn, autoOffMinutes > 0 { startKeepAwakeTimer(minutes: autoOffMinutes) }
     }
 
@@ -562,18 +569,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func enforceSafetyNets() {
         let (onBattery, discharging, percent) = batteryStatus()
         guard onBattery, discharging else { return }
-        // Low Power Mode is an explicit "conserve power" signal: respect it on battery.
-        if ProcessInfo.processInfo.isLowPowerModeEnabled {
+        // Hard battery floor ALWAYS wins, even over a deliberate turn-on: never drain to empty.
+        if percent <= batteryFloorPercent {
+            setDisableSleep(false); userForcedOn = false
+            applyUI(on: readSleepDisabled())
+            notify("Battery low (\(percent)%). Sleepless turned off.")
+            return
+        }
+        // Low Power Mode auto-off, UNLESS the user deliberately chose to keep awake this session.
+        if ProcessInfo.processInfo.isLowPowerModeEnabled && !userForcedOn {
             setDisableSleep(false)
             applyUI(on: readSleepDisabled())
             notify("Low Power Mode on. Sleepless turned off.")
-            return
         }
-        // Battery floor: never let a forgotten "on" state drain the Mac to empty.
-        guard percent <= batteryFloorPercent else { return }
-        setDisableSleep(false)
-        applyUI(on: readSleepDisabled())
-        notify("Battery low (\(percent)%). Sleepless turned off.")
     }
 
     // MARK: - Readers (no root needed)
