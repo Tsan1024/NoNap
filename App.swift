@@ -46,17 +46,16 @@ private let floorDefault = 15
 private let floorMin = 5
 private let floorMax = 50
 
-// MARK: - Menu-bar coffee glyph (native SF Symbols — Apple-drawn, optically tuned)
-// We use the system `cup.and.saucer` symbol family rendered as monochrome template
-// images so the menu-bar glyph is pixel-perfect and indistinguishable from the OS's
-// own status items at every size (no hand-rolled paths, which read "cheap"):
-//   OFF   (sleeps normally)        = cup.and.saucer        (EMPTY outline cup)
-//   ON    (kept awake)             = cup.and.saucer.fill   (FULL solid cup)
-//   ARMED (on battery, auto-off)   = cup.and.saucer.fill + a small dot indicator
-// State is conveyed by shape alone (never colour): empty-vs-full is the macOS
-// inactive/active convention and reads clearly even at 16 px, and the armed dot is a
-// distinct caution mark. isTemplate lets the system tint + invert them on the
-// open-menu highlight and adapt to light/dark menu bars automatically.
+// MARK: - Menu-bar coffee glyph (native SF Symbols, MONOCHROME template — state by SHAPE)
+// macOS convention: a menu-bar extra is a template image (no colour) so it adapts to light/dark
+// bars and inverts on highlight. State is read from the SILHOUETTE, not colour. The old
+// empty-vs-filled cups looked near-identical at 16 px, so we switch the silhouette dramatically
+// with steam (a hot cup = awake):
+//   OFF   (sleeps normally)        = cup.and.saucer            cup resting on its saucer, NO steam (cold/asleep)
+//   ON    (kept awake, on power)   = cup.and.heat.waves.fill   hot cup with rising steam (awake)
+//   ARMED (kept awake, on battery) = cup.and.heat.waves.fill + a small dot (awake, safety net live)
+// The no-steam → steam change reads instantly even at 16 px; the armed dot is the only extra
+// mark. All template (monochrome) — SF Symbols only, no hand-drawn paths.
 enum SleepGlyph {
     case off
     case on
@@ -64,9 +63,8 @@ enum SleepGlyph {
 }
 
 private func makeCupGlyph(_ glyph: SleepGlyph) -> NSImage {
-    let cfg = NSImage.SymbolConfiguration(pointSize: 15, weight: .regular)
-        .applying(.init(scale: .medium))
-    let name = (glyph == .off) ? "cup.and.saucer" : "cup.and.saucer.fill"
+    let cfg = NSImage.SymbolConfiguration(pointSize: 15, weight: .regular).applying(.init(scale: .medium))
+    let name = (glyph == .off) ? "cup.and.saucer" : "cup.and.heat.waves.fill"
     let base = NSImage(systemSymbolName: name, accessibilityDescription: "Sleepless")?
         .withSymbolConfiguration(cfg)
         ?? NSImage(systemSymbolName: "cup.and.saucer.fill", accessibilityDescription: "Sleepless")
@@ -76,16 +74,14 @@ private func makeCupGlyph(_ glyph: SleepGlyph) -> NSImage {
         base.isTemplate = true
         return base
     }
-
-    // ARMED: composite the full cup + a small filled dot in the upper-right corner as
-    // an "active safety net" indicator. Drawn in template black so it tints with the
-    // menu bar exactly like the cup.
+    // ARMED: full steaming cup + a small filled dot top-right (the "auto-off safety net is live"
+    // mark). Drawn in template black so it tints + inverts with the menu bar exactly like the cup.
     let size = base.size
     guard size.width > 0, size.height > 0 else { base.isTemplate = true; return base }
     let composed = NSImage(size: size)
     composed.lockFocus()
     base.draw(in: NSRect(origin: .zero, size: size))
-    let d = max(size.height * 0.34, 4)
+    let d = max(size.height * 0.26, 4)
     let dot = NSBezierPath(ovalIn: NSRect(x: size.width - d, y: size.height - d, width: d, height: d))
     NSColor.black.setFill()
     dot.fill()

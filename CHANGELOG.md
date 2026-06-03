@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.7] - 2026-06-03
+
+### Changed
+- Redesigned the menu-bar icon so the three states are unmistakable at a glance. It
+  stays a monochrome template icon (adapts to light/dark menu bars and inverts on
+  highlight, the macOS convention), but now changes shape instead of just filling in:
+  an empty cup resting on its saucer when off, a hot **steaming** cup when keeping the
+  Mac awake, and the steaming cup with a small dot when awake on battery (the auto-off
+  safety net is live). The previous empty-vs-filled cups looked nearly identical at
+  menu-bar size, so the state change was easy to miss.
+
 ## [1.2.6] - 2026-06-03
 
 ### Fixed
