@@ -96,9 +96,85 @@ private func makeCupGlyph(_ glyph: SleepGlyph) -> NSImage {
 // Flipped container so popover content lays out top-down with simple frames.
 private final class FlippedView: NSView { override var isFlipped: Bool { true } }
 
-private final class PowerButton: NSButton {
+private final class LaptopToggleButton: NSButton {
+    private let surface = CALayer()
+    private let lid = CAShapeLayer()
+    private let base = CAShapeLayer()
+    private var showsAwake = false
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        isBordered = false
+        title = ""
+        wantsLayer = true
+        surface.cornerRadius = 24
+        layer?.addSublayer(surface)
+        for shape in [lid, base] {
+            shape.fillColor = NSColor.clear.cgColor
+            shape.lineWidth = 4
+            shape.lineCap = .round
+            layer?.addSublayer(shape)
+        }
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    override func layout() {
+        super.layout()
+        surface.frame = bounds
+        lid.frame = bounds
+        base.frame = bounds
+        applyState(animated: false)
+    }
+
     override var focusRingMaskBounds: NSRect { bounds }
-    override func drawFocusRingMask() { NSBezierPath(ovalIn: bounds.insetBy(dx: 2, dy: 2)).fill() }
+    override func drawFocusRingMask() {
+        NSBezierPath(roundedRect: bounds.insetBy(dx: 2, dy: 2), xRadius: 22, yRadius: 22).fill()
+    }
+
+    func setAwake(_ awake: Bool, animated: Bool) {
+        guard awake != showsAwake else { return }
+        showsAwake = awake
+        applyState(animated: animated)
+    }
+
+    private func applyState(animated: Bool) {
+        let oldPath = lid.presentation()?.path ?? lid.path
+        let newPath = CGMutablePath()
+        newPath.move(to: CGPoint(x: bounds.width * 0.3, y: bounds.height * (showsAwake ? 0.47 : 0.68)))
+        newPath.addLine(to: CGPoint(x: bounds.width * 0.7, y: bounds.height * 0.42))
+        let basePath = CGMutablePath()
+        basePath.move(to: CGPoint(x: bounds.width * 0.28, y: bounds.height * 0.32))
+        basePath.addLine(to: CGPoint(x: bounds.width * 0.72, y: bounds.height * 0.32))
+        let seam = showsAwake ? NSColor(srgbRed: 0.12, green: 0.45, blue: 0.31, alpha: 1) : .secondaryLabelColor
+        let background = showsAwake
+            ? NSColor(srgbRed: 0.76, green: 0.9, blue: 0.81, alpha: 0.55)
+            : NSColor.quaternaryLabelColor
+
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        lid.path = newPath
+        lid.strokeColor = NSColor.secondaryLabelColor.cgColor
+        base.path = basePath
+        base.strokeColor = seam.cgColor
+        surface.backgroundColor = background.cgColor
+        CATransaction.commit()
+
+        guard animated else { return }
+        let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        let duration = reduceMotion ? 0.12 : 0.24
+        let motion = CABasicAnimation(keyPath: "path")
+        motion.fromValue = oldPath
+        motion.toValue = newPath
+        motion.duration = duration
+        motion.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        lid.add(motion, forKey: "lid")
+        let tint = CABasicAnimation(keyPath: "backgroundColor")
+        tint.fromValue = surface.presentation()?.backgroundColor
+        tint.toValue = background.cgColor
+        tint.duration = duration
+        surface.add(tint, forKey: "tint")
+    }
 }
 
 // Frosted-glass popover backing: a flipped NSVisualEffectView so content still
@@ -119,9 +195,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // Popover UI
     private let popover = NSPopover()
-    private var toggleSwitch: NSButton!
-    private var titleLabel: NSTextField!
-    private var mainLabel: NSTextField!
+    private var toggleSwitch: LaptopToggleButton!
     private var timerLabel: NSTextField!
     private var floorLabel: NSTextField!
     private var floorValue: NSTextField!
@@ -156,7 +230,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var timerEndDate: Date?
 
     private let popoverWidth: CGFloat = 300
-    private let popoverHeight: CGFloat = 190
+    private let popoverHeight: CGFloat = 150
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -222,21 +296,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             line.boxType = .separator
             settingsPage.addSubview(line)
         }
-        titleLabel = label(homePage, 60, 17, 180, 13)
-        titleLabel.alignment = .center
-        settingsButton = button(homePage, NSRect(x: 250, y: 12, width: 32, height: 28), #selector(showSettings(_:)))
+        settingsButton = button(homePage, NSRect(x: 250, y: 10, width: 32, height: 28), #selector(showSettings(_:)))
         settingsButton.image = NSImage(systemSymbolName: "ellipsis", accessibilityDescription: nil)
-        toggleSwitch = PowerButton(title: "", target: self, action: #selector(switchToggled(_:)))
-        toggleSwitch.frame = NSRect(x: 110, y: 53, width: 80, height: 80)
-        toggleSwitch.isBordered = false
-        toggleSwitch.imagePosition = .imageOnly
-        toggleSwitch.image = NSImage(systemSymbolName: "power", accessibilityDescription: nil)?
-            .withSymbolConfiguration(.init(pointSize: 34, weight: .regular))
-        toggleSwitch.wantsLayer = true
-        toggleSwitch.layer?.cornerRadius = 40
+        toggleSwitch = LaptopToggleButton(frame: NSRect(x: 84, y: 44, width: 132, height: 64))
+        toggleSwitch.target = self
+        toggleSwitch.action = #selector(switchToggled(_:))
         homePage.addSubview(toggleSwitch)
-        mainLabel = label(homePage, 18, 158, 264, 11, .secondaryLabelColor)
-        mainLabel.alignment = .center
 
         backButton = button(settingsPage, NSRect(x: 12, y: 12, width: 70, height: 28), #selector(showHome))
         backButton.alignment = .left
@@ -344,7 +409,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updateLocalizedText() {
-        titleLabel?.stringValue = "NoNap"
         timerLabel?.stringValue = text("Auto-stop", "自动停止")
         autoOffUnitLabel?.stringValue = text("h later", "小时后")
         timerHintLabel?.stringValue = text("No time limit", "不限时")
@@ -581,15 +645,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func updateMainControl() {
         let accessibleAction = isOn ? text("Stop keeping awake", "停止保持唤醒") : text("Start keeping awake", "开启保持唤醒")
-        mainLabel?.stringValue = text("Close the lid. Keep it running.", "合盖不停工")
         toggleSwitch?.setAccessibilityLabel(accessibleAction)
         toggleSwitch?.toolTip = accessibleAction
-        toggleSwitch?.contentTintColor = isOn
-            ? NSColor(srgbRed: 0.12, green: 0.38, blue: 0.27, alpha: 1)
-            : .secondaryLabelColor
-        toggleSwitch?.layer?.backgroundColor = (isOn
-            ? NSColor(srgbRed: 0.76, green: 0.9, blue: 0.81, alpha: 1)
-            : NSColor.quaternaryLabelColor).cgColor
+        toggleSwitch?.setAwake(isOn, animated: popover.isShown)
     }
 
     // MARK: - Launch at login

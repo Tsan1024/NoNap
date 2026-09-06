@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Replaced the power button and promotional text with a compact animated laptop toggle.
 - Renamed the app bundle, executable, installer, release artifacts, and bundle identifier to NoNap.
 - Centered the label-free power control and kept only the slogan below it.
 - Added a compact power-button home page and a separate settings page with hover explanations.
