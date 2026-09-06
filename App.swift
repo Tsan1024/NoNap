@@ -143,7 +143,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var autoOffSlider: NSSlider!
     private var autoOffField: NSTextField!
     private var autoOffUnitLabel: NSTextField!
-    private var countdownLabel: NSTextField!
     private var clickMonitor: Any?
     private var batteryFloorPercent = floorDefault
     private var isOn = false
@@ -154,11 +153,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // Auto-off timer (deadline persisted for crash/relaunch recovery)
     private var autoOffMinutes = 0           // 0 = no limit; slider covers 0...24 hours
     private var keepAwakeTimer: Timer?       // one-shot: flips sleep back on when it fires
-    private var countdownTicker: Timer?      // 1 Hz label refresh, only while the popover is open
     private var timerEndDate: Date?
 
     private let popoverWidth: CGFloat = 300
-    private let popoverHeight: CGFloat = 210
+    private let popoverHeight: CGFloat = 190
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -237,9 +235,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         toggleSwitch.wantsLayer = true
         toggleSwitch.layer?.cornerRadius = 40
         homePage.addSubview(toggleSwitch)
-        countdownLabel = label(homePage, 18, 143, 264, 11, .secondaryLabelColor)
-        countdownLabel.alignment = .center
-        mainLabel = label(homePage, 18, 178, 264, 11, .secondaryLabelColor)
+        mainLabel = label(homePage, 18, 158, 264, 11, .secondaryLabelColor)
         mainLabel.alignment = .center
 
         backButton = button(settingsPage, NSRect(x: 12, y: 12, width: 70, height: 28), #selector(showHome))
@@ -375,7 +371,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         floorSlider?.setAccessibilityLabel(text("Battery cutoff percentage", "电量保护阈值"))
         syncAutoOffControls()
         renderText()
-        updateCountdownLabel()
+        updateMainControl()
     }
 
     // MARK: - Click the menu-bar cup to open/close the popover
@@ -391,8 +387,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         popover.contentViewController?.view.window?.makeKey()
         popover.contentViewController?.view.window?.makeFirstResponder(nil)
-        if keepAwakeTimer != nil { startCountdownTicker() }
-        updateCountdownLabel()
+        updateMainControl()
         // Close when the user clicks anywhere outside the app (status bar, another app, desktop).
         clickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             self?.closePopover()
@@ -401,7 +396,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func closePopover() {
         popover.performClose(nil)
-        countdownTicker?.invalidate(); countdownTicker = nil   // stop the 1 Hz label refresh (keep-awake timer keeps running)
         if let monitor = clickMonitor { NSEvent.removeMonitor(monitor); clickMonitor = nil }
     }
 
@@ -522,7 +516,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             startKeepAwakeTimer(minutes: autoOffMinutes)
         } else {
             cancelKeepAwakeTimer()
-            updateCountdownLabel()
+            updateMainControl()
         }
     }
 
@@ -537,20 +531,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func startKeepAwakeTimer(minutes: Int) {
         cancelKeepAwakeTimer()
-        guard minutes > 0, isOn, ownsDisableSleep else { updateCountdownLabel(); return }
+        guard minutes > 0, isOn, ownsDisableSleep else { updateMainControl(); return }
         let seconds = TimeInterval(minutes * 60)
         let end = Date().addingTimeInterval(seconds)
         timerEndDate = end
         UserDefaults.standard.set(end.timeIntervalSince1970, forKey: timerEndKey)
         keepAwakeTimer = Timer.scheduledTimer(timeInterval: seconds, target: self,
                                               selector: #selector(keepAwakeTimerFired), userInfo: nil, repeats: false)
-        if popover.isShown { startCountdownTicker() }
-        updateCountdownLabel()
+        updateMainControl()
     }
 
     private func cancelKeepAwakeTimer() {
         keepAwakeTimer?.invalidate(); keepAwakeTimer = nil
-        countdownTicker?.invalidate(); countdownTicker = nil
         timerEndDate = nil
         UserDefaults.standard.removeObject(forKey: timerEndKey)
     }
@@ -587,15 +579,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func startCountdownTicker() {
-        countdownTicker?.invalidate()
-        countdownTicker = Timer.scheduledTimer(timeInterval: 1, target: self,
-                                               selector: #selector(countdownTick), userInfo: nil, repeats: true)
-    }
-
-    @objc private func countdownTick() { updateCountdownLabel() }
-
-    private func updateCountdownLabel() {
+    private func updateMainControl() {
         let accessibleAction = isOn ? text("Stop keeping awake", "停止保持唤醒") : text("Start keeping awake", "开启保持唤醒")
         mainLabel?.stringValue = text("Lid closed. Work goes on.", "盖上吧，活儿还在跑。")
         toggleSwitch?.setAccessibilityLabel(accessibleAction)
@@ -606,16 +590,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         toggleSwitch?.layer?.backgroundColor = (isOn
             ? NSColor(srgbRed: 0.76, green: 0.9, blue: 0.81, alpha: 1)
             : NSColor.quaternaryLabelColor).cgColor
-        if isOn, let end = timerEndDate {
-            let minutes = max(0, Int(ceil(end.timeIntervalSinceNow / 60)))
-            countdownLabel?.stringValue = minutes > 0
-                ? text("Running · \(minutes / 60)h \(minutes % 60)m left", "运行中 · 剩余 \(minutes / 60) 小时 \(minutes % 60) 分")
-                : text("Stopping…", "正在停止…")
-        } else {
-            countdownLabel?.stringValue = isOn
-                ? text("Running · no time limit", "运行中 · 不限时")
-                : text("Off · sleeps normally", "未开启 · 合盖后正常休眠")
-        }
     }
 
     // MARK: - Launch at login
@@ -672,7 +646,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 : text("StayAwake: off. Sleeps normally.", "StayAwake：已关闭，正常休眠。")
         }
         renderText()
-        updateCountdownLabel()
+        updateMainControl()
     }
 
     // Update text labels only (no pmset subprocess; safe to call on every slider tick).
