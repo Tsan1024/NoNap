@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Renamed “Launch at login” to the native macOS wording “Open at Login” / “登录时打开”.
 - Replaced the button-like auto-stop field with a lighter inline number editor.
 - Optically aligned native switches with the trailing control column and vertically centered each row.
 - Right-aligned the auto-stop value and unit with the other trailing controls.

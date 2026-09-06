@@ -308,7 +308,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         timerHintLabel?.stringValue = text("No time limit", "不限时")
         timerMaxLabel?.stringValue = text("24 hours", "24 小时")
         floorLabel?.stringValue = text("Battery protection", "电量保护")
-        loginLabel?.stringValue = text("Launch at login", "登录时启动")
+        loginLabel?.stringValue = text("Open at Login", "登录时打开")
         languageLabel?.stringValue = text("Language", "语言")
         languagePicker?.selectItem(at: language.rawValue)
         quitButton?.title = text("Quit NoNap", "退出 NoNap")
@@ -318,7 +318,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         quitButton?.toolTip = text("Quitting ends keep-awake.", "退出将结束当前保持唤醒。")
         floorSlider?.toolTip = text("Stops keep-awake at this battery level, on battery power only.", "仅在电池供电时，电量降至阈值会停止保持唤醒。")
         batteryEstimateLabel?.toolTip = text("System estimate; varies with workload.", "系统估算，随负载变化。")
-        loginSwitch?.setAccessibilityLabel(text("Launch at login", "登录时启动"))
+        loginSwitch?.setAccessibilityLabel(text("Open at Login", "登录时打开"))
         languagePicker?.setAccessibilityLabel(text("Language", "语言"))
         toggleSwitch?.setAccessibilityLabel(text("Keep awake with lid closed", "合盖保持运行"))
         autoOffSlider?.setAccessibilityLabel(text("Auto-off duration in hours", "保持运行时长（小时）"))
@@ -551,7 +551,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             else { try SMAppService.mainApp.register() }
         } catch {
             NSLog("NoNap: login item update failed: %@", error.localizedDescription)
-            notify(text("Couldn't update Launch at login.", "无法更新登录启动设置。"))
+            notify(text("Couldn't update Open at Login.", "无法更新登录时打开设置。"))
         }
         sender.state = loginItemEnabled() ? .on : .off
     }
