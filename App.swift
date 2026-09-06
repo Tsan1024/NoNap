@@ -120,6 +120,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // Popover UI
     private let popover = NSPopover()
     private var toggleSwitch: PowerButton!
+    private var titleLabel: NSTextField!
     private var timerLabel: NSTextField!
     private var floorLabel: NSTextField!
     private var floorValue: NSTextField!
@@ -220,6 +221,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             line.boxType = .separator
             settingsPage.addSubview(line)
         }
+        titleLabel = label(homePage, 18, 15, 180, 13)
+        titleLabel.font = .systemFont(ofSize: 13, weight: .medium)
         settingsButton = button(homePage, NSRect(x: 250, y: 10, width: 32, height: 28), #selector(showSettings(_:)))
         settingsButton.image = NSImage(systemSymbolName: "ellipsis", accessibilityDescription: nil)
         toggleSwitch = PowerButton(title: "", target: self, action: #selector(switchToggled(_:)))
@@ -338,6 +341,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updateLocalizedText() {
+        titleLabel?.stringValue = "NoNap"
         timerLabel?.stringValue = text("Auto-stop", "自动停止")
         autoOffUnitLabel?.stringValue = text("h later", "小时后")
         timerHintLabel?.stringValue = text("No time limit", "不限时")

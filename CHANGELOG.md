@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Restored a small left-aligned app name to balance the minimal home panel.
 - Removed the promotional text and kept a compact power control as the only primary action.
 - Renamed the app bundle, executable, installer, release artifacts, and bundle identifier to NoNap.
 - Centered the label-free power control and kept only the slogan below it.
