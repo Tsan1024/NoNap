@@ -54,7 +54,7 @@ private enum AppLanguage: Int {
     case chinese
 }
 
-// MARK: - Menu-bar coffee glyph (native SF Symbols, MONOCHROME template — state by SHAPE)
+// MARK: - Menu-bar laptop glyph (MONOCHROME template — state by SHAPE)
 // macOS convention: a menu-bar extra is a template image (no colour) so it adapts to light/dark
 // bars and inverts on highlight. State is read from the SILHOUETTE, not colour. The old
 // empty-vs-filled cups looked near-identical at 16 px, so we switch the silhouette dramatically
@@ -88,6 +88,8 @@ private func makeCupGlyph(_ glyph: SleepGlyph) -> NSImage {
     } else {
         base.fill()
     }
+    // Keep the app icon's central status light recognizable at menu-bar size.
+    NSBezierPath(roundedRect: NSRect(x: 9.5, y: 8, width: 3, height: 1.8), xRadius: 0.9, yRadius: 0.9).fill()
     image.unlockFocus()
     image.isTemplate = true
     return image
