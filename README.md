@@ -1,12 +1,21 @@
-# NoNap
+<p align="center">
+  <img src="assets/nonap-icon.png" width="112" alt="NoNap icon">
+</p>
 
-**Close the lid. Keep it working.**
+<h1 align="center">NoNap</h1>
 
-[简体中文](README.zh-CN.md)
+<p align="center"><strong>Close the lid. Keep it working.</strong></p>
+<p align="center"><a href="README.zh-CN.md">简体中文</a></p>
 
 NoNap is a small macOS menu-bar utility for long-running local work. Turn it on before closing your MacBook and the system can continue compiling, downloading, training, or running an agent without an external display.
 
 It changes the native `pmset disablesleep` setting. No daemon, kernel extension, account, or telemetry is involved.
+
+## Interface
+
+<p align="center">
+  <img src="assets/nonap-panel.png" width="296" alt="NoNap menu-bar panel">
+</p>
 
 ## What you get
 

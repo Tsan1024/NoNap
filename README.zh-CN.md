@@ -1,12 +1,21 @@
-# NoNap
+<p align="center">
+  <img src="assets/nonap-icon.png" width="112" alt="NoNap 图标">
+</p>
 
-**合盖不停工。**
+<h1 align="center">NoNap</h1>
 
-[English](README.md)
+<p align="center"><strong>合盖不停工。</strong></p>
+<p align="center"><a href="README.md">English</a></p>
 
 NoNap 是一个轻量的 macOS 菜单栏工具，适合需要长时间运行本地任务的人。合盖前打开开关，MacBook 即使没有外接显示器，也可以继续编译、下载、训练模型或运行智能体任务。
 
 它使用 macOS 原生的 `pmset disablesleep` 设置，不安装守护进程或内核扩展，不需要账号，也不收集遥测数据。
+
+## 界面
+
+<p align="center">
+  <img src="assets/nonap-panel.png" width="296" alt="NoNap 菜单栏界面">
+</p>
 
 ## 功能
 
