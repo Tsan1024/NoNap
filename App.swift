@@ -106,8 +106,8 @@ private final class FlippedView: NSView { override var isFlipped: Bool { true } 
 // privileged "awake" state, matching the app icon's gradient mid-stop. These are
 // the only hard-coded colours; everything else stays on system semantic colours so
 // the panel still reads as a first-party control.
-private let brandAccent = NSColor(srgbRed: 139/255.0, green: 92/255.0, blue: 246/255.0, alpha: 1)   // #8B5CF6 violet
-private let brandAccentSoft = NSColor(srgbRed: 167/255.0, green: 139/255.0, blue: 250/255.0, alpha: 1) // #A78BFA
+private let brandAccent = NSColor.controlAccentColor
+private let brandAccentSoft = NSColor.controlAccentColor
 
 // Frosted-glass popover backing: a flipped NSVisualEffectView so content still
 // lays out top-down while the panel gets a translucent, blurred material that
@@ -132,13 +132,13 @@ private final class CardView: NSView {
         if active {
             layer?.backgroundColor = brandAccent.withAlphaComponent(dark ? 0.18 : 0.10).cgColor
             layer?.borderColor = brandAccent.withAlphaComponent(dark ? 0.60 : 0.45).cgColor
-            layer?.borderWidth = 1
+            layer?.borderWidth = 0
         } else {
             layer?.backgroundColor = (dark ? NSColor.white.withAlphaComponent(0.06)
                                            : NSColor.black.withAlphaComponent(0.045)).cgColor
             layer?.borderColor = (dark ? NSColor.white.withAlphaComponent(0.08)
                                        : NSColor.black.withAlphaComponent(0.06)).cgColor
-            layer?.borderWidth = 1
+            layer?.borderWidth = 0
         }
         layer?.cornerRadius = 11
         layer?.cornerCurve = .continuous
@@ -170,7 +170,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var autoOffUnitLabel: NSTextField!
     private var countdownLabel: NSTextField!
     private var loginSwitch: NSSwitch!
-    private var languageControl: NSSegmentedControl!
+    private var languageControl: NSPopUpButton!
     private var quitButton: NSButton!
     private var clickMonitor: Any?
     private var batteryFloorPercent = floorDefault
@@ -186,7 +186,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var timerEndDate: Date?
 
     private let popoverWidth: CGFloat = 320
-    private let popoverHeight: CGFloat = 448
+    private let popoverHeight: CGFloat = 358
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -260,10 +260,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let swH = swProto.height > 0 ? swProto.height : 21
 
         // GROUP 1 — main switch + state caption
-        let g1y: CGFloat = 46, g1h: CGFloat = 84
+        let g1y: CGFloat = 44, g1h: CGFloat = 70
         let g1 = makeCard(NSRect(x: pad, y: g1y, width: contentW, height: g1h))
         mainCard = g1
-        mainLabel = makeLabel("", font: .systemFont(ofSize: 13), color: .labelColor)
+        mainLabel = makeLabel("", font: .systemFont(ofSize: 13, weight: .semibold), color: .labelColor)
         mainLabel.frame = NSRect(x: ci, y: ci, width: cw - swW - 8, height: 22)
         g1.addSubview(mainLabel)
         toggleSwitch = NSSwitch()
@@ -271,8 +271,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         toggleSwitch.action = #selector(switchToggled(_:))
         toggleSwitch.frame = NSRect(x: contentW - ci - swW, y: ci + (22 - swH) / 2, width: swW, height: swH)
         g1.addSubview(toggleSwitch)
-        captionLabel = makeLabel("", font: .systemFont(ofSize: 12), color: .secondaryLabelColor)
-        captionLabel.frame = NSRect(x: ci, y: ci + 30, width: cw, height: 32)
+        captionLabel = makeLabel("", font: .systemFont(ofSize: 11), color: .secondaryLabelColor)
+        captionLabel.frame = NSRect(x: ci, y: ci + 26, width: cw, height: 28)
         captionLabel.usesSingleLineMode = false
         captionLabel.lineBreakMode = .byWordWrapping
         captionLabel.maximumNumberOfLines = 2
@@ -280,8 +280,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         g1.addSubview(captionLabel)
 
         // GROUP 2 — auto-off timer (0...24h slider + editable hour field + countdown)
-        let g2y = g1y + g1h + 12, g2h: CGFloat = 92
-        let g2 = makeCard(NSRect(x: pad, y: g2y, width: contentW, height: g2h))
+        let g2y = g1y + g1h + 10, g2h: CGFloat = 84
+        let settings = makeCard(NSRect(x: pad, y: g2y, width: contentW, height: 190))
+        func settingsRow(y: CGFloat, height: CGFloat, separator: Bool) -> FlippedView {
+            let row = FlippedView(frame: NSRect(x: 0, y: y, width: contentW, height: height))
+            settings.addSubview(row)
+            if separator {
+                let line = NSBox(frame: NSRect(x: ci, y: 0, width: cw, height: 1))
+                line.boxType = .separator
+                row.addSubview(line)
+            }
+            return row
+        }
+        let g2 = settingsRow(y: 0, height: g2h, separator: false)
         timerLabel = makeLabel("", font: .systemFont(ofSize: 13), color: .labelColor)
         timerLabel.frame = NSRect(x: ci, y: ci, width: 150, height: 22)
         g2.addSubview(timerLabel)
@@ -291,6 +302,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         formatter.maximumFractionDigits = 2
         autoOffField = NSTextField(frame: NSRect(x: contentW - ci - 70, y: ci - 2, width: 48, height: 24))
         autoOffField.alignment = .right
+        autoOffField.font = .monospacedDigitSystemFont(ofSize: 12, weight: .medium)
+        autoOffField.bezelStyle = .roundedBezel
         autoOffField.formatter = formatter
         autoOffField.target = self
         autoOffField.action = #selector(autoOffFieldChanged(_:))
@@ -304,13 +317,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         autoOffSlider.isContinuous = false
         autoOffSlider.frame = NSRect(x: ci, y: ci + 28, width: cw, height: 20)
         g2.addSubview(autoOffSlider)
-        countdownLabel = makeLabel("", font: .systemFont(ofSize: 12), color: .secondaryLabelColor)
-        countdownLabel.frame = NSRect(x: ci, y: ci + 56, width: cw, height: 16)
+        countdownLabel = makeLabel("", font: .monospacedDigitSystemFont(ofSize: 11, weight: .regular), color: .secondaryLabelColor)
+        countdownLabel.frame = NSRect(x: ci, y: ci + 50, width: cw, height: 16)
         g2.addSubview(countdownLabel)
 
         // GROUP 3 — battery-floor (label + value + slider + min/max hints)
-        let g3y = g2y + g2h + 12, g3h: CGFloat = 92
-        let g3 = makeCard(NSRect(x: pad, y: g3y, width: contentW, height: g3h))
+        let g3h: CGFloat = 68
+        let g3 = settingsRow(y: g2h, height: g3h, separator: true)
         floorLabel = makeLabel("", font: .systemFont(ofSize: 13), color: .labelColor)
         floorLabel.frame = NSRect(x: ci, y: ci, width: cw - 54, height: 18)
         g3.addSubview(floorLabel)
@@ -325,36 +338,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         floorSlider.frame = NSRect(x: ci, y: ci + 26, width: cw, height: 20)
         g3.addSubview(floorSlider)
         let minHint = makeLabel("\(floorMin)%", font: .systemFont(ofSize: 10), color: .tertiaryLabelColor)
-        minHint.frame = NSRect(x: ci, y: ci + 50, width: 34, height: 13)
+        minHint.frame = NSRect(x: ci, y: ci + 42, width: 34, height: 13)
         g3.addSubview(minHint)
         let maxHint = makeLabel("\(floorMax)%", font: .systemFont(ofSize: 10), color: .tertiaryLabelColor)
         maxHint.alignment = .right
-        maxHint.frame = NSRect(x: contentW - ci - 34, y: ci + 50, width: 34, height: 13)
+        maxHint.frame = NSRect(x: contentW - ci - 34, y: ci + 42, width: 34, height: 13)
         g3.addSubview(maxHint)
 
         // GROUP 4 — launch at login (off by default; never auto-enables sleep prevention)
-        let g4y = g3y + g3h + 12, g4h: CGFloat = 46
-        let g4 = makeCard(NSRect(x: pad, y: g4y, width: contentW, height: g4h))
+        let g4 = settingsRow(y: g2h + g3h, height: 38, separator: true)
         loginLabel = makeLabel("", font: .systemFont(ofSize: 13), color: .labelColor)
-        loginLabel.frame = NSRect(x: ci, y: ci, width: cw - swW - 8, height: 22)
+        loginLabel.frame = NSRect(x: ci, y: 8, width: cw - swW - 8, height: 22)
         g4.addSubview(loginLabel)
         loginSwitch = NSSwitch()
         loginSwitch.target = self
         loginSwitch.action = #selector(loginToggled(_:))
         loginSwitch.state = loginItemEnabled() ? .on : .off
-        loginSwitch.frame = NSRect(x: contentW - ci - swW, y: ci + (22 - swH) / 2, width: swW, height: swH)
+        loginSwitch.frame = NSRect(x: contentW - ci - swW, y: 8 + (22 - swH) / 2, width: swW, height: swH)
         g4.addSubview(loginSwitch)
 
         // Footer — language + Quit.
-        languageControl = NSSegmentedControl(labels: ["English", "中文"], trackingMode: .selectOne,
-                                             target: self, action: #selector(languageChanged(_:)))
-        languageControl.selectedSegment = language.rawValue
+        languageControl = NSPopUpButton(frame: .zero, pullsDown: false)
+        languageControl.addItems(withTitles: ["English", "中文"])
+        languageControl.target = self
+        languageControl.action = #selector(languageChanged(_:))
+        languageControl.selectItem(at: language.rawValue)
         languageControl.controlSize = .small
-        languageControl.frame = NSRect(x: pad, y: g4y + g4h + 14, width: 116, height: 24)
+        languageControl.isBordered = false
+        languageControl.frame = NSRect(x: pad, y: 326, width: 86, height: 22)
         root.addSubview(languageControl)
 
         quitButton = NSButton(title: "", target: self, action: #selector(quit))
-        quitButton.controlSize = .regular
+        quitButton.controlSize = .small
+        quitButton.isBordered = false
+        quitButton.font = .systemFont(ofSize: 11)
+        quitButton.contentTintColor = .secondaryLabelColor
         quitButton.bezelStyle = .rounded
         root.addSubview(quitButton)
         updateLocalizedText()
@@ -378,23 +396,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         language == .chinese ? chinese : english
     }
 
-    @objc private func languageChanged(_ sender: NSSegmentedControl) {
-        language = AppLanguage(rawValue: sender.selectedSegment) ?? .english
+    @objc private func languageChanged(_ sender: NSPopUpButton) {
+        language = AppLanguage(rawValue: sender.indexOfSelectedItem) ?? .english
         UserDefaults.standard.set(language.rawValue, forKey: languageKey)
         updateLocalizedText()
         applyUI(on: isOn)
     }
 
     private func updateLocalizedText() {
-        mainLabel?.stringValue = text("Keep awake with lid closed", "合盖时保持运行")
+        mainLabel?.stringValue = text("Keep awake", "合盖保持运行")
         timerLabel?.stringValue = text("Auto-off timer", "自动关闭")
         autoOffUnitLabel?.stringValue = text("h", "时")
-        floorLabel?.stringValue = text("Auto-off at low battery", "低电量时自动关闭")
+        floorLabel?.stringValue = text("Battery cutoff", "低电量保护")
         loginLabel?.stringValue = text("Launch at login", "登录时启动")
-        quitButton?.title = text("Quit Sleepless", "退出 Sleepless")
+        quitButton?.title = text("Quit", "退出")
         quitButton?.sizeToFit()
         if let size = quitButton?.frame.size {
-            let y = (languageControl?.frame.minY ?? 410) - 2
+            let y = (languageControl?.frame.minY ?? 326) + 2
             quitButton?.frame = NSRect(x: popoverWidth - 16 - size.width, y: y, width: size.width, height: size.height)
         }
         syncAutoOffControls()
