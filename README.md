@@ -1,3 +1,11 @@
+# Atomic Grunt · 核动力牛马
+
+Clock out. It clocks in.
+
+Atomic Grunt is a fork of [Sleepless](https://github.com/Aboudjem/Sleepless), originally created by **Adam Boudjemaa (Aboudjem)**. Thanks to Sleepless for the menu-bar app and `pmset` lid-closed wake implementation. This fork adds privilege and quit-safety improvements, English/Chinese switching, configurable timers, and UI refinements. Original copyright notices and the [MIT license](LICENSE) are retained. This is an independently maintained derivative, not an official upstream release.
+
+> The app display name has changed. The repository, bundle identifier, and `Sleepless.app` installation path retain their original names for compatibility. The animations below are from upstream Sleepless and do not show this fork’s current UI.
+
 <!-- Language switcher. Keep this row identical across every README.<lang>.md. -->
 <p align="center">
   <b>English</b> &nbsp;·&nbsp;
@@ -22,18 +30,12 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Aboudjem/Sleepless/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Aboudjem/Sleepless/ci.yml?branch=main&label=CI&logo=githubactions&logoColor=white&style=flat-square&color=8B5CF6"></a>
-  <a href="https://github.com/Aboudjem/Sleepless/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/Aboudjem/Sleepless?label=release&logo=apple&logoColor=white&style=flat-square&color=8B5CF6"></a>
-  <a href="https://github.com/Aboudjem/Sleepless/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/Aboudjem/Sleepless/total?label=downloads&style=flat-square&color=6366F1"></a>
-  <a href="https://github.com/Aboudjem/Sleepless/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/Aboudjem/Sleepless?style=flat-square&color=6366F1"></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-D946EF?style=flat-square"></a>
   <img alt="Platform: macOS 26, Apple Silicon" src="https://img.shields.io/badge/macOS%2026-Apple%20Silicon-8B5CF6?style=flat-square&logo=apple&logoColor=white">
 </p>
 <p align="center">
-  <img alt="Build provenance: attested (SLSA)" src="https://img.shields.io/badge/build%20provenance-attested-8B5CF6?style=flat-square&logo=githubactions&logoColor=white">
   <img alt="Checksums: SHA-256" src="https://img.shields.io/badge/checksums-SHA--256-6366F1?style=flat-square">
   <img alt="Telemetry: none" src="https://img.shields.io/badge/telemetry-none-D946EF?style=flat-square">
-  <a href="https://github.com/Aboudjem/homebrew-tap"><img alt="Install: Homebrew cask" src="https://img.shields.io/badge/homebrew-cask-8B5CF6?style=flat-square&logo=homebrew&logoColor=white"></a>
 </p>
 
 <p align="center">
@@ -113,8 +115,7 @@ Sleepless toggles `pmset disablesleep` (the kernel's `SleepDisabled` flag), read
 Verify a download, no Apple account needed:
 
 ```sh
-shasum -a 256 -c SHA256SUMS
-gh attestation verify Sleepless-*.zip -R Aboudjem/Sleepless
+shasum -a 256 -c dist/Sleepless-1.3.0.dmg.sha256
 ```
 
 Full threat model, the App Store verdict, and the audit guide: [SECURITY.md](SECURITY.md) · [docs/AUDIT.md](docs/AUDIT.md).
