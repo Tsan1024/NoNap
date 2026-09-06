@@ -66,6 +66,7 @@ mkdir -p "$CONTENTS/MacOS" "$CONTENTS/Resources"
 cp "$REPO/Info.plist" "$CONTENTS/Info.plist"
 cp "$BIN_TMP/$APP_NAME" "$CONTENTS/MacOS/$APP_NAME"
 cp "$ICNS" "$CONTENTS/Resources/$APP_NAME.icns"
+cp -R "$REPO/assets/en.lproj" "$REPO/assets/zh-Hans.lproj" "$CONTENTS/Resources/"
 chmod +x "$CONTENTS/MacOS/$APP_NAME"
 # Ship the grant + uninstall scripts inside the bundle so Homebrew-cask users (who get
 # only the .app) can run the one-time passwordless grant and a clean uninstall.

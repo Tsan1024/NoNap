@@ -73,9 +73,9 @@ enum SleepGlyph {
 private func makeCupGlyph(_ glyph: SleepGlyph) -> NSImage {
     let cfg = NSImage.SymbolConfiguration(pointSize: 15, weight: .regular).applying(.init(scale: .medium))
     let name = (glyph == .off) ? "cup.and.saucer" : "cup.and.heat.waves.fill"
-    let base = NSImage(systemSymbolName: name, accessibilityDescription: "Sleepless")?
+    let base = NSImage(systemSymbolName: name, accessibilityDescription: "StayAwake")?
         .withSymbolConfiguration(cfg)
-        ?? NSImage(systemSymbolName: "cup.and.saucer.fill", accessibilityDescription: "Sleepless")
+        ?? NSImage(systemSymbolName: "cup.and.saucer.fill", accessibilityDescription: "StayAwake")
         ?? NSImage()
 
     guard glyph == .armed else {
@@ -157,6 +157,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let popover = NSPopover()
     private var toggleSwitch: NSSwitch!
     private var mainCard: CardView!         // group-1 card; gets the brand-violet wash when awake
+    private var titleLabel: NSTextField!
     private var headerMark: NSImageView!    // header coffee mark; tints violet when awake
     private var captionLabel: NSTextField!
     private var mainLabel: NSTextField!
@@ -236,7 +237,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         root.blendingMode = .behindWindow
         root.state = .followsWindowActiveState
 
-        // Header: small coffee mark + "Sleepless" (quiet system glyph, not a branded logo).
+        // Header: small coffee mark + "StayAwake" (quiet system glyph, not a branded logo).
         // The mark tints to the brand violet while the Mac is kept awake.
         let mark = NSImageView(frame: NSRect(x: pad, y: 14, width: 18, height: 18))
         let headerCup = makeCupGlyph(.on); headerCup.isTemplate = true
@@ -244,9 +245,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         mark.contentTintColor = .labelColor
         root.addSubview(mark)
         headerMark = mark
-        let title = makeLabel("Sleepless", font: .systemFont(ofSize: 14, weight: .semibold), color: .labelColor)
+        let title = makeLabel("StayAwake", font: .systemFont(ofSize: 14, weight: .semibold), color: .labelColor)
         title.frame = NSRect(x: pad + 24, y: 14, width: contentW - 24, height: 20)
         root.addSubview(title)
+        titleLabel = title
 
         // Grouped inset cards (System Settings rhythm) replace per-row hairline separators.
         func makeCard(_ rect: NSRect) -> CardView {
@@ -404,6 +406,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updateLocalizedText() {
+        titleLabel?.stringValue = text("StayAwake", "醒着")
         mainLabel?.stringValue = text("Keep awake", "合盖保持运行")
         timerLabel?.stringValue = text("Auto-off timer", "自动关闭")
         autoOffUnitLabel?.stringValue = text("h", "时")
@@ -491,8 +494,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         intro.alertStyle = .informational
         intro.messageText = text("Enable keeping your Mac awake", "允许 Mac 合盖后继续运行")
         intro.informativeText = text(
-            "Sleepless needs permission once to install a rule limited to two pmset commands. After that the switch works without more prompts.",
-            "Sleepless 需要一次管理员授权，以安装仅限两条 pmset 命令的规则。之后使用开关无需再次授权。"
+            "StayAwake needs permission once to install a rule limited to two pmset commands. After that the switch works without more prompts.",
+            "醒着 需要一次管理员授权，以安装仅限两条 pmset 命令的规则。之后使用开关无需再次授权。"
         )
         intro.addButton(withTitle: text("Enable", "允许"))
         intro.addButton(withTitle: text("Not now", "暂不"))
@@ -596,8 +599,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func keepAwakeTimerFired() {
         if turnOffForSafety(
-            success: text("Auto-off timer ended. Sleepless turned off.", "自动关闭计时结束，Sleepless 已关闭。"),
-            failure: text("Auto-off failed. Turn Sleepless off manually.", "自动关闭失败，请手动关闭 Sleepless。")
+            success: text("Auto-off timer ended. StayAwake turned off.", "自动关闭计时结束，醒着 已关闭。"),
+            failure: text("Auto-off failed. Turn StayAwake off manually.", "自动关闭失败，请手动关闭 醒着。")
         ) {
             autoOffMinutes = 0
             syncAutoOffControls()
@@ -656,7 +659,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if sender.state == .on { try SMAppService.mainApp.register() }
             else { try SMAppService.mainApp.unregister() }
         } catch {
-            NSLog("Sleepless: login item update failed: %@", error.localizedDescription)
+            NSLog("StayAwake: login item update failed: %@", error.localizedDescription)
             notify(text("Couldn't update Launch at login.", "无法更新登录启动设置。"))
         }
         sender.state = loginItemEnabled() ? .on : .off
@@ -696,10 +699,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             button.toolTip = on
                 ? (armed
-                    ? text("Sleepless: on (battery). Auto-off at \(batteryFloorPercent)% or in Low Power Mode.",
-                           "Sleepless：已开启（电池供电），将在 \(batteryFloorPercent)% 或低电量模式下关闭。")
-                    : text("Sleepless: on. Stays awake with the lid closed.", "Sleepless：已开启，合盖后继续运行。"))
-                : text("Sleepless: off. Sleeps normally.", "Sleepless：已关闭，正常休眠。")
+                    ? text("StayAwake: on (battery). Auto-off at \(batteryFloorPercent)% or in Low Power Mode.",
+                           "醒着：已开启（电池供电），将在 \(batteryFloorPercent)% 或低电量模式下关闭。")
+                    : text("StayAwake: on. Stays awake with the lid closed.", "醒着：已开启，合盖后继续运行。"))
+                : text("StayAwake: off. Sleeps normally.", "醒着：已关闭，正常休眠。")
         }
         toggleSwitch?.state = on ? .on : .off
         // Brand-violet accent communicates the privileged "awake" state at a glance.
@@ -774,7 +777,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         process.standardInput = FileHandle.nullDevice
         do { try process.run() }
         catch {
-            NSLog("Sleepless: failed to launch sudo: %@", error.localizedDescription)
+            NSLog("StayAwake: failed to launch sudo: %@", error.localizedDescription)
             return (-1, "", "launch failed: \(error.localizedDescription)")
         }
         let outData = outPipe.fileHandleForReading.readDataToEndOfFile()
@@ -790,8 +793,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard ownsDisableSleep else { return }
         guard let (onBattery, discharging, percent) = batteryStatus() else {
             _ = turnOffForSafety(
-                success: text("Battery status unavailable. Sleepless turned off safely.", "无法读取电池状态，Sleepless 已安全关闭。"),
-                failure: text("Battery status unavailable and auto-off failed. Turn Sleepless off manually.", "无法读取电池状态且自动关闭失败，请手动关闭 Sleepless。")
+                success: text("Battery status unavailable. StayAwake turned off safely.", "无法读取电池状态，醒着 已安全关闭。"),
+                failure: text("Battery status unavailable and auto-off failed. Turn StayAwake off manually.", "无法读取电池状态且自动关闭失败，请手动关闭 醒着。")
             )
             return
         }
@@ -799,15 +802,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Hard battery floor ALWAYS wins, even over a deliberate turn-on: never drain to empty.
         if percent <= batteryFloorPercent {
             _ = turnOffForSafety(
-                success: text("Battery low (\(percent)%). Sleepless turned off.", "电量较低（\(percent)%），Sleepless 已关闭。"),
-                failure: text("Low-battery auto-off failed. Turn Sleepless off manually.", "低电量自动关闭失败，请手动关闭 Sleepless。")
+                success: text("Battery low (\(percent)%). StayAwake turned off.", "电量较低（\(percent)%），醒着 已关闭。"),
+                failure: text("Low-battery auto-off failed. Turn StayAwake off manually.", "低电量自动关闭失败，请手动关闭 醒着。")
             )
             return
         }
         if ProcessInfo.processInfo.isLowPowerModeEnabled {
             _ = turnOffForSafety(
-                success: text("Low Power Mode on. Sleepless turned off.", "已进入低电量模式，Sleepless 已关闭。"),
-                failure: text("Low Power Mode auto-off failed. Turn Sleepless off manually.", "低电量模式自动关闭失败，请手动关闭 Sleepless。")
+                success: text("Low Power Mode on. StayAwake turned off.", "已进入低电量模式，醒着 已关闭。"),
+                failure: text("Low Power Mode auto-off failed. Turn StayAwake off manually.", "低电量模式自动关闭失败，请手动关闭 醒着。")
             )
         }
     }
@@ -854,7 +857,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Notification (mirrors Nexus' osascript approach)
     private func notify(_ message: String) {
-        let script = "display notification \"\(message)\" with title \"Sleepless\" sound name \"Tink\""
+        let script = "display notification \"\(message)\" with title \"StayAwake\" sound name \"Tink\""
         _ = runCapture("/usr/bin/osascript", ["-e", script])
     }
 
@@ -872,7 +875,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         process.standardOutput = pipe
         process.standardError = Pipe()
         do { try process.run() }
-        catch { NSLog("Sleepless: failed to launch %@: %@", launchPath, error.localizedDescription); return "" }
+        catch { NSLog("StayAwake: failed to launch %@: %@", launchPath, error.localizedDescription); return "" }
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
         return String(data: data, encoding: .utf8) ?? ""
@@ -880,7 +883,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func quit() {
         if ownsDisableSleep, setDisableSleep(false) != .ok {
-            notify(text("Couldn't restore normal sleep; Sleepless is still running.", "无法恢复正常休眠；Sleepless 将继续运行。"))
+            notify(text("Couldn't restore normal sleep; StayAwake is still running.", "无法恢复正常休眠；醒着 将继续运行。"))
             refresh()
             return
         }
