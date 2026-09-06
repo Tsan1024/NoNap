@@ -4,7 +4,7 @@ Lid closed. Work goes on.
 
 StayAwake is a fork of [Sleepless](https://github.com/Aboudjem/Sleepless), originally created by **Adam Boudjemaa (Aboudjem)**. Thanks to Sleepless for the menu-bar app and `pmset` lid-closed wake implementation. This fork adds privilege and quit-safety improvements, English/Chinese switching, configurable timers, and UI refinements. Original copyright notices and the [MIT license](LICENSE) are retained. This is an independently maintained derivative, not an official upstream release.
 
-> The app display name has changed. The repository, bundle identifier, and `Sleepless.app` installation path retain their original names for compatibility. The animations below are from upstream Sleepless and do not show this fork’s current UI.
+> The app is now packaged and installed as `StayAwake.app`. The repository and bundle identifier retain their original names for settings compatibility. The animations below are from upstream Sleepless and do not show this fork’s current UI.
 
 <!-- Language switcher. Keep this row identical across every README.<lang>.md. -->
 <p align="center">
@@ -57,8 +57,8 @@ The first toggle asks for one native macOS administrator authorization and insta
 
 | Other ways | |
 |---|---|
-| **Build without installing** | `./build.sh` creates `build/Sleepless.app` without changing sudoers. |
-| **Create a DMG** | `./package.sh` creates `dist/Sleepless-1.3.0.dmg` and its SHA-256 file. |
+| **Build without installing** | `./build.sh` creates `build/StayAwake.app` without changing sudoers. |
+| **Create a DMG** | `./package.sh` creates `dist/StayAwake-1.3.0.dmg` and its SHA-256 file. |
 
 Then click the cup in the menu bar, flip the switch, and close the lid.
 
@@ -126,7 +126,7 @@ Sleepless toggles `pmset disablesleep` (the kernel's `SleepDisabled` flag), read
 Verify a download, no Apple account needed:
 
 ```sh
-shasum -a 256 -c dist/Sleepless-1.3.0.dmg.sha256
+shasum -a 256 -c dist/StayAwake-1.3.0.dmg.sha256
 ```
 
 Full threat model, the App Store verdict, and the audit guide: [SECURITY.md](SECURITY.md) · [docs/AUDIT.md](docs/AUDIT.md).

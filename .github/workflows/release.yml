@@ -40,20 +40,20 @@ jobs:
           swiftc --version
           echo "SDK: $(xcrun --sdk macosx --show-sdk-version 2>/dev/null || echo n/a)"
 
-      - name: Build Sleepless.app
+      - name: Build StayAwake.app
         run: |
           set -euo pipefail
           # Conservative deployment target so it compiles against the runner SDK and
           # runs on macOS 13+. (Local + tested target is arm64-apple-macos26.0.)
           TARGET="arm64-apple-macos13.0" ./build.sh "$PWD/dist"
-          codesign --verify --verbose=1 "dist/Sleepless.app"
+          codesign --verify --verbose=1 "dist/StayAwake.app"
 
       - name: Zip the app bundle
         id: zip
         run: |
           set -euo pipefail
-          ASSET="Sleepless-${{ steps.ver.outputs.version }}.zip"
-          ditto -c -k --keepParent "dist/Sleepless.app" "$ASSET"
+          ASSET="StayAwake-${{ steps.ver.outputs.version }}.zip"
+          ditto -c -k --keepParent "dist/StayAwake.app" "$ASSET"
           echo "asset=$ASSET" >> "$GITHUB_OUTPUT"
           ls -la "$ASSET"
 
@@ -98,9 +98,9 @@ jobs:
           ASSET="${{ steps.zip.outputs.asset }}"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$ASSET" SHA256SUMS --clobber
-            gh release edit "$TAG" --notes-file NOTES.md --title "Sleepless ${{ steps.ver.outputs.version }}"
+            gh release edit "$TAG" --notes-file NOTES.md --title "StayAwake ${{ steps.ver.outputs.version }}"
           else
             gh release create "$TAG" "$ASSET" SHA256SUMS \
-              --title "Sleepless ${{ steps.ver.outputs.version }}" \
+              --title "StayAwake ${{ steps.ver.outputs.version }}" \
               --notes-file NOTES.md
           fi

@@ -4,7 +4,7 @@
 
 本项目基于 [Sleepless](https://github.com/Aboudjem/Sleepless) fork 并修改，原作者为 **Adam Boudjemaa（Aboudjem）**。感谢原项目提供的菜单栏应用与 `pmset` 合盖保持唤醒实现；本分支增加了权限与退出保护改进、中英文切换、自定义定时及界面调整。保留原作者版权声明，并沿用 [MIT 许可证](LICENSE)。本项目为独立维护的衍生版本，并非原作者官方发布。
 
-> 应用显示名称已更改；为兼容现有安装与设置，仓库、应用标识及 `Sleepless.app` 安装路径暂时保留原名。下方动图来自上游 Sleepless，尚未更新为本版界面。
+> 应用现以 `StayAwake.app` 打包和安装；为兼容现有设置，仓库及应用标识仍保留原名。下方动图来自上游 Sleepless，尚未更新为本版界面。
 
 <!-- Language switcher. Keep this row identical across every README.<lang>.md. -->
 <p align="center">
@@ -59,8 +59,8 @@ cd Sleepless
 
 | 其他方式 | |
 |---|---|
-| **仅构建、不安装** | `./build.sh` 会生成 `build/Sleepless.app`，不会修改 sudoers。 |
-| **制作 DMG** | `./package.sh` 会生成 `dist/Sleepless-1.3.0.dmg` 及其 SHA-256 文件。 |
+| **仅构建、不安装** | `./build.sh` 会生成 `build/StayAwake.app`，不会修改 sudoers。 |
+| **制作 DMG** | `./package.sh` 会生成 `dist/StayAwake-1.3.0.dmg` 及其 SHA-256 文件。 |
 
 然后点击菜单栏里的咖啡杯，拨动开关，合上盖子。
 
@@ -126,7 +126,7 @@ Sleepless 切换 `pmset disablesleep`（内核的 `SleepDisabled` 标志），�
 验证一个下载，无需 Apple 账户：
 
 ```sh
-shasum -a 256 -c dist/Sleepless-1.3.0.dmg.sha256
+shasum -a 256 -c dist/StayAwake-1.3.0.dmg.sha256
 ```
 
 完整威胁模型、为何无法上架 App Store，以及审计指南：[SECURITY.md](SECURITY.md) · [docs/AUDIT.md](docs/AUDIT.md)。

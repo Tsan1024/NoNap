@@ -28,25 +28,25 @@ jobs:
           # Local + release builds target arm64-apple-macos26.0. CI compiles against the
           # runner's SDK (which may predate macOS 26) purely as a clean-compile smoke test,
           # so it does not force the 26.0 deployment target here.
-          swiftc -O -parse-as-library -framework AppKit App.swift BatteryEstimate.swift -o /tmp/Sleepless 2> build.log \
+          swiftc -O -parse-as-library -framework AppKit App.swift BatteryEstimate.swift -o /tmp/StayAwake 2> build.log \
             || { echo "::group::swiftc output"; cat build.log; echo "::endgroup::"; exit 1; }
           cat build.log
           if grep -q "warning:" build.log; then
             echo "::error::swiftc emitted warnings — zero-warning gate failed"
             exit 1
           fi
-          file /tmp/Sleepless
+          file /tmp/StayAwake
 
       - name: Assemble app bundle
         run: |
           set -euo pipefail
           # Build the full bundle (conservative target so it works on the runner's SDK).
           TARGET="arm64-apple-macos13.0" ./build.sh "$PWD/dist"
-          ls -la "dist/Sleepless.app/Contents" "dist/Sleepless.app/Contents/MacOS"
+          ls -la "dist/StayAwake.app/Contents" "dist/StayAwake.app/Contents/MacOS"
 
       - name: Upload app artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Sleepless-app
-          path: dist/Sleepless.app
+          name: StayAwake-app
+          path: dist/StayAwake.app
           if-no-files-found: error

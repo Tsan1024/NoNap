@@ -1,4 +1,4 @@
-// App.swift. Sleepless: a standalone menu-bar toggle that keeps the Mac running
+// App.swift. StayAwake: a standalone menu-bar toggle that keeps the Mac running
 // with the lid closed (on battery, no external display) via `pmset disablesleep`.
 //
 // Mechanism (verified live on this machine; disablesleep is UNDOCUMENTED in
@@ -27,7 +27,7 @@
 //   2. Launch at login (SMAppService.mainApp) — OFF by default. The app always
 //      launches reading the TRUE system state, so a login launch can never
 //      re-enable disablesleep on its own.
-//   3. Low-Power-Mode auto-off — on battery, if Low Power Mode is on, Sleepless
+//   3. Low-Power-Mode auto-off — on battery, if Low Power Mode is on, StayAwake
 //      turns itself off. Same shape as the battery floor, evaluated on the same tick.
 //
 // Build (mirrors Nexus.app): Command Line Tools `swiftc`, NO Xcode project.
@@ -850,7 +850,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 @main
-enum SleeplessApp {
+enum StayAwakeApp {
     @MainActor
     static func main() {
         let app = NSApplication.shared

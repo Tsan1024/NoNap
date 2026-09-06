@@ -47,7 +47,7 @@
 
 ```sh
 brew install --cask aboudjem/tap/sleepless
-/Applications/Sleepless.app/Contents/Resources/grant.sh   # one-time passwordless grant
+/Applications/StayAwake.app/Contents/Resources/grant.sh   # one-time passwordless grant
 ```
 
 | Otras formas | |

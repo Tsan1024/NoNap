@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# build.sh — compile Sleepless.app from source with the Command Line Tools only.
+# build.sh — compile StayAwake.app from source with the Command Line Tools only.
 #
 # No Xcode project, no Package.swift: just `swiftc` + a hand-assembled .app bundle,
 # ad-hoc signed. Works from any clone (no hardcoded paths or usernames).
 #
 # Usage:
-#   ./build.sh                      # build into ./build/Sleepless.app
+#   ./build.sh                      # build into ./build/StayAwake.app
 #   ./build.sh /Applications        # build straight into /Applications
 #   DEST=/Applications ./build.sh   # same, via env
 #   ./build.sh --regen-icon         # re-render the .icns from make-icon.swift first
@@ -15,8 +15,8 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP_NAME="Sleepless"
-# macOS arm64 target. Sleepless is verified on macOS 26 (Tahoe) / Apple Silicon.
+APP_NAME="StayAwake"
+# macOS arm64 target. StayAwake is verified on macOS 26 (Tahoe) / Apple Silicon.
 # Override with TARGET=... (e.g. CI on a runner whose SDK predates macOS 26).
 TARGET="${TARGET:-arm64-apple-macos26.0}"
 

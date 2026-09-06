@@ -61,11 +61,11 @@ cd Sleepless && git checkout v<version>
 
 # Rebuild the executable with the release's deployment target.
 swiftc -O -parse-as-library -target arm64-apple-macos13.0 \
-  -framework AppKit -framework ServiceManagement App.swift -o /tmp/Sleepless-rebuilt
+  -framework AppKit -framework ServiceManagement App.swift BatteryEstimate.swift -o /tmp/StayAwake-rebuilt
 
 # Unzip the release and compare the Mach-O inside the bundle.
-ditto -x -k Sleepless-<version>.zip /tmp/rel
-shasum -a 256 /tmp/Sleepless-rebuilt /tmp/rel/Sleepless.app/Contents/MacOS/Sleepless
+ditto -x -k StayAwake-<version>.zip /tmp/rel
+shasum -a 256 /tmp/StayAwake-rebuilt /tmp/rel/StayAwake.app/Contents/MacOS/StayAwake
 ```
 
 Caveats, stated honestly:
@@ -115,11 +115,11 @@ xcrun notarytool store-credentials "notarytool-password" \
 
 # Re-sign with a Developer ID cert + hardened runtime + secure timestamp.
 codesign --force --options runtime --timestamp \
-  --sign "Developer ID Application: <Name> (<TeamID>)" Sleepless.app
+  --sign "Developer ID Application: <Name> (<TeamID>)" StayAwake.app
 
-ditto -c -k --keepParent Sleepless.app Sleepless.zip
-xcrun notarytool submit Sleepless.zip --keychain-profile "notarytool-password" --wait
-xcrun stapler staple Sleepless.app
+ditto -c -k --keepParent StayAwake.app StayAwake.zip
+xcrun notarytool submit StayAwake.zip --keychain-profile "notarytool-password" --wait
+xcrun stapler staple StayAwake.app
 ```
 
 Prerequisite: [Apple Developer Program, $99/yr](https://developer.apple.com/programs/whats-included/),
