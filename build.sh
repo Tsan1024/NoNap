@@ -57,7 +57,7 @@ fi
 echo "==> Compiling App.swift"
 BIN_TMP="$(mktemp -d)"
 swiftc -O -parse-as-library -target "$TARGET" -framework AppKit -framework ServiceManagement \
-  "$REPO/App.swift" -o "$BIN_TMP/$APP_NAME"
+  "$REPO/App.swift" "$REPO/BatteryEstimate.swift" -o "$BIN_TMP/$APP_NAME"
 
 # 3. Assemble the bundle: Contents/{Info.plist, MacOS/<exe>, Resources/<name>.icns}
 echo "==> Assembling bundle"

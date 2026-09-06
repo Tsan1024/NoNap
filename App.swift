@@ -101,14 +101,6 @@ private func makeCupGlyph(_ glyph: SleepGlyph) -> NSImage {
 // Flipped container so popover content lays out top-down with simple frames.
 private final class FlippedView: NSView { override var isFlipped: Bool { true } }
 
-// Brand accent (2026 "Liquid Glass" redesign): indigo -> violet -> fuchsia. The
-// violet mid-tone is the single accent the popover uses to communicate the
-// privileged "awake" state, matching the app icon's gradient mid-stop. These are
-// the only hard-coded colours; everything else stays on system semantic colours so
-// the panel still reads as a first-party control.
-private let brandAccent = NSColor.controlAccentColor
-private let brandAccentSoft = NSColor.controlAccentColor
-
 // Frosted-glass popover backing: a flipped NSVisualEffectView so content still
 // lays out top-down while the panel gets a translucent, blurred material that
 // samples the desktop/windows behind it (system light/dark aware). On macOS 26 the
@@ -116,34 +108,6 @@ private let brandAccentSoft = NSColor.controlAccentColor
 // keep this native (no hand-rolled tint on the surface) so a sudo-touching panel
 // stays visually first-party. Colour lives on the controls, never the surface.
 private final class GlassView: NSVisualEffectView { override var isFlipped: Bool { true } }
-
-// Inset grouping "card" (System Settings rhythm): a flipped, layer-backed container
-// with a subtle, appearance-adaptive fill, a hairline border, and continuous-corner
-// rounding. When `active`, the card carries a faint brand-violet wash + a violet
-// hairline so the privileged "kept awake" state is unmistakable at a glance in the
-// accent colour (Apple's "tint elements, not surfaces" model). Re-resolved on
-// light/dark changes and on state changes via updateLayer.
-private final class CardView: NSView {
-    var active = false { didSet { if active != oldValue { needsDisplay = true } } }
-    override var isFlipped: Bool { true }
-    override var wantsUpdateLayer: Bool { true }
-    override func updateLayer() {
-        let dark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        if active {
-            layer?.backgroundColor = brandAccent.withAlphaComponent(dark ? 0.18 : 0.10).cgColor
-            layer?.borderColor = brandAccent.withAlphaComponent(dark ? 0.60 : 0.45).cgColor
-            layer?.borderWidth = 0
-        } else {
-            layer?.backgroundColor = (dark ? NSColor.white.withAlphaComponent(0.06)
-                                           : NSColor.black.withAlphaComponent(0.045)).cgColor
-            layer?.borderColor = (dark ? NSColor.white.withAlphaComponent(0.08)
-                                       : NSColor.black.withAlphaComponent(0.06)).cgColor
-            layer?.borderWidth = 0
-        }
-        layer?.cornerRadius = 11
-        layer?.cornerCurve = .continuous
-    }
-}
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -156,23 +120,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // Popover UI
     private let popover = NSPopover()
     private var toggleSwitch: NSSwitch!
-    private var mainCard: CardView!         // group-1 card; gets the brand-violet wash when awake
     private var titleLabel: NSTextField!
     private var headerMark: NSImageView!    // header coffee mark; tints violet when awake
     private var captionLabel: NSTextField!
     private var mainLabel: NSTextField!
     private var timerLabel: NSTextField!
-    private var floorLabel: NSTextField!
-    private var loginLabel: NSTextField!
-    private var floorValueLabel: NSTextField!
+    private var floorButton: NSButton!
+    private var batteryEstimateLabel: NSTextField!
+    private var floorControls: FlippedView!
+    private var footer: FlippedView!
+    private var settingsButton: NSButton!
+    private var timerHintLabel: NSTextField!
+    private var batteryEstimate: BatteryEstimate?
     private var floorSlider: NSSlider!
     private var autoOffSlider: NSSlider!
     private var autoOffField: NSTextField!
     private var autoOffUnitLabel: NSTextField!
     private var countdownLabel: NSTextField!
-    private var loginSwitch: NSSwitch!
-    private var languageControl: NSPopUpButton!
-    private var quitButton: NSButton!
     private var clickMonitor: Any?
     private var batteryFloorPercent = floorDefault
     private var isOn = false
@@ -186,8 +150,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var countdownTicker: Timer?      // 1 Hz label refresh, only while the popover is open
     private var timerEndDate: Date?
 
-    private let popoverWidth: CGFloat = 320
-    private let popoverHeight: CGFloat = 358
+    private let popoverWidth: CGFloat = 344
+    private let popoverHeight: CGFloat = 382
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -222,87 +186,57 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if ownsDisableSleep, setDisableSleep(false) == .ok { setOwnership(false) }
     }
 
-    // MARK: - Popover content (native NSSwitch toggle, macOS-aligned)
+    // MARK: - Popover content
     private func makeContentController() -> NSViewController {
-        let W = popoverWidth, pad: CGFloat = 16
-        let contentW = W - pad * 2
-        let ci: CGFloat = 12                 // card inner padding
-        let cw = contentW - ci * 2           // card inner content width
-
-        // Standard system popover material: untinted, no forced emphasis, so it reads
-        // as a first-party control (like the Wi-Fi / Sound / Battery popovers), not a
-        // themed panel. NSPopover supplies its own corner, shadow, and arrow.
-        let root = GlassView(frame: NSRect(x: 0, y: 0, width: W, height: popoverHeight))
+        let pad: CGFloat = 22, width = popoverWidth - 44
+        let root = GlassView(frame: NSRect(x: 0, y: 0, width: popoverWidth, height: popoverHeight))
         root.material = .popover
         root.blendingMode = .behindWindow
-        root.state = .followsWindowActiveState
+        root.state = .active
 
-        // Header: small coffee mark + "Atomic Grunt" (quiet system glyph, not a branded logo).
-        // The mark tints to the brand violet while the Mac is kept awake.
-        let mark = NSImageView(frame: NSRect(x: pad, y: 14, width: 18, height: 18))
-        let headerCup = makeCupGlyph(.on); headerCup.isTemplate = true
-        mark.image = headerCup
-        mark.contentTintColor = .labelColor
+        func label(_ frame: NSRect, size: CGFloat, weight: NSFont.Weight = .regular,
+                   color: NSColor = .labelColor) -> NSTextField {
+            let view = makeLabel("", font: .systemFont(ofSize: size, weight: weight), color: color)
+            view.frame = frame
+            root.addSubview(view)
+            return view
+        }
+        func divider(_ y: CGFloat, in parent: NSView) {
+            let line = NSBox(frame: NSRect(x: pad, y: y, width: width, height: 1))
+            line.boxType = .separator
+            parent.addSubview(line)
+        }
+        let mark = NSImageView(frame: NSRect(x: pad, y: 21, width: 20, height: 20))
+        mark.image = makeCupGlyph(.on)
         root.addSubview(mark)
         headerMark = mark
-        let title = makeLabel("Atomic Grunt", font: .systemFont(ofSize: 14, weight: .semibold), color: .labelColor)
-        title.frame = NSRect(x: pad + 24, y: 14, width: contentW - 24, height: 20)
-        root.addSubview(title)
-        titleLabel = title
-
-        // Grouped inset cards (System Settings rhythm) replace per-row hairline separators.
-        func makeCard(_ rect: NSRect) -> CardView {
-            let c = CardView(frame: rect)
-            c.wantsLayer = true
-            root.addSubview(c)
-            return c
-        }
-        let swProto = NSSwitch().intrinsicContentSize
-        let swW = swProto.width > 0 ? swProto.width : 38
-        let swH = swProto.height > 0 ? swProto.height : 21
-
-        // GROUP 1 — main switch + state caption
-        let g1y: CGFloat = 44, g1h: CGFloat = 70
-        let g1 = makeCard(NSRect(x: pad, y: g1y, width: contentW, height: g1h))
-        mainCard = g1
-        mainLabel = makeLabel("", font: .systemFont(ofSize: 13, weight: .semibold), color: .labelColor)
-        mainLabel.frame = NSRect(x: ci, y: ci, width: cw - swW - 8, height: 22)
-        g1.addSubview(mainLabel)
+        titleLabel = label(NSRect(x: pad + 28, y: 21, width: width - 88, height: 22),
+                           size: 15, weight: .semibold)
         toggleSwitch = NSSwitch()
         toggleSwitch.target = self
         toggleSwitch.action = #selector(switchToggled(_:))
-        toggleSwitch.frame = NSRect(x: contentW - ci - swW, y: ci + (22 - swH) / 2, width: swW, height: swH)
-        g1.addSubview(toggleSwitch)
-        captionLabel = makeLabel("", font: .systemFont(ofSize: 11), color: .secondaryLabelColor)
-        captionLabel.frame = NSRect(x: ci, y: ci + 26, width: cw, height: 28)
-        captionLabel.usesSingleLineMode = false
-        captionLabel.lineBreakMode = .byWordWrapping
-        captionLabel.maximumNumberOfLines = 2
-        captionLabel.cell?.wraps = true
-        g1.addSubview(captionLabel)
+        let switchSize = toggleSwitch.intrinsicContentSize
+        toggleSwitch.frame = NSRect(x: popoverWidth - pad - switchSize.width, y: 19,
+                                    width: switchSize.width, height: switchSize.height)
+        root.addSubview(toggleSwitch)
 
-        // GROUP 2 — auto-off timer (0...24h slider + editable hour field + countdown)
-        let g2y = g1y + g1h + 10, g2h: CGFloat = 84
-        let settings = makeCard(NSRect(x: pad, y: g2y, width: contentW, height: 190))
-        func settingsRow(y: CGFloat, height: CGFloat, separator: Bool) -> FlippedView {
-            let row = FlippedView(frame: NSRect(x: 0, y: y, width: contentW, height: height))
-            settings.addSubview(row)
-            if separator {
-                let line = NSBox(frame: NSRect(x: ci, y: 0, width: cw, height: 1))
-                line.boxType = .separator
-                row.addSubview(line)
-            }
-            return row
-        }
-        let g2 = settingsRow(y: 0, height: g2h, separator: false)
-        timerLabel = makeLabel("", font: .systemFont(ofSize: 13), color: .labelColor)
-        timerLabel.frame = NSRect(x: ci, y: ci, width: 150, height: 22)
-        g2.addSubview(timerLabel)
+        mainLabel = label(NSRect(x: pad, y: 67, width: width, height: 18),
+                          size: 11, weight: .medium, color: .secondaryLabelColor)
+        countdownLabel = label(NSRect(x: pad - 1, y: 91, width: width + 2, height: 43),
+                               size: 29, weight: .medium)
+        captionLabel = label(NSRect(x: pad, y: 140, width: width, height: 30),
+                            size: 11, color: .secondaryLabelColor)
+        captionLabel.maximumNumberOfLines = 2
+        captionLabel.usesSingleLineMode = false
+        captionLabel.cell?.wraps = true
+        divider(183, in: root)
+
+        timerLabel = label(NSRect(x: pad, y: 198, width: 175, height: 22), size: 12, weight: .medium)
         let formatter = NumberFormatter()
         formatter.minimum = 0
         formatter.maximum = 24
         formatter.maximumFractionDigits = 2
-        autoOffField = NSTextField(frame: NSRect(x: contentW - ci - 70, y: ci - 2, width: 48, height: 24))
+        autoOffField = NSTextField(frame: NSRect(x: popoverWidth - pad - 76, y: 194, width: 50, height: 25))
         autoOffField.alignment = .right
         autoOffField.font = .monospacedDigitSystemFont(ofSize: 12, weight: .medium)
         autoOffField.bezelStyle = .roundedBezel
@@ -310,78 +244,91 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         autoOffField.target = self
         autoOffField.action = #selector(autoOffFieldChanged(_:))
         autoOffField.cell?.sendsActionOnEndEditing = true
-        g2.addSubview(autoOffField)
-        autoOffUnitLabel = makeLabel("", font: .systemFont(ofSize: 12), color: .secondaryLabelColor)
-        autoOffUnitLabel.frame = NSRect(x: contentW - ci - 18, y: ci + 2, width: 18, height: 18)
-        g2.addSubview(autoOffUnitLabel)
+        root.addSubview(autoOffField)
+        autoOffUnitLabel = label(NSRect(x: popoverWidth - pad - 22, y: 200, width: 24, height: 17),
+                                size: 11, color: .secondaryLabelColor)
         autoOffSlider = NSSlider(value: 0, minValue: 0, maxValue: 24,
                                  target: self, action: #selector(autoOffSliderChanged(_:)))
         autoOffSlider.isContinuous = false
-        autoOffSlider.frame = NSRect(x: ci, y: ci + 28, width: cw, height: 20)
-        g2.addSubview(autoOffSlider)
-        countdownLabel = makeLabel("", font: .monospacedDigitSystemFont(ofSize: 11, weight: .regular), color: .secondaryLabelColor)
-        countdownLabel.frame = NSRect(x: ci, y: ci + 50, width: cw, height: 16)
-        g2.addSubview(countdownLabel)
+        autoOffSlider.frame = NSRect(x: pad, y: 227, width: width, height: 18)
+        root.addSubview(autoOffSlider)
+        timerHintLabel = label(NSRect(x: pad, y: 249, width: width, height: 17),
+                              size: 10, color: .secondaryLabelColor)
+        divider(279, in: root)
 
-        // GROUP 3 — battery-floor (label + value + slider + min/max hints)
-        let g3h: CGFloat = 68
-        let g3 = settingsRow(y: g2h, height: g3h, separator: true)
-        floorLabel = makeLabel("", font: .systemFont(ofSize: 13), color: .labelColor)
-        floorLabel.frame = NSRect(x: ci, y: ci, width: cw - 54, height: 18)
-        g3.addSubview(floorLabel)
-        floorValueLabel = makeLabel("\(batteryFloorPercent)%", font: .systemFont(ofSize: 13, weight: .semibold), color: .secondaryLabelColor)
-        floorValueLabel.alignment = .right
-        floorValueLabel.frame = NSRect(x: contentW - ci - 54, y: ci, width: 54, height: 18)
-        g3.addSubview(floorValueLabel)
-        floorSlider = NSSlider(value: Double(batteryFloorPercent), minValue: Double(floorMin), maxValue: Double(floorMax),
-                               target: self, action: #selector(floorSliderChanged(_:)))
-        floorSlider.isContinuous = true          // live update while dragging
-        floorSlider.controlSize = .regular
-        floorSlider.frame = NSRect(x: ci, y: ci + 26, width: cw, height: 20)
-        g3.addSubview(floorSlider)
-        let minHint = makeLabel("\(floorMin)%", font: .systemFont(ofSize: 10), color: .tertiaryLabelColor)
-        minHint.frame = NSRect(x: ci, y: ci + 42, width: 34, height: 13)
-        g3.addSubview(minHint)
-        let maxHint = makeLabel("\(floorMax)%", font: .systemFont(ofSize: 10), color: .tertiaryLabelColor)
-        maxHint.alignment = .right
-        maxHint.frame = NSRect(x: contentW - ci - 34, y: ci + 42, width: 34, height: 13)
-        g3.addSubview(maxHint)
+        floorButton = NSButton(title: "", target: self, action: #selector(toggleFloorControls))
+        floorButton.isBordered = false
+        floorButton.alignment = .left
+        floorButton.font = .systemFont(ofSize: 12, weight: .medium)
+        floorButton.frame = NSRect(x: pad - 3, y: 289, width: width + 6, height: 27)
+        root.addSubview(floorButton)
+        batteryEstimateLabel = label(NSRect(x: pad, y: 319, width: width, height: 30),
+                                     size: 11, color: .secondaryLabelColor)
+        batteryEstimateLabel.maximumNumberOfLines = 2
+        batteryEstimateLabel.usesSingleLineMode = false
+        batteryEstimateLabel.cell?.wraps = true
+        floorControls = FlippedView(frame: NSRect(x: pad, y: 354, width: width, height: 48))
+        floorControls.isHidden = true
+        floorSlider = NSSlider(value: Double(batteryFloorPercent), minValue: Double(floorMin),
+                               maxValue: Double(floorMax), target: self, action: #selector(floorSliderChanged(_:)))
+        floorSlider.frame = NSRect(x: 0, y: 0, width: width, height: 18)
+        floorSlider.isContinuous = true
+        floorControls.addSubview(floorSlider)
+        for (x, value) in [(CGFloat(0), floorMin), (width - 30, floorMax)] {
+            let hint = makeLabel("\(value)%", font: .systemFont(ofSize: 10), color: .secondaryLabelColor)
+            hint.frame = NSRect(x: x, y: 22, width: 30, height: 16)
+            floorControls.addSubview(hint)
+        }
+        root.addSubview(floorControls)
 
-        // GROUP 4 — launch at login (off by default; never auto-enables sleep prevention)
-        let g4 = settingsRow(y: g2h + g3h, height: 38, separator: true)
-        loginLabel = makeLabel("", font: .systemFont(ofSize: 13), color: .labelColor)
-        loginLabel.frame = NSRect(x: ci, y: 8, width: cw - swW - 8, height: 22)
-        g4.addSubview(loginLabel)
-        loginSwitch = NSSwitch()
-        loginSwitch.target = self
-        loginSwitch.action = #selector(loginToggled(_:))
-        loginSwitch.state = loginItemEnabled() ? .on : .off
-        loginSwitch.frame = NSRect(x: contentW - ci - swW, y: 8 + (22 - swH) / 2, width: swW, height: swH)
-        g4.addSubview(loginSwitch)
-
-        // Footer — language + Quit.
-        languageControl = NSPopUpButton(frame: .zero, pullsDown: false)
-        languageControl.addItems(withTitles: ["English", "中文"])
-        languageControl.target = self
-        languageControl.action = #selector(languageChanged(_:))
-        languageControl.selectItem(at: language.rawValue)
-        languageControl.controlSize = .small
-        languageControl.isBordered = false
-        languageControl.frame = NSRect(x: pad, y: 326, width: 86, height: 22)
-        root.addSubview(languageControl)
-
-        quitButton = NSButton(title: "", target: self, action: #selector(quit))
-        quitButton.controlSize = .small
-        quitButton.isBordered = false
-        quitButton.font = .systemFont(ofSize: 11)
-        quitButton.contentTintColor = .secondaryLabelColor
-        quitButton.bezelStyle = .rounded
-        root.addSubview(quitButton)
+        footer = FlippedView(frame: NSRect(x: 0, y: 354, width: popoverWidth, height: 28))
+        settingsButton = NSButton(title: "", target: self, action: #selector(showSettings(_:)))
+        settingsButton.image = NSImage(systemSymbolName: "gearshape", accessibilityDescription: nil)
+        settingsButton.imagePosition = .imageLeading
+        settingsButton.isBordered = false
+        settingsButton.font = .systemFont(ofSize: 11)
+        settingsButton.contentTintColor = .secondaryLabelColor
+        settingsButton.frame = NSRect(x: pad - 3, y: 0, width: 90, height: 22)
+        settingsButton.alignment = .left
+        footer.addSubview(settingsButton)
+        root.addSubview(footer)
         updateLocalizedText()
-
         let vc = NSViewController()
         vc.view = root
         return vc
+    }
+
+    @objc private func toggleFloorControls() {
+        floorControls.isHidden.toggle()
+        let extra: CGFloat = floorControls.isHidden ? 0 : 48
+        footer.frame.origin.y = 354 + extra
+        let size = NSSize(width: popoverWidth, height: popoverHeight + extra)
+        popover.contentViewController?.view.setFrameSize(size)
+        popover.contentSize = size
+        renderText()
+    }
+
+    @objc private func showSettings(_ sender: NSButton) {
+        let menu = NSMenu()
+        let login = NSMenuItem(title: text("Launch at login", "登录时启动"),
+                               action: #selector(loginToggled(_:)), keyEquivalent: "")
+        login.target = self
+        login.state = loginItemEnabled() ? .on : .off
+        menu.addItem(login)
+        menu.addItem(.separator())
+        for (index, title) in ["English", "中文"].enumerated() {
+            let item = NSMenuItem(title: title, action: #selector(languageChanged(_:)), keyEquivalent: "")
+            item.tag = index
+            item.target = self
+            item.state = language.rawValue == index ? .on : .off
+            menu.addItem(item)
+        }
+        menu.addItem(.separator())
+        let quitItem = NSMenuItem(title: text("Quit Atomic Grunt", "退出核动力牛马"),
+                                  action: #selector(quit), keyEquivalent: "")
+        quitItem.target = self
+        menu.addItem(quitItem)
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: sender.bounds.maxY), in: sender)
     }
 
     private func makeLabel(_ s: String, font: NSFont, color: NSColor) -> NSTextField {
@@ -398,8 +345,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         language == .chinese ? chinese : english
     }
 
-    @objc private func languageChanged(_ sender: NSPopUpButton) {
-        language = AppLanguage(rawValue: sender.indexOfSelectedItem) ?? .english
+    @objc private func languageChanged(_ sender: NSMenuItem) {
+        language = AppLanguage(rawValue: sender.tag) ?? .english
         UserDefaults.standard.set(language.rawValue, forKey: languageKey)
         updateLocalizedText()
         applyUI(on: isOn)
@@ -407,18 +354,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func updateLocalizedText() {
         titleLabel?.stringValue = text("Atomic Grunt", "核动力牛马")
-        mainLabel?.stringValue = text("Keep awake", "合盖保持运行")
-        timerLabel?.stringValue = text("Auto-off timer", "自动关闭")
-        autoOffUnitLabel?.stringValue = text("h", "时")
-        floorLabel?.stringValue = text("Battery cutoff", "低电量保护")
-        loginLabel?.stringValue = text("Launch at login", "登录时启动")
-        quitButton?.title = text("Quit", "退出")
-        quitButton?.sizeToFit()
-        if let size = quitButton?.frame.size {
-            let y = (languageControl?.frame.minY ?? 326) + 2
-            quitButton?.frame = NSRect(x: popoverWidth - 16 - size.width, y: y, width: size.width, height: size.height)
-        }
+        timerLabel?.stringValue = text("Auto-off duration", "保持运行时长")
+        autoOffUnitLabel?.stringValue = text("h", "小时")
+        timerHintLabel?.stringValue = text("0 = no time limit · up to 24 hours", "0 = 不限时 · 最长 24 小时")
+        settingsButton?.title = text("Settings", "设置")
+        toggleSwitch?.setAccessibilityLabel(text("Keep awake with lid closed", "合盖保持运行"))
+        autoOffSlider?.setAccessibilityLabel(text("Auto-off duration in hours", "保持运行时长（小时）"))
+        autoOffField?.setAccessibilityLabel(text("Auto-off duration in hours", "保持运行时长（小时）"))
+        floorSlider?.setAccessibilityLabel(text("Battery cutoff percentage", "电量保护阈值"))
         syncAutoOffControls()
+        renderText()
+        updateCountdownLabel()
     }
 
     // MARK: - Click the menu-bar cup to open/close the popover
@@ -428,11 +374,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func openPopover() {
         refresh()                              // sync switch/caption to TRUE state before showing
-        loginSwitch?.state = loginItemEnabled() ? .on : .off
         guard let button = statusItem.button else { return }
         NSApp.activate(ignoringOtherApps: true)
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         popover.contentViewController?.view.window?.makeKey()
+        popover.contentViewController?.view.window?.makeFirstResponder(toggleSwitch)
         if keepAwakeTimer != nil { startCountdownTicker() }
         updateCountdownLabel()
         // Close when the user clicks anywhere outside the app (status bar, another app, desktop).
@@ -551,7 +497,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func autoOffFieldChanged(_ sender: NSTextField) {
         let formatter = sender.formatter as? NumberFormatter
-        guard let hours = formatter?.number(from: sender.stringValue)?.doubleValue else {
+        guard let hours = formatter?.number(from: sender.stringValue)?.doubleValue, hours.isFinite else {
             syncAutoOffControls()
             return
         }
@@ -638,37 +584,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func countdownTick() { updateCountdownLabel() }
 
     private func updateCountdownLabel() {
-        guard autoOffMinutes > 0 else {
-            countdownLabel?.stringValue = text("No time limit", "不限时")
-            return
+        mainLabel?.stringValue = isOn
+            ? text("KEEPING YOUR MAC AWAKE", "合盖后继续运行")
+            : text("OFF DUTY", "休息中")
+        countdownLabel?.font = .monospacedDigitSystemFont(ofSize: 29, weight: .medium)
+        if !isOn {
+            countdownLabel?.stringValue = text("Sleeping normally", "正常休眠")
+            countdownLabel?.font = .systemFont(ofSize: 26, weight: .medium)
+            captionLabel?.stringValue = text("Clock out. It clocks in.", "你下班，它加班。")
+        } else if let end = timerEndDate {
+            let minutes = max(0, Int(ceil(end.timeIntervalSinceNow / 60)))
+            countdownLabel?.stringValue = minutes > 0
+                ? text("\(minutes / 60)h \(minutes % 60)m", "\(minutes / 60) 小时 \(minutes % 60) 分")
+                : text("Stopping…", "正在停止…")
+            captionLabel?.stringValue = text("Timer remaining · battery protection may stop earlier.",
+                                             "定时剩余 · 电量保护可能提前结束运行")
+        } else {
+            countdownLabel?.stringValue = text("No time limit", "持续保持唤醒")
+            countdownLabel?.font = .systemFont(ofSize: 26, weight: .medium)
+            captionLabel?.stringValue = text("Battery cutoff and Low Power Mode still apply.",
+                                             "电量保护及低电量模式仍会停止运行")
         }
-        guard let end = timerEndDate, isOn else {
-            countdownLabel?.stringValue = text("Timer starts when enabled", "开启后开始计时")
-            return
-        }
-        let remaining = Int(end.timeIntervalSinceNow.rounded())
-        guard remaining > 0 else { countdownLabel?.stringValue = ""; return }
-        let h = remaining / 3600, m = (remaining % 3600) / 60, s = remaining % 60
-        let t = h > 0 ? String(format: "%d:%02d:%02d", h, m, s) : String(format: "%d:%02d", m, s)
-        countdownLabel?.stringValue = text("Auto-off in \(t)", "将在 \(t) 后关闭")
     }
 
-    // MARK: - Launch at login (Feature 2) — OFF by default; never re-enables sleep prevention
-    @objc private func loginToggled(_ sender: NSSwitch) {
+    // MARK: - Launch at login
+    @objc private func loginToggled(_ sender: NSMenuItem) {
         do {
-            if sender.state == .on { try SMAppService.mainApp.register() }
-            else { try SMAppService.mainApp.unregister() }
+            if loginItemEnabled() { try SMAppService.mainApp.unregister() }
+            else { try SMAppService.mainApp.register() }
         } catch {
             NSLog("Atomic Grunt: login item update failed: %@", error.localizedDescription)
             notify(text("Couldn't update Launch at login.", "无法更新登录启动设置。"))
         }
-        sender.state = loginItemEnabled() ? .on : .off
     }
 
     private func loginItemEnabled() -> Bool { SMAppService.mainApp.status == .enabled }
 
     // MARK: - Core state sync
     @objc private func refresh() {
+        batteryEstimate = BatteryEstimate.read()
+        renderText()
         guard let on = readSleepDisabled() else {
             if !stateReadFailureNotified {
                 notify(text("Couldn't read the system sleep state.", "无法读取系统休眠状态。"))
@@ -705,20 +660,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 : text("Atomic Grunt: off. Sleeps normally.", "核动力牛马：已关闭，正常休眠。")
         }
         toggleSwitch?.state = on ? .on : .off
-        // Brand-violet accent communicates the privileged "awake" state at a glance.
-        mainCard?.active = on
-        headerMark?.contentTintColor = on ? brandAccentSoft : .labelColor
+        headerMark?.contentTintColor = on ? .controlAccentColor : .secondaryLabelColor
         renderText()
         updateCountdownLabel()
     }
 
     // Update text labels only (no pmset subprocess; safe to call on every slider tick).
     private func renderText() {
-        floorValueLabel?.stringValue = "\(batteryFloorPercent)%"
-        captionLabel?.stringValue = isOn
-            ? text("Stays awake with the lid closed. Turns off at \(batteryFloorPercent)% battery or in Low Power Mode.",
-                   "合盖后继续运行；电量降至 \(batteryFloorPercent)% 或进入低电量模式时关闭。")
-            : text("Sleeps normally when you close the lid.", "合盖后正常休眠。")
+        let arrow = floorControls?.isHidden == false ? "▴" : "▾"
+        floorButton?.title = text("Stop at \(batteryFloorPercent)% battery  \(arrow)",
+                                  "电量降至 \(batteryFloorPercent)% 时停止  \(arrow)")
+        floorButton?.setAccessibilityLabel(text("Battery cutoff: \(batteryFloorPercent) percent. Expand to adjust.",
+                                                 "电量保护阈值 \(batteryFloorPercent)%，点击展开调整"))
+        guard let battery = batteryEstimate else {
+            batteryEstimateLabel?.stringValue = text("Battery estimate unavailable", "暂无法估算电池时间")
+            return
+        }
+        guard battery.onBattery else {
+            batteryEstimateLabel?.stringValue = text("Connected to power", "已接通电源")
+            return
+        }
+        guard let minutes = battery.minutesToFloor(batteryFloorPercent) else {
+            batteryEstimateLabel?.stringValue = text("Battery estimate unavailable", "暂无法估算电池时间")
+            return
+        }
+        if minutes <= 0 {
+            batteryEstimateLabel?.stringValue = text("Battery is at or below the cutoff", "当前电量已达到保护阈值")
+        } else {
+            // Round the system estimate to 5 minutes; never imply countdown precision.
+            let rounded = max(5, Int((min(minutes, 525600) / 5).rounded()) * 5)
+            let duration = rounded >= 60
+                ? text("\(rounded / 60)h \(rounded % 60)m", "\(rounded / 60) 小时 \(rounded % 60) 分")
+                : text("\(rounded)m", "\(rounded) 分钟")
+            batteryEstimateLabel?.stringValue = minutes < 5
+                ? text("Cutoff in under 5 min · estimate varies with load", "预计不足 5 分钟触发保护 · 随负载变化")
+                : text("≈ \(duration) to cutoff · varies with load", "预计约 \(duration)后触发保护 · 随负载变化")
+        }
     }
 
     @objc private func floorSliderChanged(_ sender: NSSlider) {

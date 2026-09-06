@@ -64,6 +64,16 @@ Then click the cup in the menu bar, flip the switch, and close the lid.
 
 ## Features
 
+The main panel highlights wake status and the remaining auto-off duration (hours and minutes).
+Use the 0–24 hour slider or type a duration; zero means no time limit. Click the always-visible
+battery cutoff to adjust it. Launch at login, language, and Quit are in Settings.
+
+On battery power, Atomic Grunt reads macOS IOKit’s time-to-empty estimate and scales it to
+the selected cutoff: `system minutes × (current percent − cutoff percent) / current percent`.
+The result is approximate, rounded to five minutes, and changes with workload. Connected power,
+unavailable estimates, and an already-reached cutoff have separate labels. This display never
+controls automatic turn-off: the timer, battery threshold, and Low Power Mode protections still apply.
+
 | | | |
 |---|---|---|
 | ☕ | **One switch** | Click the menu-bar cup, flip the toggle. |
