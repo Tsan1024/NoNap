@@ -96,12 +96,9 @@ private func makeCupGlyph(_ glyph: SleepGlyph) -> NSImage {
 // Flipped container so popover content lays out top-down with simple frames.
 private final class FlippedView: NSView { override var isFlipped: Bool { true } }
 
-// Keep keyboard focus visible around the control, not around the power glyph.
 private final class PowerButton: NSButton {
     override var focusRingMaskBounds: NSRect { bounds }
-    override func drawFocusRingMask() {
-        NSBezierPath(ovalIn: bounds.insetBy(dx: 2, dy: 2)).fill()
-    }
+    override func drawFocusRingMask() { NSBezierPath(ovalIn: bounds.insetBy(dx: 2, dy: 2)).fill() }
 }
 
 // Frosted-glass popover backing: a flipped NSVisualEffectView so content still
@@ -124,7 +121,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let popover = NSPopover()
     private var toggleSwitch: NSButton!
     private var titleLabel: NSTextField!
-    private var captionLabel: NSTextField!
     private var mainLabel: NSTextField!
     private var timerLabel: NSTextField!
     private var floorLabel: NSTextField!
@@ -162,7 +158,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var timerEndDate: Date?
 
     private let popoverWidth: CGFloat = 300
-    private let popoverHeight: CGFloat = 220
+    private let popoverHeight: CGFloat = 210
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -228,25 +224,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             line.boxType = .separator
             settingsPage.addSubview(line)
         }
-        titleLabel = label(homePage, 18, 17, 210, 13)
+        titleLabel = label(homePage, 60, 17, 180, 13)
+        titleLabel.alignment = .center
         settingsButton = button(homePage, NSRect(x: 250, y: 12, width: 32, height: 28), #selector(showSettings(_:)))
         settingsButton.image = NSImage(systemSymbolName: "ellipsis", accessibilityDescription: nil)
         toggleSwitch = PowerButton(title: "", target: self, action: #selector(switchToggled(_:)))
-        toggleSwitch.frame = NSRect(x: 122, y: 54, width: 56, height: 56)
+        toggleSwitch.frame = NSRect(x: 110, y: 53, width: 80, height: 80)
         toggleSwitch.isBordered = false
         toggleSwitch.imagePosition = .imageOnly
-        homePage.addSubview(toggleSwitch)
         toggleSwitch.image = NSImage(systemSymbolName: "power", accessibilityDescription: nil)?
-            .withSymbolConfiguration(.init(pointSize: 26, weight: .regular))
+            .withSymbolConfiguration(.init(pointSize: 34, weight: .regular))
         toggleSwitch.wantsLayer = true
-        toggleSwitch.layer?.cornerRadius = 28
-        toggleSwitch.setButtonType(.momentaryChange)
-        mainLabel = label(homePage, 18, 123, 264, 13)
-        mainLabel.alignment = .center
-        countdownLabel = label(homePage, 18, 147, 264, 11, .secondaryLabelColor)
+        toggleSwitch.layer?.cornerRadius = 40
+        homePage.addSubview(toggleSwitch)
+        countdownLabel = label(homePage, 18, 143, 264, 11, .secondaryLabelColor)
         countdownLabel.alignment = .center
-        captionLabel = label(homePage, 18, 186, 264, 11, .secondaryLabelColor)
-        captionLabel.alignment = .center
+        mainLabel = label(homePage, 18, 178, 264, 11, .secondaryLabelColor)
+        mainLabel.alignment = .center
 
         backButton = button(settingsPage, NSRect(x: 12, y: 12, width: 70, height: 28), #selector(showHome))
         backButton.alignment = .left
@@ -602,22 +596,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func countdownTick() { updateCountdownLabel() }
 
     private func updateCountdownLabel() {
-        let action = isOn ? text("Stop keeping awake", "停止保持唤醒") : text("Start keeping awake", "开启保持唤醒")
-        mainLabel?.stringValue = action
-        toggleSwitch?.setAccessibilityLabel(action)
-        toggleSwitch?.toolTip = action
-        toggleSwitch?.contentTintColor = isOn ? NSColor(srgbRed: 0.16, green: 0.44, blue: 0.32, alpha: 1) : .secondaryLabelColor
+        let accessibleAction = isOn ? text("Stop keeping awake", "停止保持唤醒") : text("Start keeping awake", "开启保持唤醒")
+        mainLabel?.stringValue = text("Lid closed. Work goes on.", "盖上吧，活儿还在跑。")
+        toggleSwitch?.setAccessibilityLabel(accessibleAction)
+        toggleSwitch?.toolTip = accessibleAction
+        toggleSwitch?.contentTintColor = isOn
+            ? NSColor(srgbRed: 0.12, green: 0.38, blue: 0.27, alpha: 1)
+            : .secondaryLabelColor
         toggleSwitch?.layer?.backgroundColor = (isOn
-            ? NSColor(srgbRed: 0.75, green: 0.9, blue: 0.81, alpha: 1)
+            ? NSColor(srgbRed: 0.76, green: 0.9, blue: 0.81, alpha: 1)
             : NSColor.quaternaryLabelColor).cgColor
-        captionLabel?.stringValue = text("Lid closed. Work goes on.", "盖上吧，活儿还在跑。")
         if isOn, let end = timerEndDate {
             let minutes = max(0, Int(ceil(end.timeIntervalSinceNow / 60)))
             countdownLabel?.stringValue = minutes > 0
                 ? text("Running · \(minutes / 60)h \(minutes % 60)m left", "运行中 · 剩余 \(minutes / 60) 小时 \(minutes % 60) 分")
                 : text("Stopping…", "正在停止…")
         } else {
-            countdownLabel?.stringValue = isOn ? text("Running · no time limit", "运行中 · 不限时") : ""
+            countdownLabel?.stringValue = isOn
+                ? text("Running · no time limit", "运行中 · 不限时")
+                : text("Off · sleeps normally", "未开启 · 合盖后正常休眠")
         }
     }
 

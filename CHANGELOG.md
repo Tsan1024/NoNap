@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Centered the label-free power control and kept only status, remaining time, and the slogan below it.
 - Added a compact power-button home page and a separate settings page with hover explanations.
 - Replaced the coffee-cup icons with a nearly closed laptop and indicator, including monochrome menu-bar states.
 - Redesigned Atomic Grunt around wake status and a minutes-only countdown, with an expandable battery cutoff and a Settings menu.

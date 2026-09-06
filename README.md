@@ -64,7 +64,7 @@ Then click the cup in the menu bar, flip the switch, and close the lid.
 
 ## Features
 
-The compact main panel has a power button, running status, and remaining timer.
+The compact main panel has one clickable power icon, running status, and remaining timer.
 Open the ellipsis to enter Settings and use Back to return. Settings contains the 0–24 hour
 auto-stop slider and editable duration (zero means no limit), battery cutoff and estimate,
 launch at login, language, and Quit. Explanations are available as hover tips.
