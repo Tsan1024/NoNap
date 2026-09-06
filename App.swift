@@ -151,7 +151,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var timerEndDate: Date?
 
     private let popoverWidth: CGFloat = 300
-    private let popoverHeight: CGFloat = 470
+    private let popoverHeight: CGFloat = 416
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -214,22 +214,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             line.boxType = .separator
             homePage.addSubview(line)
         }
-        titleLabel = label(homePage, 60, 15, 180, 13)
-        titleLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        titleLabel.alignment = .center
+        titleLabel = label(homePage, 82, 28, 180, 15)
+        titleLabel.font = .systemFont(ofSize: 15, weight: .semibold)
         toggleSwitch = PowerButton(title: "", target: self, action: #selector(switchToggled(_:)))
-        toggleSwitch.frame = NSRect(x: 114, y: 48, width: 72, height: 72)
+        toggleSwitch.frame = NSRect(x: 18, y: 14, width: 52, height: 52)
         toggleSwitch.isBordered = false
         toggleSwitch.imagePosition = .imageOnly
         toggleSwitch.image = NSImage(systemSymbolName: "power", accessibilityDescription: nil)?
-            .withSymbolConfiguration(.init(pointSize: 30, weight: .regular))
+            .withSymbolConfiguration(.init(pointSize: 22, weight: .medium))
         toggleSwitch.wantsLayer = true
-        toggleSwitch.layer?.cornerRadius = 36
+        toggleSwitch.layer?.cornerRadius = 26
         homePage.addSubview(toggleSwitch)
 
-        divider(136)
-        timerLabel = label(homePage, 18, 151, 132)
-        autoOffField = NSTextField(frame: NSRect(x: 184, y: 146, width: 50, height: 25))
+        timerLabel = label(homePage, 18, 88, 132)
+        timerLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        autoOffField = NSTextField(frame: NSRect(x: 184, y: 83, width: 50, height: 25))
         let formatter = NumberFormatter()
         formatter.minimum = 0
         formatter.maximum = 24
@@ -242,44 +241,44 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         autoOffField.action = #selector(autoOffFieldChanged(_:))
         autoOffField.cell?.sendsActionOnEndEditing = true
         homePage.addSubview(autoOffField)
-        autoOffUnitLabel = label(homePage, 239, 151, 45, 11, .secondaryLabelColor)
+        autoOffUnitLabel = label(homePage, 239, 88, 45, 11, .secondaryLabelColor)
         autoOffSlider = NSSlider(value: 0, minValue: 0, maxValue: 24, target: self, action: #selector(autoOffSliderChanged(_:)))
-        autoOffSlider.frame = NSRect(x: 18, y: 180, width: 264, height: 18)
+        autoOffSlider.frame = NSRect(x: 18, y: 117, width: 264, height: 18)
         autoOffSlider.isContinuous = false
         homePage.addSubview(autoOffSlider)
-        timerHintLabel = label(homePage, 18, 201, 160, 10, .secondaryLabelColor)
-        timerMaxLabel = label(homePage, 228, 201, 54, 10, .secondaryLabelColor)
+        timerHintLabel = label(homePage, 18, 138, 160, 10, .secondaryLabelColor)
+        timerMaxLabel = label(homePage, 228, 138, 54, 10, .secondaryLabelColor)
         timerMaxLabel.alignment = .right
-        divider(232)
-        floorLabel = label(homePage, 18, 247, 200)
-        floorValue = label(homePage, 236, 247, 46)
+        floorLabel = label(homePage, 18, 171, 200)
+        floorLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        floorValue = label(homePage, 236, 171, 46)
         floorValue.alignment = .right
         floorSlider = NSSlider(value: Double(batteryFloorPercent), minValue: Double(floorMin), maxValue: Double(floorMax),
                                target: self, action: #selector(floorSliderChanged(_:)))
-        floorSlider.frame = NSRect(x: 18, y: 275, width: 264, height: 18)
+        floorSlider.frame = NSRect(x: 18, y: 202, width: 264, height: 18)
         floorSlider.isContinuous = true
         homePage.addSubview(floorSlider)
         for (x, value) in [(CGFloat(18), floorMin), (CGFloat(253), floorMax)] {
-            let hint = label(homePage, x, 294, 30, 10, .secondaryLabelColor)
+            let hint = label(homePage, x, 223, 30, 10, .secondaryLabelColor)
             hint.stringValue = "\(value)%"
         }
-        batteryEstimateLabel = label(homePage, 18, 318, 264, 11, .secondaryLabelColor)
-        divider(348)
-        loginLabel = label(homePage, 18, 362, 190)
+        batteryEstimateLabel = label(homePage, 18, 247, 264, 11, .secondaryLabelColor)
+        divider(277)
+        loginLabel = label(homePage, 18, 292, 190)
         loginSwitch = NSSwitch()
         loginSwitch.target = self
         loginSwitch.action = #selector(loginToggled(_:))
-        loginSwitch.frame = NSRect(x: 242, y: 358, width: 40, height: 24)
+        loginSwitch.frame = NSRect(x: 242, y: 288, width: 40, height: 24)
         homePage.addSubview(loginSwitch)
-        languageLabel = label(homePage, 18, 394, 130)
-        languagePicker = NSPopUpButton(frame: NSRect(x: 166, y: 388, width: 116, height: 27), pullsDown: false)
+        languageLabel = label(homePage, 18, 332, 130)
+        languagePicker = NSPopUpButton(frame: NSRect(x: 166, y: 326, width: 116, height: 27), pullsDown: false)
         languagePicker.addItems(withTitles: ["English", "简体中文"])
         languagePicker.controlSize = .small
         languagePicker.target = self
         languagePicker.action = #selector(languageChanged(_:))
         homePage.addSubview(languagePicker)
-        divider(424)
-        quitButton = button(homePage, NSRect(x: 18, y: 436, width: 264, height: 24), #selector(quit))
+        divider(366)
+        quitButton = button(homePage, NSRect(x: 18, y: 380, width: 264, height: 24), #selector(quit))
         quitButton.contentTintColor = .secondaryLabelColor
         updateLocalizedText()
         let vc = NSViewController()
