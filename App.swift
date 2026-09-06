@@ -88,8 +88,6 @@ private func makeCupGlyph(_ glyph: SleepGlyph) -> NSImage {
     } else {
         base.fill()
     }
-    // Keep the app icon's central status light recognizable at menu-bar size.
-    NSBezierPath(roundedRect: NSRect(x: 9.5, y: 8, width: 3, height: 1.8), xRadius: 0.9, yRadius: 0.9).fill()
     image.unlockFocus()
     image.isTemplate = true
     return image
