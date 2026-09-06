@@ -125,16 +125,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var floorLabel: NSTextField!
     private var floorValue: NSTextField!
     private var homePage: FlippedView!
-    private var settingsPage: FlippedView!
-    private var backButton: NSButton!
-    private var settingsTitle: NSTextField!
     private var loginLabel: NSTextField!
     private var loginSwitch: NSSwitch!
     private var languageLabel: NSTextField!
     private var languagePicker: NSPopUpButton!
     private var quitButton: NSButton!
     private var batteryEstimateLabel: NSTextField!
-    private var settingsButton: NSButton!
     private var timerHintLabel: NSTextField!
     private var timerMaxLabel: NSTextField!
     private var batteryEstimate: BatteryEstimate?
@@ -155,7 +151,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var timerEndDate: Date?
 
     private let popoverWidth: CGFloat = 300
-    private let popoverHeight: CGFloat = 150
+    private let popoverHeight: CGFloat = 470
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -190,17 +186,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if ownsDisableSleep, setDisableSleep(false) == .ok { setOwnership(false) }
     }
 
-    // MARK: - Two compact pages; settings preserve their controls while hidden.
+    // MARK: - Single compact page.
     private func makeContentController() -> NSViewController {
         let root = GlassView(frame: NSRect(x: 0, y: 0, width: popoverWidth, height: popoverHeight))
         root.material = .popover
         root.blendingMode = .behindWindow
         root.state = .active
         homePage = FlippedView(frame: root.bounds)
-        settingsPage = FlippedView(frame: NSRect(x: 0, y: 0, width: popoverWidth, height: 382))
-        settingsPage.isHidden = true
         root.addSubview(homePage)
-        root.addSubview(settingsPage)
         func label(_ parent: NSView, _ x: CGFloat, _ y: CGFloat, _ w: CGFloat,
                    _ size: CGFloat = 12, _ color: NSColor = .labelColor) -> NSTextField {
             let t = makeLabel("", font: .systemFont(ofSize: size), color: color)
@@ -219,14 +212,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         func divider(_ y: CGFloat) {
             let line = NSBox(frame: NSRect(x: 18, y: y, width: 264, height: 1))
             line.boxType = .separator
-            settingsPage.addSubview(line)
+            homePage.addSubview(line)
         }
-        titleLabel = label(homePage, 18, 15, 180, 13)
+        titleLabel = label(homePage, 60, 15, 180, 13)
         titleLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        settingsButton = button(homePage, NSRect(x: 250, y: 10, width: 32, height: 28), #selector(showSettings(_:)))
-        settingsButton.image = NSImage(systemSymbolName: "ellipsis", accessibilityDescription: nil)
+        titleLabel.alignment = .center
         toggleSwitch = PowerButton(title: "", target: self, action: #selector(switchToggled(_:)))
-        toggleSwitch.frame = NSRect(x: 114, y: 43, width: 72, height: 72)
+        toggleSwitch.frame = NSRect(x: 114, y: 48, width: 72, height: 72)
         toggleSwitch.isBordered = false
         toggleSwitch.imagePosition = .imageOnly
         toggleSwitch.image = NSImage(systemSymbolName: "power", accessibilityDescription: nil)?
@@ -235,12 +227,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         toggleSwitch.layer?.cornerRadius = 36
         homePage.addSubview(toggleSwitch)
 
-        backButton = button(settingsPage, NSRect(x: 12, y: 12, width: 70, height: 28), #selector(showHome))
-        backButton.alignment = .left
-        settingsTitle = label(settingsPage, 100, 17, 100, 13)
-        settingsTitle.alignment = .center
-        timerLabel = label(settingsPage, 18, 62, 132)
-        autoOffField = NSTextField(frame: NSRect(x: 184, y: 57, width: 50, height: 25))
+        divider(136)
+        timerLabel = label(homePage, 18, 151, 132)
+        autoOffField = NSTextField(frame: NSRect(x: 184, y: 146, width: 50, height: 25))
         let formatter = NumberFormatter()
         formatter.minimum = 0
         formatter.maximum = 24
@@ -252,71 +241,50 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         autoOffField.target = self
         autoOffField.action = #selector(autoOffFieldChanged(_:))
         autoOffField.cell?.sendsActionOnEndEditing = true
-        settingsPage.addSubview(autoOffField)
-        autoOffUnitLabel = label(settingsPage, 239, 62, 45, 11, .secondaryLabelColor)
+        homePage.addSubview(autoOffField)
+        autoOffUnitLabel = label(homePage, 239, 151, 45, 11, .secondaryLabelColor)
         autoOffSlider = NSSlider(value: 0, minValue: 0, maxValue: 24, target: self, action: #selector(autoOffSliderChanged(_:)))
-        autoOffSlider.frame = NSRect(x: 18, y: 91, width: 264, height: 18)
+        autoOffSlider.frame = NSRect(x: 18, y: 180, width: 264, height: 18)
         autoOffSlider.isContinuous = false
-        settingsPage.addSubview(autoOffSlider)
-        timerHintLabel = label(settingsPage, 18, 112, 160, 10, .secondaryLabelColor)
-        timerMaxLabel = label(settingsPage, 228, 112, 54, 10, .secondaryLabelColor)
+        homePage.addSubview(autoOffSlider)
+        timerHintLabel = label(homePage, 18, 201, 160, 10, .secondaryLabelColor)
+        timerMaxLabel = label(homePage, 228, 201, 54, 10, .secondaryLabelColor)
         timerMaxLabel.alignment = .right
-        divider(143)
-        floorLabel = label(settingsPage, 18, 158, 200)
-        floorValue = label(settingsPage, 236, 158, 46)
+        divider(232)
+        floorLabel = label(homePage, 18, 247, 200)
+        floorValue = label(homePage, 236, 247, 46)
         floorValue.alignment = .right
         floorSlider = NSSlider(value: Double(batteryFloorPercent), minValue: Double(floorMin), maxValue: Double(floorMax),
                                target: self, action: #selector(floorSliderChanged(_:)))
-        floorSlider.frame = NSRect(x: 18, y: 186, width: 264, height: 18)
+        floorSlider.frame = NSRect(x: 18, y: 275, width: 264, height: 18)
         floorSlider.isContinuous = true
-        settingsPage.addSubview(floorSlider)
+        homePage.addSubview(floorSlider)
         for (x, value) in [(CGFloat(18), floorMin), (CGFloat(253), floorMax)] {
-            let hint = label(settingsPage, x, 205, 30, 10, .secondaryLabelColor)
+            let hint = label(homePage, x, 294, 30, 10, .secondaryLabelColor)
             hint.stringValue = "\(value)%"
         }
-        batteryEstimateLabel = label(settingsPage, 18, 229, 264, 11, .secondaryLabelColor)
-        divider(259)
-        loginLabel = label(settingsPage, 18, 273, 190)
+        batteryEstimateLabel = label(homePage, 18, 318, 264, 11, .secondaryLabelColor)
+        divider(348)
+        loginLabel = label(homePage, 18, 362, 190)
         loginSwitch = NSSwitch()
         loginSwitch.target = self
         loginSwitch.action = #selector(loginToggled(_:))
-        loginSwitch.frame = NSRect(x: 242, y: 269, width: 40, height: 24)
-        settingsPage.addSubview(loginSwitch)
-        languageLabel = label(settingsPage, 18, 305, 130)
-        languagePicker = NSPopUpButton(frame: NSRect(x: 166, y: 299, width: 116, height: 27), pullsDown: false)
+        loginSwitch.frame = NSRect(x: 242, y: 358, width: 40, height: 24)
+        homePage.addSubview(loginSwitch)
+        languageLabel = label(homePage, 18, 394, 130)
+        languagePicker = NSPopUpButton(frame: NSRect(x: 166, y: 388, width: 116, height: 27), pullsDown: false)
         languagePicker.addItems(withTitles: ["English", "简体中文"])
         languagePicker.controlSize = .small
         languagePicker.target = self
         languagePicker.action = #selector(languageChanged(_:))
-        settingsPage.addSubview(languagePicker)
-        divider(335)
-        quitButton = button(settingsPage, NSRect(x: 18, y: 347, width: 264, height: 24), #selector(quit))
+        homePage.addSubview(languagePicker)
+        divider(424)
+        quitButton = button(homePage, NSRect(x: 18, y: 436, width: 264, height: 24), #selector(quit))
         quitButton.contentTintColor = .secondaryLabelColor
         updateLocalizedText()
         let vc = NSViewController()
         vc.view = root
         return vc
-    }
-
-    @objc private func showSettings(_ sender: NSButton) {
-        loginSwitch.state = loginItemEnabled() ? .on : .off
-        homePage.isHidden = true
-        settingsPage.isHidden = false
-        resizePage(height: 382)
-    }
-
-    @objc private func showHome() {
-        guard popover.contentViewController?.view.window?.makeFirstResponder(nil) != false else { return }
-        homePage.isHidden = false
-        settingsPage.isHidden = true
-        resizePage(height: popoverHeight)
-    }
-
-    private func resizePage(height: CGFloat) {
-        let size = NSSize(width: popoverWidth, height: height)
-        popover.contentViewController?.view.setFrameSize(size)
-        popover.contentSize = size
-        popover.contentViewController?.view.window?.makeFirstResponder(nil)
     }
 
     private func makeLabel(_ s: String, font: NSFont, color: NSColor) -> NSTextField {
@@ -346,9 +314,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         autoOffUnitLabel?.stringValue = text("h later", "小时后")
         timerHintLabel?.stringValue = text("No time limit", "不限时")
         timerMaxLabel?.stringValue = text("24 hours", "24 小时")
-        settingsButton?.setAccessibilityLabel(text("More settings", "更多设置"))
-        backButton?.title = text("‹ Back", "‹ 返回")
-        settingsTitle?.stringValue = text("Settings", "设置")
         floorLabel?.stringValue = text("Battery protection", "电量保护")
         loginLabel?.stringValue = text("Launch at login", "登录时启动")
         languageLabel?.stringValue = text("Language", "语言")
@@ -380,7 +345,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         refresh()                              // sync switch/caption to TRUE state before showing
         guard let button = statusItem.button else { return }
         NSApp.activate(ignoringOtherApps: true)
-        showHome()
+        loginSwitch.state = loginItemEnabled() ? .on : .off
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         popover.contentViewController?.view.window?.makeKey()
         popover.contentViewController?.view.window?.makeFirstResponder(nil)
