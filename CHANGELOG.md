@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Added a compact power-button home page and a separate settings page with hover explanations.
+- Replaced the coffee-cup icons with a nearly closed laptop and indicator, including monochrome menu-bar states.
 - Redesigned Atomic Grunt around wake status and a minutes-only countdown, with an expandable battery cutoff and a Settings menu.
 - Added a display-only IOKit battery estimate to the selected cutoff, including unavailable and AC-power states.
 - Replaced the fixed 1h/2h timer choices with a 0–24 hour slider and editable hour field.

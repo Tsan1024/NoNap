@@ -64,9 +64,10 @@ Then click the cup in the menu bar, flip the switch, and close the lid.
 
 ## Features
 
-The main panel highlights wake status and the remaining auto-off duration (hours and minutes).
-Use the 0–24 hour slider or type a duration; zero means no time limit. Click the always-visible
-battery cutoff to adjust it. Launch at login, language, and Quit are in Settings.
+The compact main panel has a power button, running status, and remaining timer.
+Open the ellipsis to enter Settings and use Back to return. Settings contains the 0–24 hour
+auto-stop slider and editable duration (zero means no limit), battery cutoff and estimate,
+launch at login, language, and Quit. Explanations are available as hover tips.
 
 On battery power, StayAwake reads macOS IOKit’s time-to-empty estimate and scales it to
 the selected cutoff: `system minutes × (current percent − cutoff percent) / current percent`.
