@@ -220,7 +220,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         divider(58)
         timerLabel = label(homePage, 18, 78, 132)
         timerLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        autoOffField = NSTextField(frame: NSRect(x: 194, y: 76, width: 50, height: 25))
+        autoOffField = NSTextField(frame: NSRect(x: 204, y: 78, width: 40, height: 22))
         let formatter = NumberFormatter()
         formatter.minimum = 0
         formatter.maximum = 24
@@ -228,7 +228,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         autoOffField.formatter = formatter
         autoOffField.alignment = .right
         autoOffField.font = .monospacedDigitSystemFont(ofSize: 12, weight: .regular)
-        autoOffField.bezelStyle = .roundedBezel
+        autoOffField.isBezeled = false
+        autoOffField.drawsBackground = false
         autoOffField.target = self
         autoOffField.action = #selector(autoOffFieldChanged(_:))
         autoOffField.cell?.sendsActionOnEndEditing = true

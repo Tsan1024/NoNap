@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Replaced the button-like auto-stop field with a lighter inline number editor.
 - Optically aligned native switches with the trailing control column and vertically centered each row.
 - Right-aligned the auto-stop value and unit with the other trailing controls.
 - Simplified the first row to NoNap and its switch, and aligned every setting to a consistent grid.
