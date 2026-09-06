@@ -1,6 +1,6 @@
-# 核动力牛马 · Atomic Grunt
+# StayAwake
 
-你下班，它加班。
+盖上吧，活儿还在跑。
 
 本项目基于 [Sleepless](https://github.com/Aboudjem/Sleepless) fork 并修改，原作者为 **Adam Boudjemaa（Aboudjem）**。感谢原项目提供的菜单栏应用与 `pmset` 合盖保持唤醒实现；本分支增加了权限与退出保护改进、中英文切换、自定义定时及界面调整。保留原作者版权声明，并沿用 [MIT 许可证](LICENSE)。本项目为独立维护的衍生版本，并非原作者官方发布。
 

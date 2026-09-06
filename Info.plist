@@ -4,8 +4,8 @@
 <dict>
     <key>CFBundleExecutable</key>          <string>Sleepless</string>
     <key>CFBundleIdentifier</key>          <string>com.aboudjem.Sleepless</string>
-    <key>CFBundleName</key>                <string>Atomic Grunt</string>
-    <key>CFBundleDisplayName</key>         <string>Atomic Grunt</string>
+    <key>CFBundleName</key>                <string>StayAwake</string>
+    <key>CFBundleDisplayName</key>         <string>StayAwake</string>
     <key>CFBundlePackageType</key>         <string>APPL</string>
     <key>CFBundleIconFile</key>            <string>Sleepless</string>
     <key>CFBundleShortVersionString</key>  <string>1.3.0</string>

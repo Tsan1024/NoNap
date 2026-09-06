@@ -1,8 +1,8 @@
-# Atomic Grunt · 核动力牛马
+# StayAwake
 
-Clock out. It clocks in.
+Lid closed. Work goes on.
 
-Atomic Grunt is a fork of [Sleepless](https://github.com/Aboudjem/Sleepless), originally created by **Adam Boudjemaa (Aboudjem)**. Thanks to Sleepless for the menu-bar app and `pmset` lid-closed wake implementation. This fork adds privilege and quit-safety improvements, English/Chinese switching, configurable timers, and UI refinements. Original copyright notices and the [MIT license](LICENSE) are retained. This is an independently maintained derivative, not an official upstream release.
+StayAwake is a fork of [Sleepless](https://github.com/Aboudjem/Sleepless), originally created by **Adam Boudjemaa (Aboudjem)**. Thanks to Sleepless for the menu-bar app and `pmset` lid-closed wake implementation. This fork adds privilege and quit-safety improvements, English/Chinese switching, configurable timers, and UI refinements. Original copyright notices and the [MIT license](LICENSE) are retained. This is an independently maintained derivative, not an official upstream release.
 
 > The app display name has changed. The repository, bundle identifier, and `Sleepless.app` installation path retain their original names for compatibility. The animations below are from upstream Sleepless and do not show this fork’s current UI.
 
@@ -68,7 +68,7 @@ The main panel highlights wake status and the remaining auto-off duration (hours
 Use the 0–24 hour slider or type a duration; zero means no time limit. Click the always-visible
 battery cutoff to adjust it. Launch at login, language, and Quit are in Settings.
 
-On battery power, Atomic Grunt reads macOS IOKit’s time-to-empty estimate and scales it to
+On battery power, StayAwake reads macOS IOKit’s time-to-empty estimate and scales it to
 the selected cutoff: `system minutes × (current percent − cutoff percent) / current percent`.
 The result is approximate, rounded to five minutes, and changes with workload. Connected power,
 unavailable estimates, and an already-reached cutoff have separate labels. This display never
