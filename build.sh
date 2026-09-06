@@ -81,5 +81,5 @@ codesign --verify --verbose=1 "$APP" 2>&1 | sed 's/^/    /' || true
 echo ""
 echo "✅ Built $APP"
 echo "   Launch it:  open \"$APP\""
-echo "   For lid-closed-on-battery to actually work, run ./install.sh once to add the"
-echo "   passwordless grant (it explains exactly what it installs)."
+echo "   The first in-app toggle can install the narrowly scoped grant, or use"
+echo "   ./install.sh to install the app and grant together."

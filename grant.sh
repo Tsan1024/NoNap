@@ -9,8 +9,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SUDOERS_DST="/etc/sudoers.d/sleepless-disablesleep"
-# Resolve the REAL user. Prefer SLEEPLESS_USER (the app passes it, because under the native
-# auth sheet this script runs as root with SUDO_USER unset), then SUDO_USER, then the caller.
+# Resolve the real user for both normal and explicitly sudo-invoked installs.
 USER_NAME="${SLEEPLESS_USER:-${SUDO_USER:-$(id -un)}}"
 # Never install a root-owned grant (it is useless and not what the user wants): if we somehow
 # resolved to root/empty, fall back to the GUI console user, and refuse if still unresolved.
@@ -21,9 +20,12 @@ if [ -z "$USER_NAME" ] || [ "$USER_NAME" = "root" ]; then
   echo "error: could not resolve a non-root user for the grant; refusing to install." >&2
   exit 1
 fi
+if [[ ! "$USER_NAME" =~ ^[A-Za-z_][A-Za-z0-9._-]*$ ]]; then
+  echo "error: unsupported account name; refusing to generate sudoers." >&2
+  exit 1
+fi
 
-# Run privileged steps with sudo normally, but directly when we are ALREADY root (e.g. the
-# app installs this via one native macOS auth sheet, so there is no Terminal + no sudo prompt).
+# Run privileged steps with sudo normally, but directly when already root.
 SUDO="sudo"
 [ "$(id -u)" -eq 0 ] && SUDO=""
 
@@ -46,13 +48,25 @@ if [ "${1:-}" != "--yes" ] && [ "${1:-}" != "-y" ]; then
   case "$reply" in [yY]*) ;; *) echo "Aborted."; exit 1 ;; esac
 fi
 
-TMP="$(mktemp)"
-printf '%s\n' "$GRANT" > "$TMP"
-if ! $SUDO visudo -cf "$TMP" >/dev/null; then
-  echo "error: generated sudoers failed validation; not installing." >&2
-  rm -f "$TMP"; exit 1
+# Create and validate the temporary file inside root-owned /etc/sudoers.d. Keeping the
+# whole write/validate/rename sequence in one root shell removes the old user-writable
+# temp-file race without broadening the permanent grant.
+INSTALL_GRANT='set -eu
+/usr/bin/install -d -m 0755 -o root -g wheel /etc/sudoers.d
+umask 077
+tmp=$(/usr/bin/mktemp /etc/sudoers.d/.sleepless.XXXXXX)
+trap '\''/bin/rm -f "$tmp"'\'' EXIT
+/usr/bin/printf "%s\n" "$1" > "$tmp"
+/usr/sbin/chown root:wheel "$tmp"
+/bin/chmod 0440 "$tmp"
+/usr/sbin/visudo -cf "$tmp" >/dev/null
+/bin/mv -f "$tmp" /etc/sudoers.d/sleepless-disablesleep
+trap - EXIT
+/usr/sbin/visudo -c >/dev/null'
+if [ "$SUDO" = "sudo" ]; then
+  /usr/bin/sudo /bin/sh -c "$INSTALL_GRANT" sleepless-grant "$GRANT"
+else
+  /bin/sh -c "$INSTALL_GRANT" sleepless-grant "$GRANT"
 fi
-$SUDO install -m 0440 -o root -g wheel "$TMP" "$SUDOERS_DST"
-rm -f "$TMP"
-$SUDO visudo -c >/dev/null && echo "✅ grant installed and sudoers parses cleanly ($SUDOERS_DST)."
+echo "✅ grant installed and sudoers parses cleanly ($SUDOERS_DST)."
 echo "   Toggle Sleepless from the menu bar; it will no longer need a password."

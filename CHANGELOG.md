@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-09-06
+
+### Added
+- In-app English / Simplified Chinese switching, persisted across launches.
+- Native `.dmg` packaging via `./package.sh`.
+
+### Fixed
+- One-time authorization no longer executes the user-writable bundled `grant.sh` as root.
+  The app now writes and validates the fixed sudoers rule from its running code, using a
+  root-owned temporary file and an atomic rename.
+- Normal quit restores sleep when Sleepless owns the active setting, automatic safety
+  actions report failure honestly, unreadable battery state fails safe, and Low Power Mode
+  consistently turns the feature off.
+- `install.sh` no longer creates an unconditional legacy LaunchAgent; login startup remains
+  controlled by the optional native switch in the app.
+
 ## [1.2.7] - 2026-06-03
 
 ### Changed
@@ -156,7 +172,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README in 6 languages (English, 简体中文, Español, 日本語, Français, Deutsch).
 - MIT license, security model (`SECURITY.md`), and community-health files.
 
-[Unreleased]: https://github.com/Aboudjem/Sleepless/compare/v1.2.5...HEAD
+[Unreleased]: https://github.com/Tsan1024/Sleepless/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/Tsan1024/Sleepless/compare/v1.2.7...v1.3.0
+[1.2.7]: https://github.com/Aboudjem/Sleepless/compare/v1.2.6...v1.2.7
+[1.2.6]: https://github.com/Aboudjem/Sleepless/compare/v1.2.5...v1.2.6
 [1.2.5]: https://github.com/Aboudjem/Sleepless/compare/v1.2.4...v1.2.5
 [1.2.4]: https://github.com/Aboudjem/Sleepless/compare/v1.2.3...v1.2.4
 [1.2.3]: https://github.com/Aboudjem/Sleepless/compare/v1.2.2...v1.2.3

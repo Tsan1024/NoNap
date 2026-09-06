@@ -43,19 +43,22 @@
 </p>
 
 > [!NOTE]
-> 合上盖子会让 Mac 睡眠，基于 `caffeinate` 的应用（KeepingYouAwake 之类）从设计上就改变不了这件事。Sleepless 切换的是唯一能做到的那个设置，`pmset disablesleep`，再配上安全机制，所以你大可放心地把它忘掉。
+> 合上盖子会让 Mac 睡眠，基于 `caffeinate` 的应用（KeepingYouAwake 之类）从设计上就改变不了这件事。Sleepless 切换 `pmset disablesleep`，并增加定时、电量和正常退出保护。
 
 ## 安装
 
 ```sh
-brew install --cask aboudjem/tap/sleepless
-/Applications/Sleepless.app/Contents/Resources/grant.sh   # one-time passwordless grant
+git clone https://github.com/Tsan1024/Sleepless.git
+cd Sleepless
+./install.sh
 ```
+
+第一次打开开关时，macOS 会请求一次管理员授权并安装严格限定范围的规则。
 
 | 其他方式 | |
 |---|---|
-| **直接下载** | 获取[最新发布版本](https://github.com/Aboudjem/Sleepless/releases/latest)，解压到 `/Applications`，然后在 **系统设置 → 隐私与安全性 → 仍要打开** 里批准它（它是临时签名 ad-hoc）。 |
-| **从源码构建** | `git clone https://github.com/Aboudjem/Sleepless.git && cd Sleepless && ./install.sh`（不会有 Gatekeeper 提示）。 |
+| **仅构建、不安装** | `./build.sh` 会生成 `build/Sleepless.app`，不会修改 sudoers。 |
+| **制作 DMG** | `./package.sh` 会生成 `dist/Sleepless-1.3.0.dmg` 及其 SHA-256 文件。 |
 
 然后点击菜单栏里的咖啡杯，拨动开关，合上盖子。
 
@@ -68,7 +71,8 @@ brew install --cask aboudjem/tap/sleepless
 | 🔋 | **电量下限** | 电池供电时在 5–50% 自动关闭（默认 15%）。 |
 | 🪫 | **Low Power Mode** | 电池供电下若 LPM 开启，自动让位。 |
 | 🖥️ | **无需转接** | 合盖、电池供电即可。不用显示器，不用 HDMI 插头。 |
-| 🚀 | **登录时启动** | 可选，默认关闭，始终以关闭状态启动。 |
+| 🚀 | **登录时启动** | 可选，默认关闭，不会自行开启防休眠。 |
+| 🌐 | **English / 中文** | 直接在弹窗中切换语言。 |
 | 🪶 | **小巧且原生** | 一个 AppKit 文件。无 Dock 图标、守护进程或 kext。 |
 
 **菜单栏图标：** 空杯 = 关闭 · 满杯 = 唤醒 · 满杯加一个点 = 电池供电下唤醒（自动关闭生效中）。
@@ -98,15 +102,15 @@ brew install --cask aboudjem/tap/sleepless
 
 ## 工作原理
 
-Sleepless 切换 `pmset disablesleep`（内核的 `SleepDisabled` 标志），把它读回来让菜单栏绝不撒谎，并在到达你的电量下限、进入 Low Power Mode、定时器结束或重启时把它还原。GUI 应用没法输入密码，所以安装程序会加一条范围严格限定的 sudoers 规则，**只允许两条命令**：
+Sleepless 切换 `pmset disablesleep`（内核的 `SleepDisabled` 标志），把它读回来让菜单栏绝不撒谎，并在到达你的电量下限、进入 Low Power Mode、定时器结束、正常退出或重启时把它还原。首次使用时，原生管理员授权会安装一条范围严格限定的 sudoers 规则，**只允许两条命令**：
 
 ```
 <you> ALL=(root) NOPASSWD: /usr/bin/pmset -a disablesleep 0, /usr/bin/pmset -a disablesleep 1
 ```
 
 - **无法被放宽。** sudoers 按字面匹配参数，没有通配符。
-- **没有可劫持的东西。** 没有守护进程、辅助脚本或 shell。它直接调用 `/usr/bin/pmset`。
-- **始终可逆。** 重启、电量下限、定时器，或 `./uninstall.sh`（它会证明授权已经清除）。
+- **没有可替换的 root 脚本。** 首次设置从正在运行的 App 写入并校验固定规则；日常开关用参数数组直接调用 `/usr/bin/pmset`。
+- **始终可逆。** 正常退出、重启、电量下限、定时器或 `./uninstall.sh` 都会恢复休眠。
 
 验证一个下载，无需 Apple 账户：
 
@@ -146,7 +150,7 @@ gh attestation verify Sleepless-*.zip -R Aboudjem/Sleepless
 <details>
 <summary><b>怎样停止它或移除它？</b></summary>
 
-把开关关掉，或者让定时器或电量下限替你关掉它，正常睡眠就会恢复。重启同样会把它重置。`./uninstall.sh` 会移除应用、登录项和 sudoers 授权，然后证明授权已经清除。
+把开关关掉、正常退出 App，或者让定时器或电量下限替你关掉它，正常睡眠就会恢复。重启同样会把它重置。`./uninstall.sh` 会移除应用、登录项和 sudoers 授权，然后证明授权已经清除。
 </details>
 
 <details>

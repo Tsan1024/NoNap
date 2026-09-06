@@ -36,8 +36,8 @@ reality rather than assuming the command worked.
 ## The passwordless grant — exactly what it permits
 
 A GUI app has no terminal to type a password into, so Sleepless runs `pmset` through a
-tightly scoped `/etc/sudoers.d` drop-in. `install.sh` writes this (with your username
-substituted for `__USER__`), owned `root:wheel`, mode `0440`:
+tightly scoped `/etc/sudoers.d` drop-in. The first in-app toggle (or `grant.sh` for a
+source install) writes this, owned `root:wheel`, mode `0440`:
 
 ```
 <you> ALL=(root) NOPASSWD: /usr/bin/pmset -a disablesleep 0, /usr/bin/pmset -a disablesleep 1
@@ -54,13 +54,14 @@ Consequences you can rely on:
 - `sudo pmset -a sleep 0`, `sudo pmset restoredefaults`, `sudo pmset -a hibernatemode 0`,
   or any other argument vector **do not match** the rule and will demand a password. The
   grant cannot be widened by appending flags.
-- Sleepless calls `sudo` with an **argv array**, not a shell string
-  (`Process.arguments` in `App.swift`), so there is no `/bin/sh -c`, no command
-  substitution, and no word-splitting surface inside the app.
-- There is **no helper script**. The classic sudoers footgun is a *user-writable* script
-  that root executes — rewrite it, get root. Sleepless points the rule directly at Apple's
-  `/usr/bin/pmset`, and the sudoers file itself is `root:wheel 0440` (you cannot modify it
-  without `sudo`). Both mitigations are exactly what the literature prescribes.
+- Normal toggles call `sudo` with an **argv array**, not a shell string
+  (`Process.arguments` in `App.swift`), so there is no command substitution or
+  word-splitting surface in the recurring privileged path.
+- The one-time setup runs a fixed command from the already-running app. It validates the
+  account name and creates, validates, and renames its temporary file entirely inside
+  root-owned `/etc/sudoers.d`; it never executes a mutable bundle resource as root.
+- There is no persistent privileged helper or daemon. The permanent rule points directly
+  at Apple's `/usr/bin/pmset`, and the sudoers file is `root:wheel 0440`.
 
 ## Honest residual risk
 
@@ -81,7 +82,9 @@ reboot, then `pmset -g | grep SleepDisabled` should read `0`.
 
 Sleepless adds a second belt-and-suspenders: a **battery-floor auto-off** (default 15%)
 that flips the flag back to `0` while the Mac is awake and discharging, so a forgotten
-"on" state can't drain the battery to empty.
+"on" state can't drain the battery to empty. Normal app termination also restores sleep.
+Force-killing or crashing any user-space app can bypass its in-process timer and battery
+monitor; reboot remains the recovery path for that case.
 
 ## Code signing, notarization, and Gatekeeper
 

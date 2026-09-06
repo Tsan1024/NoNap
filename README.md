@@ -41,19 +41,22 @@
 </p>
 
 > [!NOTE]
-> A closed lid sleeps your Mac, and `caffeinate` apps (KeepingYouAwake and friends) can't change that, by design. Sleepless flips the one setting that can, `pmset disablesleep`, with safety nets so it is safe to forget.
+> A closed lid sleeps your Mac, and `caffeinate` apps (KeepingYouAwake and friends) can't change that, by design. Sleepless flips `pmset disablesleep` and adds timer, battery, and normal-quit safety nets.
 
 ## Install
 
 ```sh
-brew install --cask aboudjem/tap/sleepless
-/Applications/Sleepless.app/Contents/Resources/grant.sh   # one-time passwordless grant
+git clone https://github.com/Tsan1024/Sleepless.git
+cd Sleepless
+./install.sh
 ```
+
+The first toggle asks for one native macOS administrator authorization and installs the narrowly scoped grant.
 
 | Other ways | |
 |---|---|
-| **Download** | Grab the [latest release](https://github.com/Aboudjem/Sleepless/releases/latest), unzip to `/Applications`, then approve it in **System Settings → Privacy & Security → Open Anyway** (it is ad-hoc signed). |
-| **Build from source** | `git clone https://github.com/Aboudjem/Sleepless.git && cd Sleepless && ./install.sh` (no Gatekeeper prompt). |
+| **Build without installing** | `./build.sh` creates `build/Sleepless.app` without changing sudoers. |
+| **Create a DMG** | `./package.sh` creates `dist/Sleepless-1.3.0.dmg` and its SHA-256 file. |
 
 Then click the cup in the menu bar, flip the switch, and close the lid.
 
@@ -66,7 +69,8 @@ Then click the cup in the menu bar, flip the switch, and close the lid.
 | 🔋 | **Battery floor** | Auto-off at 5–50% on battery (default 15%). |
 | 🪫 | **Low Power Mode** | Steps aside when LPM is on, on battery. |
 | 🖥️ | **No dongle** | Lid closed, on battery. No monitor, no HDMI plug. |
-| 🚀 | **Launch at login** | Optional, off by default, always starts idle. |
+| 🚀 | **Launch at login** | Optional, off by default, never enables sleep prevention by itself. |
+| 🌐 | **English / 中文** | Switch language directly in the popover. |
 | 🪶 | **Tiny + native** | One AppKit file. No Dock icon, daemon, or kext. |
 
 **Menu-bar glyph:** empty cup = off · full cup = awake · full cup + dot = awake on battery (auto-off live).
@@ -96,15 +100,15 @@ Then click the cup in the menu bar, flip the switch, and close the lid.
 
 ## How it works
 
-Sleepless toggles `pmset disablesleep` (the kernel's `SleepDisabled` flag), reads it back so the menu bar never lies, and reverts it at your battery floor, in Low Power Mode, when the timer ends, or on reboot. A GUI app can't type a password, so the installer adds a scoped sudoers rule for **exactly two commands**:
+Sleepless toggles `pmset disablesleep` (the kernel's `SleepDisabled` flag), reads it back so the menu bar never lies, and reverts it at your battery floor, in Low Power Mode, when the timer ends, on normal quit, or on reboot. On first use, a native administrator prompt installs a scoped sudoers rule for **exactly two commands**:
 
 ```
 <you> ALL=(root) NOPASSWD: /usr/bin/pmset -a disablesleep 0, /usr/bin/pmset -a disablesleep 1
 ```
 
 - **Can't be widened.** sudoers matches arguments literally, no wildcards.
-- **Nothing to hijack.** No daemon, no helper script, no shell. It calls `/usr/bin/pmset` directly.
-- **Always reversible.** Reboot, the floor, the timer, or `./uninstall.sh` (which proves the grant is gone).
+- **No mutable root script.** Setup writes and validates the fixed rule from the running app; normal toggles call `/usr/bin/pmset` directly with an argv array.
+- **Always reversible.** Normal quit, reboot, the floor, the timer, or `./uninstall.sh` restores sleep.
 
 Verify a download, no Apple account needed:
 
@@ -144,7 +148,7 @@ One tightly scoped `sudo` grant (two exact `pmset` commands) so a GUI app can fl
 <details>
 <summary><b>How do I stop it or remove it?</b></summary>
 
-Flip the switch off, or let the timer or battery floor do it, and normal sleep returns. A reboot also resets it. `./uninstall.sh` removes the app, login item, and the sudoers grant, then proves the grant is gone.
+Flip the switch off, quit normally, or let the timer or battery floor do it, and normal sleep returns. A reboot also resets it. `./uninstall.sh` removes the app, login item, and the sudoers grant, then proves the grant is gone.
 </details>
 
 <details>

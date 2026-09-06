@@ -10,6 +10,8 @@ Sleepless.iconset/
 
 # Release artifacts (built by build.sh / CI, attached to GitHub Releases)
 *.zip
+*.dmg
+*.dmg.sha256
 
 # macOS cruft
 .DS_Store
