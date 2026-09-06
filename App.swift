@@ -22,7 +22,7 @@
 //
 // Three small, fail-safe features layer on top, none of which adds a daemon or
 // persists OS state (so "reboot resets it" still holds):
-//   1. Auto-off timer (0...72h) — stores its deadline so a relaunch can resume it.
+//   1. Auto-off timer (0...24h) — stores its deadline so a relaunch can resume it.
 //      Normal quit also restores sleep; reboot resets the flag.
 //   2. Launch at login (SMAppService.mainApp) — OFF by default. The app always
 //      launches reading the TRUE system state, so a login launch can never
@@ -180,7 +180,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var language: AppLanguage = .english
 
     // Auto-off timer (deadline persisted for crash/relaunch recovery)
-    private var autoOffMinutes = 0           // 0 = no limit; slider covers 0...72 hours
+    private var autoOffMinutes = 0           // 0 = no limit; slider covers 0...24 hours
     private var keepAwakeTimer: Timer?       // one-shot: flips sleep back on when it fires
     private var countdownTicker: Timer?      // 1 Hz label refresh, only while the popover is open
     private var timerEndDate: Date?
@@ -279,7 +279,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         captionLabel.cell?.wraps = true
         g1.addSubview(captionLabel)
 
-        // GROUP 2 — auto-off timer (0...72h slider + editable hour field + countdown)
+        // GROUP 2 — auto-off timer (0...24h slider + editable hour field + countdown)
         let g2y = g1y + g1h + 12, g2h: CGFloat = 92
         let g2 = makeCard(NSRect(x: pad, y: g2y, width: contentW, height: g2h))
         timerLabel = makeLabel("", font: .systemFont(ofSize: 13), color: .labelColor)
@@ -287,7 +287,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         g2.addSubview(timerLabel)
         let formatter = NumberFormatter()
         formatter.minimum = 0
-        formatter.maximum = 72
+        formatter.maximum = 24
         formatter.maximumFractionDigits = 2
         autoOffField = NSTextField(frame: NSRect(x: contentW - ci - 70, y: ci - 2, width: 48, height: 24))
         autoOffField.alignment = .right
@@ -299,7 +299,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         autoOffUnitLabel = makeLabel("", font: .systemFont(ofSize: 12), color: .secondaryLabelColor)
         autoOffUnitLabel.frame = NSRect(x: contentW - ci - 18, y: ci + 2, width: 18, height: 18)
         g2.addSubview(autoOffUnitLabel)
-        autoOffSlider = NSSlider(value: 0, minValue: 0, maxValue: 72,
+        autoOffSlider = NSSlider(value: 0, minValue: 0, maxValue: 24,
                                  target: self, action: #selector(autoOffSliderChanged(_:)))
         autoOffSlider.isContinuous = false
         autoOffSlider.frame = NSRect(x: ci, y: ci + 28, width: cw, height: 20)
@@ -534,11 +534,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             syncAutoOffControls()
             return
         }
-        setAutoOff(minutes: Int((min(max(hours, 0), 72) * 60).rounded()))
+        setAutoOff(minutes: Int((min(max(hours, 0), 24) * 60).rounded()))
     }
 
     private func setAutoOff(minutes: Int) {
-        autoOffMinutes = min(max(minutes, 0), 72 * 60)
+        autoOffMinutes = min(max(minutes, 0), 24 * 60)
         syncAutoOffControls()
         if isOn, ownsDisableSleep, autoOffMinutes > 0 {
             startKeepAwakeTimer(minutes: autoOffMinutes)
@@ -598,7 +598,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let end = Date(timeIntervalSince1970: timestamp)
         let remaining = end.timeIntervalSinceNow
         timerEndDate = end
-        autoOffMinutes = min(max(Int(ceil(remaining / 60)), 1), 72 * 60)
+        autoOffMinutes = min(max(Int(ceil(remaining / 60)), 1), 24 * 60)
         syncAutoOffControls()
         if remaining <= 0 {
             keepAwakeTimerFired()
