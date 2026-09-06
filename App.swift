@@ -141,6 +141,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var batteryEstimateLabel: NSTextField!
     private var settingsButton: NSButton!
     private var timerHintLabel: NSTextField!
+    private var timerMaxLabel: NSTextField!
     private var batteryEstimate: BatteryEstimate?
     private var floorSlider: NSSlider!
     private var autoOffSlider: NSSlider!
@@ -161,7 +162,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var timerEndDate: Date?
 
     private let popoverWidth: CGFloat = 300
-    private let popoverHeight: CGFloat = 244
+    private let popoverHeight: CGFloat = 220
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -203,7 +204,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         root.blendingMode = .behindWindow
         root.state = .active
         homePage = FlippedView(frame: root.bounds)
-        settingsPage = FlippedView(frame: NSRect(x: 0, y: 0, width: popoverWidth, height: 366))
+        settingsPage = FlippedView(frame: NSRect(x: 0, y: 0, width: popoverWidth, height: 382))
         settingsPage.isHidden = true
         root.addSubview(homePage)
         root.addSubview(settingsPage)
@@ -231,20 +232,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsButton = button(homePage, NSRect(x: 250, y: 12, width: 32, height: 28), #selector(showSettings(_:)))
         settingsButton.image = NSImage(systemSymbolName: "ellipsis", accessibilityDescription: nil)
         toggleSwitch = PowerButton(title: "", target: self, action: #selector(switchToggled(_:)))
-        toggleSwitch.frame = NSRect(x: 120, y: 64, width: 60, height: 60)
+        toggleSwitch.frame = NSRect(x: 122, y: 54, width: 56, height: 56)
         toggleSwitch.isBordered = false
         toggleSwitch.imagePosition = .imageOnly
         homePage.addSubview(toggleSwitch)
         toggleSwitch.image = NSImage(systemSymbolName: "power", accessibilityDescription: nil)?
             .withSymbolConfiguration(.init(pointSize: 26, weight: .regular))
         toggleSwitch.wantsLayer = true
-        toggleSwitch.layer?.cornerRadius = 30
+        toggleSwitch.layer?.cornerRadius = 28
         toggleSwitch.setButtonType(.momentaryChange)
-        mainLabel = label(homePage, 18, 136, 264, 13)
+        mainLabel = label(homePage, 18, 123, 264, 13)
         mainLabel.alignment = .center
-        countdownLabel = label(homePage, 18, 160, 264, 11, .secondaryLabelColor)
+        countdownLabel = label(homePage, 18, 147, 264, 11, .secondaryLabelColor)
         countdownLabel.alignment = .center
-        captionLabel = label(homePage, 18, 209, 264, 11, .secondaryLabelColor)
+        captionLabel = label(homePage, 18, 186, 264, 11, .secondaryLabelColor)
         captionLabel.alignment = .center
 
         backButton = button(settingsPage, NSRect(x: 12, y: 12, width: 70, height: 28), #selector(showHome))
@@ -271,9 +272,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         autoOffSlider.isContinuous = false
         settingsPage.addSubview(autoOffSlider)
         timerHintLabel = label(settingsPage, 18, 112, 160, 10, .secondaryLabelColor)
-        let timerMax = label(settingsPage, 243, 112, 39, 10, .secondaryLabelColor)
-        timerMax.stringValue = "24 h"
-        timerMax.alignment = .right
+        timerMaxLabel = label(settingsPage, 228, 112, 54, 10, .secondaryLabelColor)
+        timerMaxLabel.alignment = .right
         divider(143)
         floorLabel = label(settingsPage, 18, 158, 200)
         floorValue = label(settingsPage, 236, 158, 46)
@@ -303,7 +303,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         languagePicker.action = #selector(languageChanged(_:))
         settingsPage.addSubview(languagePicker)
         divider(335)
-        quitButton = button(settingsPage, NSRect(x: 18, y: 340, width: 264, height: 24), #selector(quit))
+        quitButton = button(settingsPage, NSRect(x: 18, y: 347, width: 264, height: 24), #selector(quit))
         quitButton.contentTintColor = .secondaryLabelColor
         updateLocalizedText()
         let vc = NSViewController()
@@ -315,21 +315,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         loginSwitch.state = loginItemEnabled() ? .on : .off
         homePage.isHidden = true
         settingsPage.isHidden = false
-        resizePage(height: 366, focus: backButton)
+        resizePage(height: 382)
     }
 
     @objc private func showHome() {
-        guard popover.contentViewController?.view.window?.makeFirstResponder(backButton) != false else { return }
+        guard popover.contentViewController?.view.window?.makeFirstResponder(nil) != false else { return }
         homePage.isHidden = false
         settingsPage.isHidden = true
-        resizePage(height: popoverHeight, focus: nil)
+        resizePage(height: popoverHeight)
     }
 
-    private func resizePage(height: CGFloat, focus: NSView?) {
+    private func resizePage(height: CGFloat) {
         let size = NSSize(width: popoverWidth, height: height)
         popover.contentViewController?.view.setFrameSize(size)
         popover.contentSize = size
-        popover.contentViewController?.view.window?.makeFirstResponder(focus)
+        popover.contentViewController?.view.window?.makeFirstResponder(nil)
     }
 
     private func makeLabel(_ s: String, font: NSFont, color: NSColor) -> NSTextField {
@@ -358,6 +358,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         timerLabel?.stringValue = text("Auto-stop", "自动停止")
         autoOffUnitLabel?.stringValue = text("h later", "小时后")
         timerHintLabel?.stringValue = text("No time limit", "不限时")
+        timerMaxLabel?.stringValue = text("24 hours", "24 小时")
         settingsButton?.setAccessibilityLabel(text("More settings", "更多设置"))
         backButton?.title = text("‹ Back", "‹ 返回")
         settingsTitle?.stringValue = text("Settings", "设置")
@@ -532,6 +533,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func syncAutoOffControls() {
+        autoOffUnitLabel?.stringValue = autoOffMinutes == 0 ? text("No limit", "不限时") : text("h later", "小时后")
         let hours = Double(autoOffMinutes) / 60
         autoOffSlider?.doubleValue = hours
         autoOffField?.stringValue = hours.rounded() == hours
