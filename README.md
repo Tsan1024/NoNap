@@ -64,7 +64,7 @@ Then click the cup in the menu bar, flip the switch, and close the lid.
 
 ## Features
 
-The single compact panel contains the power control, 0–24 hour auto-stop slider and editable
+The single compact panel contains a native keep-running switch, 0–24 hour auto-stop slider and editable
 duration (zero means no limit), battery cutoff and estimate, launch at login, language, and
 Quit. Explanations are available as hover tips.
 

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Replaced the oversized power control with a native keep-running switch in a single settings-style panel.
 - Refined the single-page hierarchy with a compact horizontal power header, tighter spacing, and native system controls.
 - Merged the power control and settings into one page, removing More/Back navigation.
 - Restored a small left-aligned app name to balance the minimal home panel.

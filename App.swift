@@ -96,11 +96,6 @@ private func makeCupGlyph(_ glyph: SleepGlyph) -> NSImage {
 // Flipped container so popover content lays out top-down with simple frames.
 private final class FlippedView: NSView { override var isFlipped: Bool { true } }
 
-private final class PowerButton: NSButton {
-    override var focusRingMaskBounds: NSRect { bounds }
-    override func drawFocusRingMask() { NSBezierPath(ovalIn: bounds.insetBy(dx: 2, dy: 2)).fill() }
-}
-
 // Frosted-glass popover backing: a flipped NSVisualEffectView so content still
 // lays out top-down while the panel gets a translucent, blurred material that
 // samples the desktop/windows behind it (system light/dark aware). On macOS 26 the
@@ -119,8 +114,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // Popover UI
     private let popover = NSPopover()
-    private var toggleSwitch: PowerButton!
+    private var toggleSwitch: NSSwitch!
     private var titleLabel: NSTextField!
+    private var keepAwakeLabel: NSTextField!
     private var timerLabel: NSTextField!
     private var floorLabel: NSTextField!
     private var floorValue: NSTextField!
@@ -151,7 +147,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var timerEndDate: Date?
 
     private let popoverWidth: CGFloat = 300
-    private let popoverHeight: CGFloat = 416
+    private let popoverHeight: CGFloat = 424
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -214,21 +210,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             line.boxType = .separator
             homePage.addSubview(line)
         }
-        titleLabel = label(homePage, 82, 28, 180, 15)
+        titleLabel = label(homePage, 18, 15, 180, 15)
         titleLabel.font = .systemFont(ofSize: 15, weight: .semibold)
-        toggleSwitch = PowerButton(title: "", target: self, action: #selector(switchToggled(_:)))
-        toggleSwitch.frame = NSRect(x: 18, y: 14, width: 52, height: 52)
-        toggleSwitch.isBordered = false
-        toggleSwitch.imagePosition = .imageOnly
-        toggleSwitch.image = NSImage(systemSymbolName: "power", accessibilityDescription: nil)?
-            .withSymbolConfiguration(.init(pointSize: 22, weight: .medium))
-        toggleSwitch.wantsLayer = true
-        toggleSwitch.layer?.cornerRadius = 26
+        let primaryBox = NSBox(frame: NSRect(x: 14, y: 45, width: 272, height: 52))
+        primaryBox.boxType = .custom
+        primaryBox.borderWidth = 0
+        primaryBox.fillColor = NSColor.controlBackgroundColor.withAlphaComponent(0.55)
+        primaryBox.cornerRadius = 10
+        homePage.addSubview(primaryBox)
+        keepAwakeLabel = label(homePage, 26, 60, 190, 13)
+        keepAwakeLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        toggleSwitch = NSSwitch()
+        toggleSwitch.target = self
+        toggleSwitch.action = #selector(switchToggled(_:))
+        toggleSwitch.frame = NSRect(x: 238, y: 55, width: 40, height: 24)
         homePage.addSubview(toggleSwitch)
 
-        timerLabel = label(homePage, 18, 88, 132)
+        timerLabel = label(homePage, 18, 116, 132)
         timerLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        autoOffField = NSTextField(frame: NSRect(x: 184, y: 83, width: 50, height: 25))
+        autoOffField = NSTextField(frame: NSRect(x: 184, y: 111, width: 50, height: 25))
         let formatter = NumberFormatter()
         formatter.minimum = 0
         formatter.maximum = 24
@@ -241,44 +241,44 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         autoOffField.action = #selector(autoOffFieldChanged(_:))
         autoOffField.cell?.sendsActionOnEndEditing = true
         homePage.addSubview(autoOffField)
-        autoOffUnitLabel = label(homePage, 239, 88, 45, 11, .secondaryLabelColor)
+        autoOffUnitLabel = label(homePage, 239, 116, 45, 11, .secondaryLabelColor)
         autoOffSlider = NSSlider(value: 0, minValue: 0, maxValue: 24, target: self, action: #selector(autoOffSliderChanged(_:)))
-        autoOffSlider.frame = NSRect(x: 18, y: 117, width: 264, height: 18)
+        autoOffSlider.frame = NSRect(x: 18, y: 145, width: 264, height: 18)
         autoOffSlider.isContinuous = false
         homePage.addSubview(autoOffSlider)
-        timerHintLabel = label(homePage, 18, 138, 160, 10, .secondaryLabelColor)
-        timerMaxLabel = label(homePage, 228, 138, 54, 10, .secondaryLabelColor)
+        timerHintLabel = label(homePage, 18, 166, 160, 10, .secondaryLabelColor)
+        timerMaxLabel = label(homePage, 228, 166, 54, 10, .secondaryLabelColor)
         timerMaxLabel.alignment = .right
-        floorLabel = label(homePage, 18, 171, 200)
+        floorLabel = label(homePage, 18, 194, 200)
         floorLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        floorValue = label(homePage, 236, 171, 46)
+        floorValue = label(homePage, 236, 194, 46)
         floorValue.alignment = .right
         floorSlider = NSSlider(value: Double(batteryFloorPercent), minValue: Double(floorMin), maxValue: Double(floorMax),
                                target: self, action: #selector(floorSliderChanged(_:)))
-        floorSlider.frame = NSRect(x: 18, y: 202, width: 264, height: 18)
+        floorSlider.frame = NSRect(x: 18, y: 225, width: 264, height: 18)
         floorSlider.isContinuous = true
         homePage.addSubview(floorSlider)
         for (x, value) in [(CGFloat(18), floorMin), (CGFloat(253), floorMax)] {
-            let hint = label(homePage, x, 223, 30, 10, .secondaryLabelColor)
+            let hint = label(homePage, x, 246, 30, 10, .secondaryLabelColor)
             hint.stringValue = "\(value)%"
         }
-        batteryEstimateLabel = label(homePage, 18, 247, 264, 11, .secondaryLabelColor)
-        divider(277)
-        loginLabel = label(homePage, 18, 292, 190)
+        batteryEstimateLabel = label(homePage, 18, 268, 264, 11, .secondaryLabelColor)
+        divider(294)
+        loginLabel = label(homePage, 18, 309, 190)
         loginSwitch = NSSwitch()
         loginSwitch.target = self
         loginSwitch.action = #selector(loginToggled(_:))
-        loginSwitch.frame = NSRect(x: 242, y: 288, width: 40, height: 24)
+        loginSwitch.frame = NSRect(x: 242, y: 305, width: 40, height: 24)
         homePage.addSubview(loginSwitch)
-        languageLabel = label(homePage, 18, 332, 130)
-        languagePicker = NSPopUpButton(frame: NSRect(x: 166, y: 326, width: 116, height: 27), pullsDown: false)
+        languageLabel = label(homePage, 18, 347, 130)
+        languagePicker = NSPopUpButton(frame: NSRect(x: 166, y: 341, width: 116, height: 27), pullsDown: false)
         languagePicker.addItems(withTitles: ["English", "简体中文"])
         languagePicker.controlSize = .small
         languagePicker.target = self
         languagePicker.action = #selector(languageChanged(_:))
         homePage.addSubview(languagePicker)
-        divider(366)
-        quitButton = button(homePage, NSRect(x: 18, y: 380, width: 264, height: 24), #selector(quit))
+        divider(376)
+        quitButton = button(homePage, NSRect(x: 18, y: 388, width: 264, height: 24), #selector(quit))
         quitButton.contentTintColor = .secondaryLabelColor
         updateLocalizedText()
         let vc = NSViewController()
@@ -309,6 +309,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func updateLocalizedText() {
         titleLabel?.stringValue = "NoNap"
+        keepAwakeLabel?.stringValue = text("Keep running with lid closed", "合盖保持运行")
         timerLabel?.stringValue = text("Auto-stop", "自动停止")
         autoOffUnitLabel?.stringValue = text("h later", "小时后")
         timerHintLabel?.stringValue = text("No time limit", "不限时")
@@ -360,7 +361,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let monitor = clickMonitor { NSEvent.removeMonitor(monitor); clickMonitor = nil }
     }
 
-    @objc private func switchToggled(_ sender: NSButton) {
+    @objc private func switchToggled(_ sender: NSSwitch) {
+        sender.state = isOn ? .on : .off
+        sender.isEnabled = false
+        defer { sender.isEnabled = true }
         _ = performToggle(wantOn: !isOn)
     }
 
@@ -482,7 +486,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func syncAutoOffControls() {
-        autoOffUnitLabel?.stringValue = autoOffMinutes == 0 ? text("No limit", "不限时") : text("h later", "小时后")
+        autoOffUnitLabel?.stringValue = text("hours", "小时")
         let hours = Double(autoOffMinutes) / 60
         autoOffSlider?.doubleValue = hours
         autoOffField?.stringValue = hours.rounded() == hours
@@ -544,12 +548,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let accessibleAction = isOn ? text("Stop keeping awake", "停止保持唤醒") : text("Start keeping awake", "开启保持唤醒")
         toggleSwitch?.setAccessibilityLabel(accessibleAction)
         toggleSwitch?.toolTip = accessibleAction
-        toggleSwitch?.contentTintColor = isOn
-            ? NSColor(srgbRed: 0.12, green: 0.38, blue: 0.27, alpha: 1)
-            : .secondaryLabelColor
-        toggleSwitch?.layer?.backgroundColor = (isOn
-            ? NSColor(srgbRed: 0.76, green: 0.9, blue: 0.81, alpha: 0.72)
-            : NSColor.quaternaryLabelColor).cgColor
+        toggleSwitch?.state = isOn ? .on : .off
     }
 
     // MARK: - Launch at login
