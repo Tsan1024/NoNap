@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# uninstall.sh — completely back StayAwake out: restore normal sleep, remove the app,
+# uninstall.sh — completely back NoNap out: restore normal sleep, remove the app,
 # the login item, AND the passwordless grant. Ends by PROVING the privilege is gone.
 set -uo pipefail   # not -e: we want to attempt every cleanup step even if one is absent
 
-APP_NAME="StayAwake"
+APP_NAME="NoNap"
 APP="/Applications/$APP_NAME.app"
-BUNDLE_ID="com.aboudjem.Sleepless"
-SUDOERS_DST="/etc/sudoers.d/sleepless-disablesleep"
+BUNDLE_ID="com.tsan1024.NoNap"
+SUDOERS_DST="/etc/sudoers.d/nonap-disablesleep"
 LAUNCH_AGENT="$HOME/Library/LaunchAgents/$BUNDLE_ID.plist"
 
-echo "StayAwake uninstaller"
+echo "NoNap uninstaller"
 echo "====================="
 
 # 1. Restore normal sleep BEFORE removing the grant (a reboot would also reset it to 0).
@@ -41,5 +41,5 @@ else
 fi
 
 echo ""
-echo "Done. StayAwake and its grant are removed. UserDefaults (the battery-floor value)"
+echo "Done. NoNap and its grant are removed. UserDefaults (the battery-floor value)"
 echo "can be cleared with: defaults delete $BUNDLE_ID 2>/dev/null || true"

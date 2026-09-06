@@ -13,7 +13,7 @@ env CLANG_MODULE_CACHE_PATH="$TMP/cache" SWIFT_MODULECACHE_PATH="$TMP/cache" \
 "$TMP/battery-checks"
 plutil -lint "$REPO/Info.plist" >/dev/null
 
-if SLEEPLESS_USER="bad user" "$REPO/grant.sh" --yes >/dev/null 2>&1; then
+if NONAP_USER="bad user" "$REPO/grant.sh" --yes >/dev/null 2>&1; then
   echo "grant.sh accepted an unsafe account name" >&2
   exit 1
 fi

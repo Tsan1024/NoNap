@@ -1,10 +1,10 @@
-# StayAwake
+# NoNap
 
-Lid closed. Work goes on.
+Close the lid. Keep it running.
 
-StayAwake is a fork of [Sleepless](https://github.com/Aboudjem/Sleepless), originally created by **Adam Boudjemaa (Aboudjem)**. Thanks to Sleepless for the menu-bar app and `pmset` lid-closed wake implementation. This fork adds privilege and quit-safety improvements, English/Chinese switching, configurable timers, and UI refinements. Original copyright notices and the [MIT license](LICENSE) are retained. This is an independently maintained derivative, not an official upstream release.
+NoNap is a fork of [Sleepless](https://github.com/Aboudjem/Sleepless), originally created by **Adam Boudjemaa (Aboudjem)**. Thanks to Sleepless for the menu-bar app and `pmset` lid-closed wake implementation. This fork adds privilege and quit-safety improvements, English/Chinese switching, configurable timers, and UI refinements. Original copyright notices and the [MIT license](LICENSE) are retained. This is an independently maintained derivative, not an official upstream release.
 
-> The app is now packaged and installed as `StayAwake.app`. The repository and bundle identifier retain their original names for settings compatibility. The animations below are from upstream Sleepless and do not show this fork’s current UI.
+> The app is packaged as `NoNap.app` with bundle identifier `com.tsan1024.NoNap`. The repository retains its original name. The animations below are from upstream Sleepless and do not show this fork’s current UI.
 
 <!-- Language switcher. Keep this row identical across every README.<lang>.md. -->
 <p align="center">
@@ -43,7 +43,7 @@ StayAwake is a fork of [Sleepless](https://github.com/Aboudjem/Sleepless), origi
 </p>
 
 > [!NOTE]
-> A closed lid sleeps your Mac, and `caffeinate` apps (KeepingYouAwake and friends) can't change that, by design. Sleepless flips `pmset disablesleep` and adds timer, battery, and normal-quit safety nets.
+> A closed lid sleeps your Mac, and `caffeinate` apps (KeepingYouAwake and friends) can't change that, by design. NoNap flips `pmset disablesleep` and adds timer, battery, and normal-quit safety nets.
 
 ## Install
 
@@ -57,8 +57,8 @@ The first toggle asks for one native macOS administrator authorization and insta
 
 | Other ways | |
 |---|---|
-| **Build without installing** | `./build.sh` creates `build/StayAwake.app` without changing sudoers. |
-| **Create a DMG** | `./package.sh` creates `dist/StayAwake-1.3.0.dmg` and its SHA-256 file. |
+| **Build without installing** | `./build.sh` creates `build/NoNap.app` without changing sudoers. |
+| **Create a DMG** | `./package.sh` creates `dist/NoNap-1.3.0.dmg` and its SHA-256 file. |
 
 Then click the cup in the menu bar, flip the switch, and close the lid.
 
@@ -69,7 +69,7 @@ Open the ellipsis to enter Settings and use Back to return. Settings contains th
 auto-stop slider and editable duration (zero means no limit), battery cutoff and estimate,
 launch at login, language, and Quit. Explanations are available as hover tips.
 
-On battery power, StayAwake reads macOS IOKit’s time-to-empty estimate and scales it to
+On battery power, NoNap reads macOS IOKit’s time-to-empty estimate and scales it to
 the selected cutoff: `system minutes × (current percent − cutoff percent) / current percent`.
 The result is approximate, rounded to five minutes, and changes with workload. Connected power,
 unavailable estimates, and an already-reached cutoff have separate labels. This display never
@@ -88,9 +88,9 @@ controls automatic turn-off: the timer, battery threshold, and Low Power Mode pr
 
 **Menu-bar glyph:** empty cup = off · full cup = awake · full cup + dot = awake on battery (auto-off live).
 
-## Sleepless vs the alternatives
+## NoNap vs the alternatives
 
-| | **Sleepless** | Amphetamine | KeepingYouAwake | `caffeinate` |
+| | **NoNap** | Amphetamine | KeepingYouAwake | `caffeinate` |
 |---|:---:|:---:|:---:|:---:|
 | Awake, lid closed, no monitor | ✅ ¹ | ⚠️ ² | ❌ ³ | ❌ |
 | On battery | ✅ | ✅ | ✅ lid open | ⚠️ ⁴ |
@@ -113,7 +113,7 @@ controls automatic turn-off: the timer, battery threshold, and Low Power Mode pr
 
 ## How it works
 
-Sleepless toggles `pmset disablesleep` (the kernel's `SleepDisabled` flag), reads it back so the menu bar never lies, and reverts it at your battery floor, in Low Power Mode, when the timer ends, on normal quit, or on reboot. On first use, a native administrator prompt installs a scoped sudoers rule for **exactly two commands**:
+NoNap toggles `pmset disablesleep` (the kernel's `SleepDisabled` flag), reads it back so the menu bar never lies, and reverts it at your battery floor, in Low Power Mode, when the timer ends, on normal quit, or on reboot. On first use, a native administrator prompt installs a scoped sudoers rule for **exactly two commands**:
 
 ```
 <you> ALL=(root) NOPASSWD: /usr/bin/pmset -a disablesleep 0, /usr/bin/pmset -a disablesleep 1
@@ -126,7 +126,7 @@ Sleepless toggles `pmset disablesleep` (the kernel's `SleepDisabled` flag), read
 Verify a download, no Apple account needed:
 
 ```sh
-shasum -a 256 -c dist/StayAwake-1.3.0.dmg.sha256
+shasum -a 256 -c dist/NoNap-1.3.0.dmg.sha256
 ```
 
 Full threat model, the App Store verdict, and the audit guide: [SECURITY.md](SECURITY.md) · [docs/AUDIT.md](docs/AUDIT.md).
@@ -142,7 +142,7 @@ Yes. `pmset -a disablesleep 1` sets the kernel's `SleepDisabled` flag on Apple S
 <details>
 <summary><b>Why does my Mac sleep on lid close even with Amphetamine or KeepingYouAwake?</b></summary>
 
-Those use macOS power assertions, which stop the idle timer but can't override the hardware lid-close trigger. KeepingYouAwake wraps `caffeinate`, which can't do lid-closed ([#66](https://github.com/newmarcel/KeepingYouAwake/issues/66)). `pmset disablesleep`, which Sleepless uses, can.
+Those use macOS power assertions, which stop the idle timer but can't override the hardware lid-close trigger. KeepingYouAwake wraps `caffeinate`, which can't do lid-closed ([#66](https://github.com/newmarcel/KeepingYouAwake/issues/66)). `pmset disablesleep`, which NoNap uses, can.
 </details>
 
 <details>
@@ -171,12 +171,12 @@ It is a personal open-source tool with no paid Apple Developer ID, so it is ad-h
 
 ## Contributing
 
-Issues and PRs welcome, especially translations and reports from other hardware. See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md). Sleepless stays deliberately small.
+Issues and PRs welcome, especially translations and reports from other hardware. See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md). NoNap stays deliberately small.
 
 ## License
 
 [MIT](LICENSE) © 2026 Adam Boudjemaa.
 
 <p align="center">
-  <sub>If Sleepless saved you a trip to Terminal, a ⭐ helps other people find it.</sub>
+  <sub>If NoNap saved you a trip to Terminal, a ⭐ helps other people find it.</sub>
 </p>

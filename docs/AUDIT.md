@@ -19,7 +19,7 @@ The whole app is one file. To satisfy yourself it does what it claims and nothin
 | [`build.sh`](../build.sh) | `swiftc` + a hand-assembled, ad-hoc-signed bundle. No downloaded blobs, no install-time scripts baked into the binary. |
 | [`uninstall.sh`](../uninstall.sh) | Removes the app, the login item, and the sudoers drop-in, then proves `sudo -n pmset …` prompts again. |
 
-The single privileged file on your system is `/etc/sudoers.d/sleepless-disablesleep`. Read
+The single privileged file on your system is `/etc/sudoers.d/nonap-disablesleep`. Read
 it, and `sudo rm` it any time to revoke everything.
 
 ## Verify a release you downloaded (did not build)
@@ -61,11 +61,11 @@ cd Sleepless && git checkout v<version>
 
 # Rebuild the executable with the release's deployment target.
 swiftc -O -parse-as-library -target arm64-apple-macos13.0 \
-  -framework AppKit -framework ServiceManagement App.swift BatteryEstimate.swift -o /tmp/StayAwake-rebuilt
+  -framework AppKit -framework ServiceManagement App.swift BatteryEstimate.swift -o /tmp/NoNap-rebuilt
 
 # Unzip the release and compare the Mach-O inside the bundle.
-ditto -x -k StayAwake-<version>.zip /tmp/rel
-shasum -a 256 /tmp/StayAwake-rebuilt /tmp/rel/StayAwake.app/Contents/MacOS/StayAwake
+ditto -x -k NoNap-<version>.zip /tmp/rel
+shasum -a 256 /tmp/NoNap-rebuilt /tmp/rel/NoNap.app/Contents/MacOS/NoNap
 ```
 
 Caveats, stated honestly:
@@ -115,11 +115,11 @@ xcrun notarytool store-credentials "notarytool-password" \
 
 # Re-sign with a Developer ID cert + hardened runtime + secure timestamp.
 codesign --force --options runtime --timestamp \
-  --sign "Developer ID Application: <Name> (<TeamID>)" StayAwake.app
+  --sign "Developer ID Application: <Name> (<TeamID>)" NoNap.app
 
-ditto -c -k --keepParent StayAwake.app StayAwake.zip
-xcrun notarytool submit StayAwake.zip --keychain-profile "notarytool-password" --wait
-xcrun stapler staple StayAwake.app
+ditto -c -k --keepParent NoNap.app NoNap.zip
+xcrun notarytool submit NoNap.zip --keychain-profile "notarytool-password" --wait
+xcrun stapler staple NoNap.app
 ```
 
 Prerequisite: [Apple Developer Program, $99/yr](https://developer.apple.com/programs/whats-included/),

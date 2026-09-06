@@ -1,6 +1,6 @@
 # Security Policy
 
-Sleepless asks for a narrow piece of root privilege, so it owes you a precise account
+NoNap asks for a narrow piece of root privilege, so it owes you a precise account
 of what that privilege is and why it is safe. This document is that account. Nothing
 here is hand-waved; every claim is something you can verify on your own machine.
 
@@ -12,9 +12,9 @@ acknowledgement within a few days. Coordinated disclosure is appreciated.
 
 Supported version: the latest release on the `main` branch.
 
-## What Sleepless actually does
+## What NoNap actually does
 
-Sleepless keeps a Mac awake with the lid closed by toggling an undocumented but
+NoNap keeps a Mac awake with the lid closed by toggling an undocumented but
 long-standing `pmset` setting:
 
 ```
@@ -29,13 +29,13 @@ sets the kernel's `SleepDisabled` flag, which you can observe yourself:
 pmset -g | grep SleepDisabled   # 1 = on, 0/absent = off
 ```
 
-Because it is undocumented, Apple could change or remove it in a future macOS. Sleepless
+Because it is undocumented, Apple could change or remove it in a future macOS. NoNap
 reads the live value back after every toggle, so the menu-bar state always reflects
 reality rather than assuming the command worked.
 
 ## The passwordless grant — exactly what it permits
 
-A GUI app has no terminal to type a password into, so Sleepless runs `pmset` through a
+A GUI app has no terminal to type a password into, so NoNap runs `pmset` through a
 tightly scoped `/etc/sudoers.d` drop-in. The first in-app toggle (or `grant.sh` for a
 source install) writes this, owned `root:wheel`, mode `0440`:
 
@@ -77,10 +77,10 @@ you can toggle `sudo pmset -a disablesleep 1/0` manually instead and skip the gr
 ## Reboot resets it (a safety net you can verify)
 
 `disablesleep` is a **runtime** setting. A reboot restores normal sleep — there is no way
-for Sleepless to leave your Mac permanently unable to sleep. Verify it yourself: toggle on,
+for NoNap to leave your Mac permanently unable to sleep. Verify it yourself: toggle on,
 reboot, then `pmset -g | grep SleepDisabled` should read `0`.
 
-Sleepless adds a second belt-and-suspenders: a **battery-floor auto-off** (default 15%)
+NoNap adds a second belt-and-suspenders: a **battery-floor auto-off** (default 15%)
 that flips the flag back to `0` while the Mac is awake and discharging, so a forgotten
 "on" state can't drain the battery to empty. Normal app termination also restores sleep.
 Force-killing or crashing any user-space app can bypass its in-process timer and battery
@@ -88,7 +88,7 @@ monitor; reboot remains the recovery path for that case.
 
 ## Code signing, notarization, and Gatekeeper
 
-Sleepless is **ad-hoc signed and not notarized** — it has no paid Apple Developer ID. The
+NoNap is **ad-hoc signed and not notarized** — it has no paid Apple Developer ID. The
 trust model is *read the source, build it yourself*. (Notarization is also not a malware
 guarantee: signed, notarized macOS stealers have shipped.)
 
@@ -99,9 +99,9 @@ guarantee: signed, notarized macOS stealers have shipped.)
   Open Anyway**, then confirm. Note: macOS 15 (Sequoia) **removed** the old
   right-click → Open bypass, so the System Settings path is the supported flow on macOS 15+.
 
-## Why Sleepless can't be on the Mac App Store
+## Why NoNap can't be on the Mac App Store
 
-Some people trust App Store apps more, so it is worth saying plainly: Sleepless can never
+Some people trust App Store apps more, so it is worth saying plainly: NoNap can never
 ship there, and that is a property of what it does, not an oversight.
 
 App Review **§2.4.5(v)** states apps "may not request escalation to root privileges or use
@@ -113,7 +113,7 @@ outside their container, which the `/etc/sudoers.d` drop-in does). A privileged-
 workaround does not rescue it either: a helper installed from a sandboxed app must itself be
 sandboxed, so it still cannot write `/etc/sudoers.d` or run arbitrary root commands.
 
-The practical consequence: Sleepless is **direct-download / Homebrew only**, by design. The
+The practical consequence: NoNap is **direct-download / Homebrew only**, by design. The
 verification steps below, plus building from source, are how trust is established instead.
 
 ## Verifying a download
@@ -123,7 +123,7 @@ project's build, with no Apple account and no shared secret:
 
 ```sh
 shasum -a 256 -c SHA256SUMS                                  # bytes match what was published
-gh attestation verify Sleepless-<version>.zip -R Aboudjem/Sleepless   # built by this repo's release workflow
+gh attestation verify NoNap-<version>.zip -R Tsan1024/Sleepless   # built by this repo's release workflow
 ```
 
 The full walkthrough (what each check proves, how to reproduce the build, and a VirusTotal
@@ -134,7 +134,7 @@ scan) is in **[docs/AUDIT.md](docs/AUDIT.md)**.
 `./uninstall.sh` restores normal sleep, removes the app and login item, deletes the
 sudoers drop-in, and then **proves** revocation by showing that `sudo -n pmset …` prompts
 for a password again. The single file to audit or delete by hand is
-`/etc/sudoers.d/sleepless-disablesleep`.
+`/etc/sudoers.d/nonap-disablesleep`.
 
 ## Primary sources
 

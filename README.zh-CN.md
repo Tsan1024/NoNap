@@ -1,10 +1,10 @@
-# StayAwake
+# NoNap
 
-盖上吧，活儿还在跑。
+合盖不停工
 
 本项目基于 [Sleepless](https://github.com/Aboudjem/Sleepless) fork 并修改，原作者为 **Adam Boudjemaa（Aboudjem）**。感谢原项目提供的菜单栏应用与 `pmset` 合盖保持唤醒实现；本分支增加了权限与退出保护改进、中英文切换、自定义定时及界面调整。保留原作者版权声明，并沿用 [MIT 许可证](LICENSE)。本项目为独立维护的衍生版本，并非原作者官方发布。
 
-> 应用现以 `StayAwake.app` 打包和安装；为兼容现有设置，仓库及应用标识仍保留原名。下方动图来自上游 Sleepless，尚未更新为本版界面。
+> 应用以 `NoNap.app` 打包和安装，应用标识为 `com.tsan1024.NoNap`；仓库仍保留原名。下方动图来自上游 Sleepless，尚未更新为本版界面。
 
 <!-- Language switcher. Keep this row identical across every README.<lang>.md. -->
 <p align="center">
@@ -45,7 +45,7 @@
 </p>
 
 > [!NOTE]
-> 合上盖子会让 Mac 睡眠，基于 `caffeinate` 的应用（KeepingYouAwake 之类）从设计上就改变不了这件事。Sleepless 切换 `pmset disablesleep`，并增加定时、电量和正常退出保护。
+> 合上盖子会让 Mac 睡眠，基于 `caffeinate` 的应用（KeepingYouAwake 之类）从设计上就改变不了这件事。NoNap 切换 `pmset disablesleep`，并增加定时、电量和正常退出保护。
 
 ## 安装
 
@@ -59,8 +59,8 @@ cd Sleepless
 
 | 其他方式 | |
 |---|---|
-| **仅构建、不安装** | `./build.sh` 会生成 `build/StayAwake.app`，不会修改 sudoers。 |
-| **制作 DMG** | `./package.sh` 会生成 `dist/StayAwake-1.3.0.dmg` 及其 SHA-256 文件。 |
+| **仅构建、不安装** | `./build.sh` 会生成 `build/NoNap.app`，不会修改 sudoers。 |
+| **制作 DMG** | `./package.sh` 会生成 `dist/NoNap-1.3.0.dmg` 及其 SHA-256 文件。 |
 
 然后点击菜单栏里的咖啡杯，拨动开关，合上盖子。
 
@@ -88,9 +88,9 @@ cd Sleepless
 
 **菜单栏图标：** 空杯 = 关闭 · 满杯 = 唤醒 · 满杯加一个点 = 电池供电下唤醒（自动关闭生效中）。
 
-## Sleepless 与其他方案对比
+## NoNap 与其他方案对比
 
-| | **Sleepless** | Amphetamine | KeepingYouAwake | `caffeinate` |
+| | **NoNap** | Amphetamine | KeepingYouAwake | `caffeinate` |
 |---|:---:|:---:|:---:|:---:|
 | 合盖、无显示器时保持唤醒 | ✅ ¹ | ⚠️ ² | ❌ ³ | ❌ |
 | 电池供电 | ✅ | ✅ | ✅ 开盖 | ⚠️ ⁴ |
@@ -113,7 +113,7 @@ cd Sleepless
 
 ## 工作原理
 
-Sleepless 切换 `pmset disablesleep`（内核的 `SleepDisabled` 标志），把它读回来让菜单栏绝不撒谎，并在到达你的电量下限、进入 Low Power Mode、定时器结束、正常退出或重启时把它还原。首次使用时，原生管理员授权会安装一条范围严格限定的 sudoers 规则，**只允许两条命令**：
+NoNap 切换 `pmset disablesleep`（内核的 `SleepDisabled` 标志），把它读回来让菜单栏绝不撒谎，并在到达你的电量下限、进入 Low Power Mode、定时器结束、正常退出或重启时把它还原。首次使用时，原生管理员授权会安装一条范围严格限定的 sudoers 规则，**只允许两条命令**：
 
 ```
 <you> ALL=(root) NOPASSWD: /usr/bin/pmset -a disablesleep 0, /usr/bin/pmset -a disablesleep 1
@@ -126,7 +126,7 @@ Sleepless 切换 `pmset disablesleep`（内核的 `SleepDisabled` 标志），�
 验证一个下载，无需 Apple 账户：
 
 ```sh
-shasum -a 256 -c dist/StayAwake-1.3.0.dmg.sha256
+shasum -a 256 -c dist/NoNap-1.3.0.dmg.sha256
 ```
 
 完整威胁模型、为何无法上架 App Store，以及审计指南：[SECURITY.md](SECURITY.md) · [docs/AUDIT.md](docs/AUDIT.md)。
@@ -142,7 +142,7 @@ shasum -a 256 -c dist/StayAwake-1.3.0.dmg.sha256
 <details>
 <summary><b>为什么装了 Amphetamine 或 KeepingYouAwake，合盖时 Mac 还是会睡眠？</b></summary>
 
-那些工具用的是 macOS 电源断言，它能停掉空闲计时器，却无法覆盖硬件层面的合盖触发。KeepingYouAwake 封装的是 `caffeinate`，做不到合盖唤醒（[#66](https://github.com/newmarcel/KeepingYouAwake/issues/66)）。而 Sleepless 使用的 `pmset disablesleep` 可以。
+那些工具用的是 macOS 电源断言，它能停掉空闲计时器，却无法覆盖硬件层面的合盖触发。KeepingYouAwake 封装的是 `caffeinate`，做不到合盖唤醒（[#66](https://github.com/newmarcel/KeepingYouAwake/issues/66)）。而 NoNap 使用的 `pmset disablesleep` 可以。
 </details>
 
 <details>
@@ -171,12 +171,12 @@ shasum -a 256 -c dist/StayAwake-1.3.0.dmg.sha256
 
 ## 参与贡献
 
-欢迎提交 Issue 和 PR，尤其欢迎翻译以及来自其他硬件的测试报告。请参阅 [CONTRIBUTING.md](CONTRIBUTING.md) 和[行为准则](CODE_OF_CONDUCT.md)。Sleepless 会刻意保持小巧。
+欢迎提交 Issue 和 PR，尤其欢迎翻译以及来自其他硬件的测试报告。请参阅 [CONTRIBUTING.md](CONTRIBUTING.md) 和[行为准则](CODE_OF_CONDUCT.md)。NoNap 会刻意保持小巧。
 
 ## 许可证
 
 [MIT](LICENSE) © 2026 Adam Boudjemaa。
 
 <p align="center">
-  <sub>如果 Sleepless 帮你省去了一趟终端，点个 ⭐ 能帮助更多人发现它。</sub>
+  <sub>如果 NoNap 帮你省去了一趟终端，点个 ⭐ 能帮助更多人发现它。</sub>
 </p>

@@ -1,4 +1,4 @@
-// App.swift. StayAwake: a standalone menu-bar toggle that keeps the Mac running
+// App.swift. NoNap: a standalone menu-bar toggle that keeps the Mac running
 // with the lid closed (on battery, no external display) via `pmset disablesleep`.
 //
 // Mechanism (verified live on this machine; disablesleep is UNDOCUMENTED in
@@ -27,7 +27,7 @@
 //   2. Launch at login (SMAppService.mainApp) — OFF by default. The app always
 //      launches reading the TRUE system state, so a login launch can never
 //      re-enable disablesleep on its own.
-//   3. Low-Power-Mode auto-off — on battery, if Low Power Mode is on, StayAwake
+//   3. Low-Power-Mode auto-off — on battery, if Low Power Mode is on, NoNap
 //      turns itself off. Same shape as the battery floor, evaluated on the same tick.
 //
 // Build (mirrors Nexus.app): Command Line Tools `swiftc`, NO Xcode project.
@@ -344,7 +344,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updateLocalizedText() {
-        titleLabel?.stringValue = "StayAwake"
+        titleLabel?.stringValue = "NoNap"
         timerLabel?.stringValue = text("Auto-stop", "自动停止")
         autoOffUnitLabel?.stringValue = text("h later", "小时后")
         timerHintLabel?.stringValue = text("No time limit", "不限时")
@@ -356,7 +356,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         loginLabel?.stringValue = text("Launch at login", "登录时启动")
         languageLabel?.stringValue = text("Language", "语言")
         languagePicker?.selectItem(at: language.rawValue)
-        quitButton?.title = text("Quit StayAwake", "退出 StayAwake")
+        quitButton?.title = text("Quit NoNap", "退出 NoNap")
         autoOffField?.toolTip = text("Changing the duration restarts the timer from now. Zero means no limit.",
                                      "修改后从现在起重新计时；0 表示不限时。")
         loginSwitch?.toolTip = text("Starts the app without enabling keep-awake.", "仅启动应用，不自动保持唤醒。")
@@ -445,8 +445,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         intro.alertStyle = .informational
         intro.messageText = text("Enable keeping your Mac awake", "允许 Mac 合盖后继续运行")
         intro.informativeText = text(
-            "StayAwake needs permission once to install a rule limited to two pmset commands. After that the switch works without more prompts.",
-            "StayAwake 需要一次管理员授权，以安装仅限两条 pmset 命令的规则。之后使用开关无需再次授权。"
+            "NoNap needs permission once to install a rule limited to two pmset commands. After that the switch works without more prompts.",
+            "NoNap 需要一次管理员授权，以安装仅限两条 pmset 命令的规则。之后使用开关无需再次授权。"
         )
         intro.addButton(withTitle: text("Enable", "允许"))
         intro.addButton(withTitle: text("Not now", "暂不"))
@@ -462,7 +462,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let grant = "\(user) ALL=(root) NOPASSWD: /usr/bin/pmset -a disablesleep 0, /usr/bin/pmset -a disablesleep 1"
         // The temporary file lives in root-owned /etc/sudoers.d, so another user process
         // cannot alter it between validation and rename.
-        let shellCmd = "set -eu; /usr/bin/install -d -m 0755 -o root -g wheel /etc/sudoers.d; umask 077; tmp=$(/usr/bin/mktemp /etc/sudoers.d/.sleepless.XXXXXX); trap '/bin/rm -f \"$tmp\"' EXIT; /usr/bin/printf '%s\\n' '\(grant)' > \"$tmp\"; /usr/sbin/chown root:wheel \"$tmp\"; /bin/chmod 0440 \"$tmp\"; /usr/sbin/visudo -cf \"$tmp\" >/dev/null; /bin/mv -f \"$tmp\" /etc/sudoers.d/sleepless-disablesleep; trap - EXIT; /usr/sbin/visudo -c >/dev/null"
+        let shellCmd = "set -eu; /usr/bin/install -d -m 0755 -o root -g wheel /etc/sudoers.d; umask 077; tmp=$(/usr/bin/mktemp /etc/sudoers.d/.nonap.XXXXXX); trap '/bin/rm -f \"$tmp\"' EXIT; /usr/bin/printf '%s\\n' '\(grant)' > \"$tmp\"; /usr/sbin/chown root:wheel \"$tmp\"; /bin/chmod 0440 \"$tmp\"; /usr/sbin/visudo -cf \"$tmp\" >/dev/null; /bin/mv -f \"$tmp\" /etc/sudoers.d/nonap-disablesleep; trap - EXIT; /usr/sbin/visudo -c >/dev/null"
         let escaped = shellCmd.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")
         let osa = "do shell script \"\(escaped)\" with administrator privileges"
         let proc = Process()
@@ -549,8 +549,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func keepAwakeTimerFired() {
         if turnOffForSafety(
-            success: text("Auto-off timer ended. StayAwake turned off.", "自动关闭计时结束，StayAwake 已关闭。"),
-            failure: text("Auto-off failed. Turn StayAwake off manually.", "自动关闭失败，请手动关闭 StayAwake。")
+            success: text("Auto-off timer ended. NoNap turned off.", "自动关闭计时结束，NoNap 已关闭。"),
+            failure: text("Auto-off failed. Turn NoNap off manually.", "自动关闭失败，请手动关闭 NoNap。")
         ) {
             autoOffMinutes = 0
             syncAutoOffControls()
@@ -581,7 +581,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func updateMainControl() {
         let accessibleAction = isOn ? text("Stop keeping awake", "停止保持唤醒") : text("Start keeping awake", "开启保持唤醒")
-        mainLabel?.stringValue = text("Lid closed. Work goes on.", "盖上吧，活儿还在跑。")
+        mainLabel?.stringValue = text("Close the lid. Keep it running.", "合盖不停工")
         toggleSwitch?.setAccessibilityLabel(accessibleAction)
         toggleSwitch?.toolTip = accessibleAction
         toggleSwitch?.contentTintColor = isOn
@@ -598,7 +598,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if loginItemEnabled() { try SMAppService.mainApp.unregister() }
             else { try SMAppService.mainApp.register() }
         } catch {
-            NSLog("StayAwake: login item update failed: %@", error.localizedDescription)
+            NSLog("NoNap: login item update failed: %@", error.localizedDescription)
             notify(text("Couldn't update Launch at login.", "无法更新登录启动设置。"))
         }
         sender.state = loginItemEnabled() ? .on : .off
@@ -640,10 +640,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             button.toolTip = on
                 ? (armed
-                    ? text("StayAwake: on (battery). Auto-off at \(batteryFloorPercent)% or in Low Power Mode.",
-                           "StayAwake：已开启（电池供电），将在 \(batteryFloorPercent)% 或低电量模式下关闭。")
-                    : text("StayAwake: on. Stays awake with the lid closed.", "StayAwake：已开启，合盖后继续运行。"))
-                : text("StayAwake: off. Sleeps normally.", "StayAwake：已关闭，正常休眠。")
+                    ? text("NoNap: on (battery). Auto-off at \(batteryFloorPercent)% or in Low Power Mode.",
+                           "NoNap：已开启（电池供电），将在 \(batteryFloorPercent)% 或低电量模式下关闭。")
+                    : text("NoNap: on. Stays awake with the lid closed.", "NoNap：已开启，合盖后继续运行。"))
+                : text("NoNap: off. Sleeps normally.", "NoNap：已关闭，正常休眠。")
         }
         renderText()
         updateMainControl()
@@ -734,7 +734,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         process.standardInput = FileHandle.nullDevice
         do { try process.run() }
         catch {
-            NSLog("StayAwake: failed to launch sudo: %@", error.localizedDescription)
+            NSLog("NoNap: failed to launch sudo: %@", error.localizedDescription)
             return (-1, "", "launch failed: \(error.localizedDescription)")
         }
         let outData = outPipe.fileHandleForReading.readDataToEndOfFile()
@@ -750,8 +750,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard ownsDisableSleep else { return }
         guard let (onBattery, discharging, percent) = batteryStatus() else {
             _ = turnOffForSafety(
-                success: text("Battery status unavailable. StayAwake turned off safely.", "无法读取电池状态，StayAwake 已安全关闭。"),
-                failure: text("Battery status unavailable and auto-off failed. Turn StayAwake off manually.", "无法读取电池状态且自动关闭失败，请手动关闭 StayAwake。")
+                success: text("Battery status unavailable. NoNap turned off safely.", "无法读取电池状态，NoNap 已安全关闭。"),
+                failure: text("Battery status unavailable and auto-off failed. Turn NoNap off manually.", "无法读取电池状态且自动关闭失败，请手动关闭 NoNap。")
             )
             return
         }
@@ -759,15 +759,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Hard battery floor ALWAYS wins, even over a deliberate turn-on: never drain to empty.
         if percent <= batteryFloorPercent {
             _ = turnOffForSafety(
-                success: text("Battery low (\(percent)%). StayAwake turned off.", "电量较低（\(percent)%），StayAwake 已关闭。"),
-                failure: text("Low-battery auto-off failed. Turn StayAwake off manually.", "低电量自动关闭失败，请手动关闭 StayAwake。")
+                success: text("Battery low (\(percent)%). NoNap turned off.", "电量较低（\(percent)%），NoNap 已关闭。"),
+                failure: text("Low-battery auto-off failed. Turn NoNap off manually.", "低电量自动关闭失败，请手动关闭 NoNap。")
             )
             return
         }
         if ProcessInfo.processInfo.isLowPowerModeEnabled {
             _ = turnOffForSafety(
-                success: text("Low Power Mode on. StayAwake turned off.", "已进入低电量模式，StayAwake 已关闭。"),
-                failure: text("Low Power Mode auto-off failed. Turn StayAwake off manually.", "低电量模式自动关闭失败，请手动关闭 StayAwake。")
+                success: text("Low Power Mode on. NoNap turned off.", "已进入低电量模式，NoNap 已关闭。"),
+                failure: text("Low Power Mode auto-off failed. Turn NoNap off manually.", "低电量模式自动关闭失败，请手动关闭 NoNap。")
             )
         }
     }
@@ -814,7 +814,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Notification (mirrors Nexus' osascript approach)
     private func notify(_ message: String) {
-        let script = "display notification \"\(message)\" with title \"StayAwake\" sound name \"Tink\""
+        let script = "display notification \"\(message)\" with title \"NoNap\" sound name \"Tink\""
         _ = runCapture("/usr/bin/osascript", ["-e", script])
     }
 
@@ -832,7 +832,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         process.standardOutput = pipe
         process.standardError = Pipe()
         do { try process.run() }
-        catch { NSLog("StayAwake: failed to launch %@: %@", launchPath, error.localizedDescription); return "" }
+        catch { NSLog("NoNap: failed to launch %@: %@", launchPath, error.localizedDescription); return "" }
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
         return String(data: data, encoding: .utf8) ?? ""
@@ -840,7 +840,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func quit() {
         if ownsDisableSleep, setDisableSleep(false) != .ok {
-            notify(text("Couldn't restore normal sleep; StayAwake is still running.", "无法恢复正常休眠；StayAwake 将继续运行。"))
+            notify(text("Couldn't restore normal sleep; NoNap is still running.", "无法恢复正常休眠；NoNap 将继续运行。"))
             refresh()
             return
         }
@@ -850,7 +850,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 @main
-enum StayAwakeApp {
+enum NoNapApp {
     @MainActor
     static func main() {
         let app = NSApplication.shared

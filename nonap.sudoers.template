@@ -1,7 +1,7 @@
 # Sleepless passwordless grant — template.
 #
 # install.sh substitutes __USER__ with your login name ($(id -un)) and installs
-# the result to /etc/sudoers.d/sleepless-disablesleep, owned root:wheel, mode 0440.
+# the result to /etc/sudoers.d/nonap-disablesleep, owned root:wheel, mode 0440.
 #
 # It grants ONE user the right to run, as root, EXACTLY these two fully-specified
 # commands and NOTHING else. sudoers matches command arguments literally (there are

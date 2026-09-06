@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# grant.sh — install ONLY the passwordless grant that lets Sleepless toggle lid-close
+# grant.sh — install ONLY the passwordless grant that lets NoNap toggle lid-close
 # sleep without a prompt. Self-contained: works from a clone OR from inside the app
 # bundle (Contents/Resources), so Homebrew-cask users can run it after install.
 #
@@ -8,9 +8,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SUDOERS_DST="/etc/sudoers.d/sleepless-disablesleep"
+SUDOERS_DST="/etc/sudoers.d/nonap-disablesleep"
 # Resolve the real user for both normal and explicitly sudo-invoked installs.
-USER_NAME="${SLEEPLESS_USER:-${SUDO_USER:-$(id -un)}}"
+USER_NAME="${NONAP_USER:-${SUDO_USER:-$(id -un)}}"
 # Never install a root-owned grant (it is useless and not what the user wants): if we somehow
 # resolved to root/empty, fall back to the GUI console user, and refuse if still unresolved.
 if [ -z "$USER_NAME" ] || [ "$USER_NAME" = "root" ]; then
@@ -31,14 +31,14 @@ SUDO="sudo"
 
 # Source of truth for the grant line: the repo template if present, else the identical
 # inline string (when this script ships inside the .app bundle, no template is alongside).
-TEMPLATE="$SCRIPT_DIR/sleepless.sudoers.template"
+TEMPLATE="$SCRIPT_DIR/nonap.sudoers.template"
 if [ -f "$TEMPLATE" ]; then
   GRANT="$(sed "s/__USER__/$USER_NAME/" "$TEMPLATE")"
 else
   GRANT="$USER_NAME ALL=(root) NOPASSWD: /usr/bin/pmset -a disablesleep 0, /usr/bin/pmset -a disablesleep 1"
 fi
 
-echo "Sleepless will install this passwordless grant at $SUDOERS_DST (root:wheel, 0440):"
+echo "NoNap will install this passwordless grant at $SUDOERS_DST (root:wheel, 0440):"
 echo ""
 echo "    $GRANT"
 echo ""
@@ -54,19 +54,19 @@ fi
 INSTALL_GRANT='set -eu
 /usr/bin/install -d -m 0755 -o root -g wheel /etc/sudoers.d
 umask 077
-tmp=$(/usr/bin/mktemp /etc/sudoers.d/.sleepless.XXXXXX)
+tmp=$(/usr/bin/mktemp /etc/sudoers.d/.nonap.XXXXXX)
 trap '\''/bin/rm -f "$tmp"'\'' EXIT
 /usr/bin/printf "%s\n" "$1" > "$tmp"
 /usr/sbin/chown root:wheel "$tmp"
 /bin/chmod 0440 "$tmp"
 /usr/sbin/visudo -cf "$tmp" >/dev/null
-/bin/mv -f "$tmp" /etc/sudoers.d/sleepless-disablesleep
+/bin/mv -f "$tmp" /etc/sudoers.d/nonap-disablesleep
 trap - EXIT
 /usr/sbin/visudo -c >/dev/null'
 if [ "$SUDO" = "sudo" ]; then
-  /usr/bin/sudo /bin/sh -c "$INSTALL_GRANT" sleepless-grant "$GRANT"
+  /usr/bin/sudo /bin/sh -c "$INSTALL_GRANT" nonap-grant "$GRANT"
 else
-  /bin/sh -c "$INSTALL_GRANT" sleepless-grant "$GRANT"
+  /bin/sh -c "$INSTALL_GRANT" nonap-grant "$GRANT"
 fi
 echo "✅ grant installed and sudoers parses cleanly ($SUDOERS_DST)."
-echo "   Toggle Sleepless from the menu bar; it will no longer need a password."
+echo "   Toggle NoNap from the menu bar; it will no longer need a password."

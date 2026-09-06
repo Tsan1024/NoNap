@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install.sh — build StayAwake, install it to /Applications, add the passwordless
+# install.sh — build NoNap, install it to /Applications, add the passwordless
 # grant that lets it toggle lid-close sleep, and (optionally) start it at login.
 #
 # This is the ONLY script that touches sudo. It tells you exactly what it will write
@@ -7,12 +7,12 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP_NAME="StayAwake"
+APP_NAME="NoNap"
 APP="/Applications/$APP_NAME.app"
-SUDOERS_DST="/etc/sudoers.d/sleepless-disablesleep"
+SUDOERS_DST="/etc/sudoers.d/nonap-disablesleep"
 USER_NAME="$(id -un)"
 
-echo "StayAwake installer"
+echo "NoNap installer"
 echo "==================="
 echo "This will:"
 echo "  1. Build $APP_NAME.app and copy it to /Applications."

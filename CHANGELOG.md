@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- Renamed the app bundle, executable, installer, and release artifacts from Sleepless to StayAwake while preserving the bundle identifier.
+- Renamed the app bundle, executable, installer, release artifacts, and bundle identifier to NoNap.
 - Centered the label-free power control and kept only the slogan below it.
 - Added a compact power-button home page and a separate settings page with hover explanations.
 - Replaced the coffee-cup icons with a nearly closed laptop and indicator, including monochrome menu-bar states.

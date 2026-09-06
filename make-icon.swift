@@ -1,8 +1,8 @@
-// StayAwake: native vector-rendered nearly closed laptop with an awake indicator.
+// NoNap: native vector-rendered nearly closed laptop with an awake indicator.
 import AppKit
 
 let outDir = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : FileManager.default.currentDirectoryPath
-let iconset = "\(outDir)/StayAwake.iconset"
+let iconset = "\(outDir)/NoNap.iconset"
 try FileManager.default.createDirectory(atPath: iconset, withIntermediateDirectories: true)
 
 func render(_ size: Int) throws -> Data {
@@ -37,4 +37,4 @@ for (name, size) in [
 ] {
     try render(size).write(to: URL(fileURLWithPath: "\(iconset)/\(name).png"))
 }
-try render(1024).write(to: URL(fileURLWithPath: "\(outDir)/StayAwake-1024.png"))
+try render(1024).write(to: URL(fileURLWithPath: "\(outDir)/NoNap-1024.png"))

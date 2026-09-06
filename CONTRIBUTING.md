@@ -23,8 +23,8 @@ No Xcode project — just the Command Line Tools:
 ```sh
 git clone https://github.com/Aboudjem/Sleepless.git
 cd Sleepless
-./build.sh            # builds ./build/StayAwake.app, ad-hoc signed
-open build/StayAwake.app
+./build.sh            # builds ./build/NoNap.app, ad-hoc signed
+open build/NoNap.app
 ```
 
 `./install.sh` additionally installs the passwordless grant + login item (it prints exactly
@@ -36,7 +36,7 @@ what it writes). `./uninstall.sh` backs it all out and proves the grant is revok
   hand-drawn glyphs, no bundled frameworks.
 - **Zero warnings.** The build must compile clean:
   ```sh
-  swiftc -O -parse-as-library -target arm64-apple-macos26.0 -framework AppKit App.swift BatteryEstimate.swift -o /tmp/StayAwake
+  swiftc -O -parse-as-library -target arm64-apple-macos26.0 -framework AppKit App.swift BatteryEstimate.swift -o /tmp/NoNap
   ```
   CI runs the equivalent compile on every push/PR.
 - **Match the surrounding style.** Read `App.swift` first — keep comment density, naming, and
