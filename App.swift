@@ -22,7 +22,7 @@
 //
 // Three small, fail-safe features layer on top, none of which adds a daemon or
 // persists OS state (so "reboot resets it" still holds):
-//   1. Auto-off timer (1h / 2h) — stores its deadline so a relaunch can resume it.
+//   1. Auto-off timer (0...72h) — stores its deadline so a relaunch can resume it.
 //      Normal quit also restores sleep; reboot resets the flag.
 //   2. Launch at login (SMAppService.mainApp) — OFF by default. The app always
 //      launches reading the TRUE system state, so a login launch can never
@@ -165,7 +165,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var loginLabel: NSTextField!
     private var floorValueLabel: NSTextField!
     private var floorSlider: NSSlider!
-    private var autoOffControl: NSSegmentedControl!
+    private var autoOffSlider: NSSlider!
+    private var autoOffField: NSTextField!
+    private var autoOffUnitLabel: NSTextField!
     private var countdownLabel: NSTextField!
     private var loginSwitch: NSSwitch!
     private var languageControl: NSSegmentedControl!
@@ -178,13 +180,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var language: AppLanguage = .english
 
     // Auto-off timer (deadline persisted for crash/relaunch recovery)
-    private var autoOffMinutes = 0           // 0 = none (stay on until off), 60, or 120
+    private var autoOffMinutes = 0           // 0 = no limit; slider covers 0...72 hours
     private var keepAwakeTimer: Timer?       // one-shot: flips sleep back on when it fires
     private var countdownTicker: Timer?      // 1 Hz label refresh, only while the popover is open
     private var timerEndDate: Date?
 
     private let popoverWidth: CGFloat = 320
-    private let popoverHeight: CGFloat = 432
+    private let popoverHeight: CGFloat = 448
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -277,25 +279,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         captionLabel.cell?.wraps = true
         g1.addSubview(captionLabel)
 
-        // GROUP 2 — auto-off timer (label + segmented [Off | 1h | 2h] + countdown)
-        let g2y = g1y + g1h + 12, g2h: CGFloat = 78
+        // GROUP 2 — auto-off timer (0...72h slider + editable hour field + countdown)
+        let g2y = g1y + g1h + 12, g2h: CGFloat = 92
         let g2 = makeCard(NSRect(x: pad, y: g2y, width: contentW, height: g2h))
         timerLabel = makeLabel("", font: .systemFont(ofSize: 13), color: .labelColor)
-        timerLabel.frame = NSRect(x: ci, y: ci + 3, width: 110, height: 22)
+        timerLabel.frame = NSRect(x: ci, y: ci, width: 150, height: 22)
         g2.addSubview(timerLabel)
-        autoOffControl = NSSegmentedControl(labels: ["Off", "1h", "2h"],
-                                            trackingMode: .selectOne,
-                                            target: self, action: #selector(autoOffChanged(_:)))
-        autoOffControl.selectedSegment = 0
-        autoOffControl.controlSize = .regular
-        autoOffControl.segmentStyle = .automatic
-        autoOffControl.sizeToFit()
-        let segSize = autoOffControl.frame.size
-        let segW = segSize.width > 0 ? segSize.width : 150
-        autoOffControl.frame = NSRect(x: contentW - ci - segW, y: ci, width: segW, height: max(segSize.height, 24))
-        g2.addSubview(autoOffControl)
+        let formatter = NumberFormatter()
+        formatter.minimum = 0
+        formatter.maximum = 72
+        formatter.maximumFractionDigits = 2
+        autoOffField = NSTextField(frame: NSRect(x: contentW - ci - 70, y: ci - 2, width: 48, height: 24))
+        autoOffField.alignment = .right
+        autoOffField.formatter = formatter
+        autoOffField.target = self
+        autoOffField.action = #selector(autoOffFieldChanged(_:))
+        autoOffField.cell?.sendsActionOnEndEditing = true
+        g2.addSubview(autoOffField)
+        autoOffUnitLabel = makeLabel("", font: .systemFont(ofSize: 12), color: .secondaryLabelColor)
+        autoOffUnitLabel.frame = NSRect(x: contentW - ci - 18, y: ci + 2, width: 18, height: 18)
+        g2.addSubview(autoOffUnitLabel)
+        autoOffSlider = NSSlider(value: 0, minValue: 0, maxValue: 72,
+                                 target: self, action: #selector(autoOffSliderChanged(_:)))
+        autoOffSlider.isContinuous = false
+        autoOffSlider.frame = NSRect(x: ci, y: ci + 28, width: cw, height: 20)
+        g2.addSubview(autoOffSlider)
         countdownLabel = makeLabel("", font: .systemFont(ofSize: 12), color: .secondaryLabelColor)
-        countdownLabel.frame = NSRect(x: ci, y: ci + 36, width: cw, height: 16)
+        countdownLabel.frame = NSRect(x: ci, y: ci + 56, width: cw, height: 16)
         g2.addSubview(countdownLabel)
 
         // GROUP 3 — battery-floor (label + value + slider + min/max hints)
@@ -378,20 +388,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func updateLocalizedText() {
         mainLabel?.stringValue = text("Keep awake with lid closed", "合盖时保持运行")
         timerLabel?.stringValue = text("Auto-off timer", "自动关闭")
-        autoOffControl?.setLabel(text("Off", "关闭"), forSegment: 0)
-        autoOffControl?.setLabel(text("1h", "1小时"), forSegment: 1)
-        autoOffControl?.setLabel(text("2h", "2小时"), forSegment: 2)
-        autoOffControl?.sizeToFit()
-        if let control = autoOffControl, let parent = control.superview {
-            control.frame.origin.x = parent.bounds.width - 12 - control.frame.width
-        }
+        autoOffUnitLabel?.stringValue = text("h", "时")
         floorLabel?.stringValue = text("Auto-off at low battery", "低电量时自动关闭")
         loginLabel?.stringValue = text("Launch at login", "登录时启动")
         quitButton?.title = text("Quit Sleepless", "退出 Sleepless")
         quitButton?.sizeToFit()
         if let size = quitButton?.frame.size {
-            quitButton?.frame = NSRect(x: popoverWidth - 16 - size.width, y: 394, width: size.width, height: size.height)
+            let y = (languageControl?.frame.minY ?? 410) - 2
+            quitButton?.frame = NSRect(x: popoverWidth - 16 - size.width, y: y, width: size.width, height: size.height)
         }
+        syncAutoOffControls()
     }
 
     // MARK: - Click the menu-bar cup to open/close the popover
@@ -517,18 +523,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func poll() { refresh() }
 
     // MARK: - Auto-off timer (Feature 1)
-    @objc private func autoOffChanged(_ sender: NSSegmentedControl) {
-        switch sender.selectedSegment {
-        case 1: autoOffMinutes = 60
-        case 2: autoOffMinutes = 120
-        default: autoOffMinutes = 0
+    @objc private func autoOffSliderChanged(_ sender: NSSlider) {
+        let hours = (sender.doubleValue * 2).rounded() / 2
+        setAutoOff(minutes: Int(hours * 60))
+    }
+
+    @objc private func autoOffFieldChanged(_ sender: NSTextField) {
+        let formatter = sender.formatter as? NumberFormatter
+        guard let hours = formatter?.number(from: sender.stringValue)?.doubleValue else {
+            syncAutoOffControls()
+            return
         }
+        setAutoOff(minutes: Int((min(max(hours, 0), 72) * 60).rounded()))
+    }
+
+    private func setAutoOff(minutes: Int) {
+        autoOffMinutes = min(max(minutes, 0), 72 * 60)
+        syncAutoOffControls()
         if isOn, ownsDisableSleep, autoOffMinutes > 0 {
             startKeepAwakeTimer(minutes: autoOffMinutes)
         } else {
             cancelKeepAwakeTimer()
             updateCountdownLabel()
         }
+    }
+
+    private func syncAutoOffControls() {
+        let hours = Double(autoOffMinutes) / 60
+        autoOffSlider?.doubleValue = hours
+        autoOffField?.stringValue = hours.rounded() == hours
+            ? String(Int(hours))
+            : String(format: "%.2f", hours).replacingOccurrences(of: #"0+$"#, with: "", options: .regularExpression)
     }
 
     private func startKeepAwakeTimer(minutes: Int) {
@@ -557,7 +582,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             failure: text("Auto-off failed. Turn Sleepless off manually.", "自动关闭失败，请手动关闭 Sleepless。")
         ) {
             autoOffMinutes = 0
-            autoOffControl?.selectedSegment = 0
+            syncAutoOffControls()
         } else {
             keepAwakeTimer = Timer.scheduledTimer(timeInterval: pollInterval, target: self,
                                                   selector: #selector(keepAwakeTimerFired), userInfo: nil, repeats: false)
@@ -573,8 +598,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let end = Date(timeIntervalSince1970: timestamp)
         let remaining = end.timeIntervalSinceNow
         timerEndDate = end
-        autoOffMinutes = remaining <= 3600 ? 60 : 120
-        autoOffControl?.selectedSegment = autoOffMinutes == 60 ? 1 : 2
+        autoOffMinutes = min(max(Int(ceil(remaining / 60)), 1), 72 * 60)
+        syncAutoOffControls()
         if remaining <= 0 {
             keepAwakeTimerFired()
         } else {
@@ -592,7 +617,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func countdownTick() { updateCountdownLabel() }
 
     private func updateCountdownLabel() {
-        guard let end = timerEndDate, isOn else { countdownLabel?.stringValue = ""; return }
+        guard autoOffMinutes > 0 else {
+            countdownLabel?.stringValue = text("No time limit", "不限时")
+            return
+        }
+        guard let end = timerEndDate, isOn else {
+            countdownLabel?.stringValue = text("Timer starts when enabled", "开启后开始计时")
+            return
+        }
         let remaining = Int(end.timeIntervalSinceNow.rounded())
         guard remaining > 0 else { countdownLabel?.stringValue = ""; return }
         let h = remaining / 3600, m = (remaining % 3600) / 60, s = remaining % 60

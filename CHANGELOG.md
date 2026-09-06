@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Replaced the fixed 1h/2h timer choices with a 0–72 hour slider and editable hour field.
+  The slider moves in half-hour steps; typed values may be more precise, and zero means no limit.
+
 ## [1.3.0] - 2026-09-06
 
 ### Added
