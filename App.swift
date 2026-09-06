@@ -96,6 +96,14 @@ private func makeCupGlyph(_ glyph: SleepGlyph) -> NSImage {
 // Flipped container so popover content lays out top-down with simple frames.
 private final class FlippedView: NSView { override var isFlipped: Bool { true } }
 
+// Keep keyboard focus visible around the control, not around the power glyph.
+private final class PowerButton: NSButton {
+    override var focusRingMaskBounds: NSRect { bounds }
+    override func drawFocusRingMask() {
+        NSBezierPath(ovalIn: bounds.insetBy(dx: 2, dy: 2)).fill()
+    }
+}
+
 // Frosted-glass popover backing: a flipped NSVisualEffectView so content still
 // lays out top-down while the panel gets a translucent, blurred material that
 // samples the desktop/windows behind it (system light/dark aware). On macOS 26 the
@@ -222,7 +230,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         titleLabel = label(homePage, 18, 17, 210, 13)
         settingsButton = button(homePage, NSRect(x: 250, y: 12, width: 32, height: 28), #selector(showSettings(_:)))
         settingsButton.image = NSImage(systemSymbolName: "ellipsis", accessibilityDescription: nil)
-        toggleSwitch = button(homePage, NSRect(x: 120, y: 64, width: 60, height: 60), #selector(switchToggled(_:)))
+        toggleSwitch = PowerButton(title: "", target: self, action: #selector(switchToggled(_:)))
+        toggleSwitch.frame = NSRect(x: 120, y: 64, width: 60, height: 60)
+        toggleSwitch.isBordered = false
+        toggleSwitch.imagePosition = .imageOnly
+        homePage.addSubview(toggleSwitch)
         toggleSwitch.image = NSImage(systemSymbolName: "power", accessibilityDescription: nil)?
             .withSymbolConfiguration(.init(pointSize: 26, weight: .regular))
         toggleSwitch.wantsLayer = true
@@ -310,10 +322,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard popover.contentViewController?.view.window?.makeFirstResponder(backButton) != false else { return }
         homePage.isHidden = false
         settingsPage.isHidden = true
-        resizePage(height: popoverHeight, focus: toggleSwitch)
+        resizePage(height: popoverHeight, focus: nil)
     }
 
-    private func resizePage(height: CGFloat, focus: NSView) {
+    private func resizePage(height: CGFloat, focus: NSView?) {
         let size = NSSize(width: popoverWidth, height: height)
         popover.contentViewController?.view.setFrameSize(size)
         popover.contentSize = size
@@ -383,7 +395,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         showHome()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         popover.contentViewController?.view.window?.makeKey()
-        popover.contentViewController?.view.window?.makeFirstResponder(toggleSwitch)
+        popover.contentViewController?.view.window?.makeFirstResponder(nil)
         if keepAwakeTimer != nil { startCountdownTicker() }
         updateCountdownLabel()
         // Close when the user clicks anywhere outside the app (status bar, another app, desktop).
@@ -400,7 +412,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func switchToggled(_ sender: NSButton) {
         _ = performToggle(wantOn: !isOn)
-        sender.state = isOn ? .on : .off
     }
 
     // Core keep-awake toggle, decoupled from the UI sender. Returns true ONLY when the user
@@ -661,7 +672,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     : text("StayAwake: on. Stays awake with the lid closed.", "StayAwake：已开启，合盖后继续运行。"))
                 : text("StayAwake: off. Sleeps normally.", "StayAwake：已关闭，正常休眠。")
         }
-        toggleSwitch?.state = on ? .on : .off
         renderText()
         updateCountdownLabel()
     }
