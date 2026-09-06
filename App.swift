@@ -214,13 +214,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         toggleSwitch = NSSwitch()
         toggleSwitch.target = self
         toggleSwitch.action = #selector(switchToggled(_:))
-        toggleSwitch.frame = NSRect(x: 242, y: 16, width: 40, height: 24)
+        toggleSwitch.frame = NSRect(x: 236, y: 19, width: 40, height: 24)
         homePage.addSubview(toggleSwitch)
 
         divider(58)
         timerLabel = label(homePage, 18, 78, 132)
         timerLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        autoOffField = NSTextField(frame: NSRect(x: 194, y: 73, width: 50, height: 25))
+        autoOffField = NSTextField(frame: NSRect(x: 194, y: 76, width: 50, height: 25))
         let formatter = NumberFormatter()
         formatter.minimum = 0
         formatter.maximum = 24
@@ -261,10 +261,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         loginSwitch = NSSwitch()
         loginSwitch.target = self
         loginSwitch.action = #selector(loginToggled(_:))
-        loginSwitch.frame = NSRect(x: 242, y: 278, width: 40, height: 24)
+        loginSwitch.frame = NSRect(x: 236, y: 281, width: 40, height: 24)
         homePage.addSubview(loginSwitch)
         languageLabel = label(homePage, 18, 322, 130)
-        languagePicker = NSPopUpButton(frame: NSRect(x: 166, y: 316, width: 116, height: 27), pullsDown: false)
+        languagePicker = NSPopUpButton(frame: NSRect(x: 166, y: 319, width: 116, height: 27), pullsDown: false)
         languagePicker.addItems(withTitles: ["English", "简体中文"])
         languagePicker.controlSize = .small
         languagePicker.target = self
