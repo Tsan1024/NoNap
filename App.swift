@@ -96,85 +96,9 @@ private func makeCupGlyph(_ glyph: SleepGlyph) -> NSImage {
 // Flipped container so popover content lays out top-down with simple frames.
 private final class FlippedView: NSView { override var isFlipped: Bool { true } }
 
-private final class LaptopToggleButton: NSButton {
-    private let surface = CALayer()
-    private let lid = CAShapeLayer()
-    private let base = CAShapeLayer()
-    private var showsAwake = false
-
-    override init(frame frameRect: NSRect) {
-        super.init(frame: frameRect)
-        isBordered = false
-        title = ""
-        wantsLayer = true
-        surface.cornerRadius = 24
-        layer?.addSublayer(surface)
-        for shape in [lid, base] {
-            shape.fillColor = NSColor.clear.cgColor
-            shape.lineWidth = 4
-            shape.lineCap = .round
-            layer?.addSublayer(shape)
-        }
-    }
-
-    required init?(coder: NSCoder) { nil }
-
-    override func layout() {
-        super.layout()
-        surface.frame = bounds
-        lid.frame = bounds
-        base.frame = bounds
-        applyState(animated: false)
-    }
-
+private final class PowerButton: NSButton {
     override var focusRingMaskBounds: NSRect { bounds }
-    override func drawFocusRingMask() {
-        NSBezierPath(roundedRect: bounds.insetBy(dx: 2, dy: 2), xRadius: 22, yRadius: 22).fill()
-    }
-
-    func setAwake(_ awake: Bool, animated: Bool) {
-        guard awake != showsAwake else { return }
-        showsAwake = awake
-        applyState(animated: animated)
-    }
-
-    private func applyState(animated: Bool) {
-        let oldPath = lid.presentation()?.path ?? lid.path
-        let newPath = CGMutablePath()
-        newPath.move(to: CGPoint(x: bounds.width * 0.3, y: bounds.height * (showsAwake ? 0.47 : 0.68)))
-        newPath.addLine(to: CGPoint(x: bounds.width * 0.7, y: bounds.height * 0.42))
-        let basePath = CGMutablePath()
-        basePath.move(to: CGPoint(x: bounds.width * 0.28, y: bounds.height * 0.32))
-        basePath.addLine(to: CGPoint(x: bounds.width * 0.72, y: bounds.height * 0.32))
-        let seam = showsAwake ? NSColor(srgbRed: 0.12, green: 0.45, blue: 0.31, alpha: 1) : .secondaryLabelColor
-        let background = showsAwake
-            ? NSColor(srgbRed: 0.76, green: 0.9, blue: 0.81, alpha: 0.55)
-            : NSColor.quaternaryLabelColor
-
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        lid.path = newPath
-        lid.strokeColor = NSColor.secondaryLabelColor.cgColor
-        base.path = basePath
-        base.strokeColor = seam.cgColor
-        surface.backgroundColor = background.cgColor
-        CATransaction.commit()
-
-        guard animated else { return }
-        let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
-        let duration = reduceMotion ? 0.12 : 0.24
-        let motion = CABasicAnimation(keyPath: "path")
-        motion.fromValue = oldPath
-        motion.toValue = newPath
-        motion.duration = duration
-        motion.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        lid.add(motion, forKey: "lid")
-        let tint = CABasicAnimation(keyPath: "backgroundColor")
-        tint.fromValue = surface.presentation()?.backgroundColor
-        tint.toValue = background.cgColor
-        tint.duration = duration
-        surface.add(tint, forKey: "tint")
-    }
+    override func drawFocusRingMask() { NSBezierPath(ovalIn: bounds.insetBy(dx: 2, dy: 2)).fill() }
 }
 
 // Frosted-glass popover backing: a flipped NSVisualEffectView so content still
@@ -195,7 +119,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // Popover UI
     private let popover = NSPopover()
-    private var toggleSwitch: LaptopToggleButton!
+    private var toggleSwitch: PowerButton!
     private var timerLabel: NSTextField!
     private var floorLabel: NSTextField!
     private var floorValue: NSTextField!
@@ -298,9 +222,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         settingsButton = button(homePage, NSRect(x: 250, y: 10, width: 32, height: 28), #selector(showSettings(_:)))
         settingsButton.image = NSImage(systemSymbolName: "ellipsis", accessibilityDescription: nil)
-        toggleSwitch = LaptopToggleButton(frame: NSRect(x: 84, y: 44, width: 132, height: 64))
-        toggleSwitch.target = self
-        toggleSwitch.action = #selector(switchToggled(_:))
+        toggleSwitch = PowerButton(title: "", target: self, action: #selector(switchToggled(_:)))
+        toggleSwitch.frame = NSRect(x: 114, y: 43, width: 72, height: 72)
+        toggleSwitch.isBordered = false
+        toggleSwitch.imagePosition = .imageOnly
+        toggleSwitch.image = NSImage(systemSymbolName: "power", accessibilityDescription: nil)?
+            .withSymbolConfiguration(.init(pointSize: 30, weight: .regular))
+        toggleSwitch.wantsLayer = true
+        toggleSwitch.layer?.cornerRadius = 36
         homePage.addSubview(toggleSwitch)
 
         backButton = button(settingsPage, NSRect(x: 12, y: 12, width: 70, height: 28), #selector(showHome))
@@ -647,7 +576,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let accessibleAction = isOn ? text("Stop keeping awake", "停止保持唤醒") : text("Start keeping awake", "开启保持唤醒")
         toggleSwitch?.setAccessibilityLabel(accessibleAction)
         toggleSwitch?.toolTip = accessibleAction
-        toggleSwitch?.setAwake(isOn, animated: popover.isShown)
+        toggleSwitch?.contentTintColor = isOn
+            ? NSColor(srgbRed: 0.12, green: 0.38, blue: 0.27, alpha: 1)
+            : .secondaryLabelColor
+        toggleSwitch?.layer?.backgroundColor = (isOn
+            ? NSColor(srgbRed: 0.76, green: 0.9, blue: 0.81, alpha: 0.72)
+            : NSColor.quaternaryLabelColor).cgColor
     }
 
     // MARK: - Launch at login
