@@ -31,9 +31,9 @@ build-provenance attestation. Two checks, both offline-friendly:
 # 1. Integrity: the bytes match what the release published.
 shasum -a 256 -c SHA256SUMS
 
-# 2. Provenance: this exact zip was built by Sleepless's GitHub Actions release
+# 2. Provenance: this exact zip was built by NoNap's GitHub Actions release
 #    workflow, from this repo, at the released commit (SLSA Build L2, Sigstore-signed).
-gh attestation verify Sleepless-<version>.zip -R Aboudjem/Sleepless
+gh attestation verify NoNap-<version>.zip -R Tsan1024/NoNap
 ```
 
 What each one proves:
@@ -56,8 +56,8 @@ The compile is deterministic for a given toolchain, so you can rebuild and compa
 **unsigned executable** byte for byte:
 
 ```sh
-git clone https://github.com/Aboudjem/Sleepless.git
-cd Sleepless && git checkout v<version>
+git clone https://github.com/Tsan1024/NoNap.git
+cd NoNap && git checkout v<version>
 
 # Rebuild the executable with the release's deployment target.
 swiftc -O -parse-as-library -target arm64-apple-macos13.0 \

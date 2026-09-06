@@ -2,9 +2,9 @@
 
 Close the lid. Keep it running.
 
-NoNap is a fork of [Sleepless](https://github.com/Aboudjem/Sleepless), originally created by **Adam Boudjemaa (Aboudjem)**. Thanks to Sleepless for the menu-bar app and `pmset` lid-closed wake implementation. This fork adds privilege and quit-safety improvements, English/Chinese switching, configurable timers, and UI refinements. Original copyright notices and the [MIT license](LICENSE) are retained. This is an independently maintained derivative, not an official upstream release.
+NoNap began as a derivative of [Sleepless](https://github.com/Aboudjem/Sleepless), originally created by **Adam Boudjemaa (Aboudjem)**, and is now maintained in an independent repository. Thanks to Sleepless for the original menu-bar app and `pmset` lid-closed wake approach. NoNap adds privilege and quit-safety improvements, English/Chinese switching, configurable timers, and UI refinements. Original copyright notices and the [MIT license](LICENSE) are retained; NoNap is not an official Sleepless release.
 
-> The app is packaged as `NoNap.app` with bundle identifier `com.tsan1024.NoNap`. The repository retains its original name. The animations below are from upstream Sleepless and do not show this fork’s current UI.
+> The app is packaged as `NoNap.app` with bundle identifier `com.tsan1024.NoNap`. The animations below are from Sleepless and do not show NoNap’s current UI.
 
 <!-- Language switcher. Keep this row identical across every README.<lang>.md. -->
 <p align="center">
@@ -48,8 +48,8 @@ NoNap is a fork of [Sleepless](https://github.com/Aboudjem/Sleepless), originall
 ## Install
 
 ```sh
-git clone https://github.com/Tsan1024/Sleepless.git
-cd Sleepless
+git clone https://github.com/Tsan1024/NoNap.git
+cd NoNap
 ./install.sh
 ```
 

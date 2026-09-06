@@ -2,9 +2,9 @@
 
 合盖不停工
 
-本项目基于 [Sleepless](https://github.com/Aboudjem/Sleepless) fork 并修改，原作者为 **Adam Boudjemaa（Aboudjem）**。感谢原项目提供的菜单栏应用与 `pmset` 合盖保持唤醒实现；本分支增加了权限与退出保护改进、中英文切换、自定义定时及界面调整。保留原作者版权声明，并沿用 [MIT 许可证](LICENSE)。本项目为独立维护的衍生版本，并非原作者官方发布。
+NoNap 最初衍生自 [Sleepless](https://github.com/Aboudjem/Sleepless)，原作者为 **Adam Boudjemaa（Aboudjem）**，现已作为独立仓库维护。感谢 Sleepless 提供最初的菜单栏应用及 `pmset` 合盖保持唤醒思路。NoNap 增加了权限与退出保护、中英文切换、自定义定时和界面优化；保留原作者版权声明并沿用 [MIT 许可证](LICENSE)，并非 Sleepless 官方版本。
 
-> 应用以 `NoNap.app` 打包和安装，应用标识为 `com.tsan1024.NoNap`；仓库仍保留原名。下方动图来自上游 Sleepless，尚未更新为本版界面。
+> 应用以 `NoNap.app` 打包和安装，应用标识为 `com.tsan1024.NoNap`。下方动图来自 Sleepless，尚未更新为 NoNap 当前界面。
 
 <!-- Language switcher. Keep this row identical across every README.<lang>.md. -->
 <p align="center">
@@ -50,8 +50,8 @@
 ## 安装
 
 ```sh
-git clone https://github.com/Tsan1024/Sleepless.git
-cd Sleepless
+git clone https://github.com/Tsan1024/NoNap.git
+cd NoNap
 ./install.sh
 ```
 

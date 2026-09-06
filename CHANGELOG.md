@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Moved NoNap to an independent repository while retaining Sleepless attribution and MIT notices.
 - Renamed “Launch at login” to the native macOS wording “Open at Login” / “登录时打开”.
 - Replaced the button-like auto-stop field with a lighter inline number editor.
 - Optically aligned native switches with the trailing control column and vertically centered each row.
@@ -192,8 +193,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README in 6 languages (English, 简体中文, Español, 日本語, Français, Deutsch).
 - MIT license, security model (`SECURITY.md`), and community-health files.
 
-[Unreleased]: https://github.com/Tsan1024/Sleepless/compare/v1.3.0...HEAD
-[1.3.0]: https://github.com/Tsan1024/Sleepless/compare/v1.2.7...v1.3.0
+[Unreleased]: https://github.com/Tsan1024/NoNap/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/Tsan1024/NoNap/compare/v1.2.7...v1.3.0
 [1.2.7]: https://github.com/Aboudjem/Sleepless/compare/v1.2.6...v1.2.7
 [1.2.6]: https://github.com/Aboudjem/Sleepless/compare/v1.2.5...v1.2.6
 [1.2.5]: https://github.com/Aboudjem/Sleepless/compare/v1.2.4...v1.2.5

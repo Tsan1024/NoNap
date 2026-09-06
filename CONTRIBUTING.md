@@ -21,8 +21,8 @@ so the bar for changes is "does it keep the thing small, honest, and native?"
 No Xcode project — just the Command Line Tools:
 
 ```sh
-git clone https://github.com/Aboudjem/Sleepless.git
-cd Sleepless
+git clone https://github.com/Tsan1024/NoNap.git
+cd NoNap
 ./build.sh            # builds ./build/NoNap.app, ad-hoc signed
 open build/NoNap.app
 ```
