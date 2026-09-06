@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Replaced the inherited README set with original NoNap documentation in English and Simplified Chinese.
 - Moved NoNap to an independent repository while retaining Sleepless attribution and MIT notices.
 - Renamed “Launch at login” to the native macOS wording “Open at Login” / “登录时打开”.
 - Replaced the button-like auto-stop field with a lighter inline number editor.
