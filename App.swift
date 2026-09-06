@@ -220,7 +220,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         divider(58)
         timerLabel = label(homePage, 18, 78, 132)
         timerLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        autoOffField = NSTextField(frame: NSRect(x: 184, y: 73, width: 50, height: 25))
+        autoOffField = NSTextField(frame: NSRect(x: 194, y: 73, width: 50, height: 25))
         let formatter = NumberFormatter()
         formatter.minimum = 0
         formatter.maximum = 24
@@ -233,7 +233,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         autoOffField.action = #selector(autoOffFieldChanged(_:))
         autoOffField.cell?.sendsActionOnEndEditing = true
         homePage.addSubview(autoOffField)
-        autoOffUnitLabel = label(homePage, 239, 78, 45, 11, .secondaryLabelColor)
+        autoOffUnitLabel = label(homePage, 249, 78, 33, 11, .secondaryLabelColor)
+        autoOffUnitLabel.alignment = .right
         autoOffSlider = NSSlider(value: 0, minValue: 0, maxValue: 24, target: self, action: #selector(autoOffSliderChanged(_:)))
         autoOffSlider.frame = NSRect(x: 18, y: 107, width: 264, height: 18)
         autoOffSlider.isContinuous = false

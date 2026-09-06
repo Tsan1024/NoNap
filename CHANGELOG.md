@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Right-aligned the auto-stop value and unit with the other trailing controls.
 - Simplified the first row to NoNap and its switch, and aligned every setting to a consistent grid.
 - Replaced the oversized power control with a native keep-running switch in a single settings-style panel.
 - Refined the single-page hierarchy with a compact horizontal power header, tighter spacing, and native system controls.
