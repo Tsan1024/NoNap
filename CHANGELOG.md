@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.2] - 2026-09-07
+
 ### Changed
 - Renamed Auto-stop to Countdown, displayed it with explicit hour/minute units, and made its value and slider track the remaining time even while the panel is open.
 
@@ -180,7 +182,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README in 6 languages (English, 简体中文, Español, 日本語, Français, Deutsch).
 - MIT license, security model (`SECURITY.md`), and community-health files.
 
-[Unreleased]: https://github.com/Tsan1024/NoNap/compare/v0.0.1...HEAD
+[Unreleased]: https://github.com/Tsan1024/NoNap/compare/v0.0.2...HEAD
+[0.0.2]: https://github.com/Tsan1024/NoNap/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/Tsan1024/NoNap/releases/tag/v0.0.1
 [1.2.7]: https://github.com/Aboudjem/Sleepless/compare/v1.2.6...v1.2.7
 [1.2.6]: https://github.com/Aboudjem/Sleepless/compare/v1.2.5...v1.2.6
