@@ -303,7 +303,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func updateLocalizedText() {
         titleLabel?.stringValue = "NoNap"
-        timerLabel?.stringValue = text("Auto-stop", "自动停止")
+        timerLabel?.stringValue = text("Countdown", "倒计时时间")
         autoOffUnitLabel?.stringValue = text("h later", "小时后")
         timerHintLabel?.stringValue = text("No time limit", "不限时")
         timerMaxLabel?.stringValue = text("24 hours", "24 小时")
@@ -312,8 +312,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         languageLabel?.stringValue = text("Language", "语言")
         languagePicker?.selectItem(at: language.rawValue)
         quitButton?.title = text("Quit NoNap", "退出 NoNap")
-        autoOffField?.toolTip = text("Changing the duration restarts the timer from now. Zero means no limit.",
-                                     "修改后从现在起重新计时；0 表示不限时。")
+        autoOffField?.toolTip = text("Changing the countdown restarts it from now. Zero means no limit.",
+                                     "修改倒计时后将从现在重新计时；0 表示不限时。")
         loginSwitch?.toolTip = text("Starts the app without enabling keep-awake.", "仅启动应用，不自动保持唤醒。")
         quitButton?.toolTip = text("Quitting ends keep-awake.", "退出将结束当前保持唤醒。")
         floorSlider?.toolTip = text("Stops keep-awake at this battery level, on battery power only.", "仅在电池供电时，电量降至阈值会停止保持唤醒。")
@@ -321,8 +321,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         loginSwitch?.setAccessibilityLabel(text("Open at Login", "登录时打开"))
         languagePicker?.setAccessibilityLabel(text("Language", "语言"))
         toggleSwitch?.setAccessibilityLabel(text("Keep awake with lid closed", "合盖保持运行"))
-        autoOffSlider?.setAccessibilityLabel(text("Auto-off duration in hours", "保持运行时长（小时）"))
-        autoOffField?.setAccessibilityLabel(text("Auto-off duration in hours", "保持运行时长（小时）"))
+        autoOffSlider?.setAccessibilityLabel(text("Countdown in hours", "倒计时时间（小时）"))
+        autoOffField?.setAccessibilityLabel(text("Countdown in hours", "倒计时时间（小时）"))
         floorSlider?.setAccessibilityLabel(text("Battery cutoff percentage", "电量保护阈值"))
         syncAutoOffControls()
         renderText()
@@ -339,6 +339,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let button = statusItem.button else { return }
         NSApp.activate(ignoringOtherApps: true)
         loginSwitch.state = loginItemEnabled() ? .on : .off
+        syncAutoOffControls()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         popover.contentViewController?.view.window?.makeKey()
         popover.contentViewController?.view.window?.makeFirstResponder(nil)
@@ -450,7 +451,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         b.layer?.add(pulse, forKey: "statePulse")
     }
 
-    @objc private func poll() { refresh() }
+    @objc private func poll() {
+        syncAutoOffControls()
+        refresh()
+    }
 
     // MARK: - Auto-off timer (Feature 1)
     @objc private func autoOffSliderChanged(_ sender: NSSlider) {
@@ -469,22 +473,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func setAutoOff(minutes: Int) {
         autoOffMinutes = min(max(minutes, 0), 24 * 60)
-        syncAutoOffControls()
         if isOn, ownsDisableSleep, autoOffMinutes > 0 {
             startKeepAwakeTimer(minutes: autoOffMinutes)
         } else {
             cancelKeepAwakeTimer()
+            syncAutoOffControls()
             updateMainControl()
         }
     }
 
     private func syncAutoOffControls() {
         autoOffUnitLabel?.stringValue = text("hours", "小时")
-        let hours = Double(autoOffMinutes) / 60
+        let displayedMinutes = timerEndDate.map {
+            min(max(Int(ceil($0.timeIntervalSinceNow / 60)), 0), 24 * 60)
+        } ?? autoOffMinutes
+        let hours = Double(displayedMinutes) / 60
         autoOffSlider?.doubleValue = hours
-        autoOffField?.stringValue = hours.rounded() == hours
-            ? String(Int(hours))
-            : String(format: "%.2f", hours).replacingOccurrences(of: #"0+$"#, with: "", options: .regularExpression)
+        if autoOffField?.currentEditor() == nil {
+            autoOffField?.stringValue = hours.rounded() == hours
+                ? String(Int(hours))
+                : String(format: "%.2f", hours).replacingOccurrences(of: #"0+$"#, with: "", options: .regularExpression)
+        }
     }
 
     private func startKeepAwakeTimer(minutes: Int) {
@@ -496,6 +505,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         UserDefaults.standard.set(end.timeIntervalSince1970, forKey: timerEndKey)
         keepAwakeTimer = Timer.scheduledTimer(timeInterval: seconds, target: self,
                                               selector: #selector(keepAwakeTimerFired), userInfo: nil, repeats: false)
+        syncAutoOffControls()
         updateMainControl()
     }
 

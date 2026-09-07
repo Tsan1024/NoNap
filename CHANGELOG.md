@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Renamed Auto-stop to Countdown and made its value and slider track the remaining time.
+
 ## [0.0.1] - 2026-09-07
 
 ### Added
