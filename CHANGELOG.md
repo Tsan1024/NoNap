@@ -7,44 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-- Removed the unused community contribution templates from this personal project.
-- Replaced the inherited README set with original NoNap documentation in English and Simplified Chinese.
-- Moved NoNap to an independent repository while retaining Sleepless attribution and MIT notices.
-- Renamed “Launch at login” to the native macOS wording “Open at Login” / “登录时打开”.
-- Replaced the button-like auto-stop field with a lighter inline number editor.
-- Optically aligned native switches with the trailing control column and vertically centered each row.
-- Right-aligned the auto-stop value and unit with the other trailing controls.
-- Simplified the first row to NoNap and its switch, and aligned every setting to a consistent grid.
-- Replaced the oversized power control with a native keep-running switch in a single settings-style panel.
-- Refined the single-page hierarchy with a compact horizontal power header, tighter spacing, and native system controls.
-- Merged the power control and settings into one page, removing More/Back navigation.
-- Restored a small left-aligned app name to balance the minimal home panel.
-- Removed the promotional text and kept a compact power control as the only primary action.
-- Renamed the app bundle, executable, installer, release artifacts, and bundle identifier to NoNap.
-- Centered the label-free power control and kept only the slogan below it.
-- Added a compact power-button home page and a separate settings page with hover explanations.
-- Replaced the coffee-cup icons with a nearly closed laptop and indicator, including monochrome menu-bar states.
-- Redesigned Atomic Grunt around wake status and a minutes-only countdown, with an expandable battery cutoff and a Settings menu.
-- Added a display-only IOKit battery estimate to the selected cutoff, including unavailable and AC-power states.
-- Replaced the fixed 1h/2h timer choices with a 0–24 hour slider and editable hour field.
-  The slider moves in half-hour steps; typed values may be more precise, and zero means no limit.
-
 ## [0.0.1] - 2026-09-07
 
 ### Added
-- In-app English / Simplified Chinese switching, persisted across launches.
-- Native `.dmg` packaging via `./package.sh`.
+- A compact native menu-bar panel for toggling lid-closed operation.
+- A 0–24 hour auto-stop timer with slider and direct input; zero means no limit.
+- A 5–50% battery cutoff, Low Power Mode protection, and an IOKit battery-time estimate.
+- English and Simplified Chinese, with first-launch system-language detection.
+- Optional Open at Login and native `.dmg` packaging.
 
-### Fixed
+### Security
 - One-time authorization no longer executes the user-writable bundled `grant.sh` as root.
   The app now writes and validates the fixed sudoers rule from its running code, using a
   root-owned temporary file and an atomic rename.
-- Normal quit restores sleep when Sleepless owns the active setting, automatic safety
+- Normal quit restores sleep when NoNap owns the active setting, automatic safety
   actions report failure honestly, unreadable battery state fails safe, and Low Power Mode
   consistently turns the feature off.
-- `install.sh` no longer creates an unconditional legacy LaunchAgent; login startup remains
-  controlled by the optional native switch in the app.
+
+### Project
+- Renamed the app, bundle identifier, icon, documentation, and release artifacts to NoNap.
+- Moved to an independent repository while retaining Sleepless attribution and MIT notices.
 
 ## [1.2.7] - 2026-06-03
 
