@@ -122,13 +122,13 @@ jobs:
           (cd release-assets && sha256sum NoNap-* | sort -k2 > SHA256SUMS)
           awk -v v="$VERSION" '
             $0 ~ "^## \\[" v "\\]" {flag=1; next}
-            /^## \\[/ && flag {exit}
+            /^## \[/ && flag {exit}
             flag {print}
           ' CHANGELOG.md > NOTES.md
           if [ ! -s NOTES.md ]; then
             awk '
               /^## \\[Unreleased\\]/ {flag=1; next}
-              /^## \\[/ && flag {exit}
+              /^## \[/ && flag {exit}
               flag {print}
             ' CHANGELOG.md > NOTES.md
           fi
