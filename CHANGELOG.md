@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.3] - 2026-09-08
+
 ### Changed
 - Moved platform implementations into dedicated `macos/` and `windows/` areas.
 
@@ -193,7 +195,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README in 6 languages (English, 简体中文, Español, 日本語, Français, Deutsch).
 - MIT license, security model (`SECURITY.md`), and community-health files.
 
-[Unreleased]: https://github.com/Tsan1024/NoNap/compare/v0.0.2...HEAD
+[Unreleased]: https://github.com/Tsan1024/NoNap/compare/v0.0.3...HEAD
+[0.0.3]: https://github.com/Tsan1024/NoNap/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/Tsan1024/NoNap/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/Tsan1024/NoNap/releases/tag/v0.0.1
 [1.2.7]: https://github.com/Aboudjem/Sleepless/compare/v1.2.6...v1.2.7

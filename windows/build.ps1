@@ -1,6 +1,6 @@
 param(
     [string]$Configuration = "Release",
-    [string]$Version = "0.0.2",
+    [string]$Version = "0.0.3",
     [string]$Output = "$PSScriptRoot/dist/win-x64"
 )
 

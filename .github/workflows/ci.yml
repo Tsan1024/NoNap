@@ -66,5 +66,5 @@ jobs:
           name: NoNap-Windows-x64
           path: |
             windows/dist/win-x64/NoNap.exe
-            windows/dist/installer/NoNap-0.0.2-Windows-x64-Setup.exe
+            windows/dist/installer/NoNap-0.0.3-Windows-x64-Setup.exe
           if-no-files-found: error
