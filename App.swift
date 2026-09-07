@@ -133,7 +133,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var floorSlider: NSSlider!
     private var autoOffSlider: NSSlider!
     private var autoOffField: NSTextField!
-    private var autoOffUnitLabel: NSTextField!
     private var clickMonitor: Any?
     private var batteryFloorPercent = floorDefault
     private var isOn = false
@@ -220,7 +219,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         divider(58)
         timerLabel = label(homePage, 18, 78, 132)
         timerLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        autoOffField = NSTextField(frame: NSRect(x: 204, y: 78, width: 40, height: 22))
+        autoOffField = NSTextField(frame: NSRect(x: 222, y: 78, width: 60, height: 22))
         autoOffField.alignment = .right
         autoOffField.font = .monospacedDigitSystemFont(ofSize: 12, weight: .regular)
         autoOffField.isBezeled = false
@@ -229,8 +228,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         autoOffField.action = #selector(autoOffFieldChanged(_:))
         autoOffField.cell?.sendsActionOnEndEditing = true
         homePage.addSubview(autoOffField)
-        autoOffUnitLabel = label(homePage, 249, 78, 33, 11, .secondaryLabelColor)
-        autoOffUnitLabel.alignment = .right
         autoOffSlider = NSSlider(value: 0, minValue: 0, maxValue: 24, target: self, action: #selector(autoOffSliderChanged(_:)))
         autoOffSlider.frame = NSRect(x: 18, y: 107, width: 264, height: 18)
         autoOffSlider.isContinuous = false
@@ -298,8 +295,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func updateLocalizedText() {
         titleLabel?.stringValue = "NoNap"
-        timerLabel?.stringValue = text("Countdown", "倒计时时间")
-        autoOffUnitLabel?.stringValue = text("h.min", "时.分")
+        timerLabel?.stringValue = text("Countdown", "倒计时")
         timerHintLabel?.stringValue = text("No time limit", "不限时")
         timerMaxLabel?.stringValue = text("24 hours", "24 小时")
         floorLabel?.stringValue = text("Battery protection", "电量保护")
@@ -307,8 +303,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         languageLabel?.stringValue = text("Language", "语言")
         languagePicker?.selectItem(at: language.rawValue)
         quitButton?.title = text("Quit NoNap", "退出 NoNap")
-        autoOffField?.toolTip = text("Enter hours.minutes, for example 9.59. Changing it restarts the countdown.",
-                                     "按小时.分钟输入，例如 9.59；修改后将重新开始倒计时。")
+        autoOffField?.toolTip = text("Enter hours:minutes, for example 9:59. Changing it restarts the countdown.",
+                                     "按小时:分钟输入，例如 9:59；修改后将重新开始倒计时。")
         loginSwitch?.toolTip = text("Starts the app without enabling keep-awake.", "仅启动应用，不自动保持唤醒。")
         quitButton?.toolTip = text("Quitting ends keep-awake.", "退出将结束当前保持唤醒。")
         floorSlider?.toolTip = text("Stops keep-awake at this battery level, on battery power only.", "仅在电池供电时，电量降至阈值会停止保持唤醒。")
@@ -316,8 +312,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         loginSwitch?.setAccessibilityLabel(text("Open at Login", "登录时打开"))
         languagePicker?.setAccessibilityLabel(text("Language", "语言"))
         toggleSwitch?.setAccessibilityLabel(text("Keep awake with lid closed", "合盖保持运行"))
-        autoOffSlider?.setAccessibilityLabel(text("Countdown", "倒计时时间"))
-        autoOffField?.setAccessibilityLabel(text("Countdown in hours and minutes", "倒计时时间（小时和分钟）"))
+        autoOffSlider?.setAccessibilityLabel(text("Countdown", "倒计时"))
+        autoOffField?.setAccessibilityLabel(text("Countdown in hours and minutes", "倒计时（小时和分钟）"))
         floorSlider?.setAccessibilityLabel(text("Battery cutoff percentage", "电量保护阈值"))
         syncAutoOffControls()
         renderText()
@@ -503,13 +499,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func syncAutoOffControls() {
-        autoOffUnitLabel?.stringValue = text("h.min", "时.分")
         let displayedMinutes = timerEndDate.map {
             min(max(Int(ceil($0.timeIntervalSinceNow / 60)), 0), 24 * 60)
         } ?? autoOffMinutes
         autoOffSlider?.doubleValue = Double(displayedMinutes) / 60
         if autoOffField?.currentEditor() == nil {
-            autoOffField?.stringValue = String(format: "%d.%02d", displayedMinutes / 60, displayedMinutes % 60)
+            autoOffField?.stringValue = String(format: "%d:%02d", displayedMinutes / 60, displayedMinutes % 60)
         }
     }
 
