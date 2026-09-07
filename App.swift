@@ -219,7 +219,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         divider(58)
         timerLabel = label(homePage, 18, 78, 132)
         timerLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        autoOffField = NSTextField(frame: NSRect(x: 222, y: 78, width: 60, height: 22))
+        autoOffField = NSTextField(frame: NSRect(x: 202, y: 78, width: 80, height: 22))
         autoOffField.alignment = .right
         autoOffField.font = .monospacedDigitSystemFont(ofSize: 12, weight: .regular)
         autoOffField.isBezeled = false
@@ -473,7 +473,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func countdownMinutes(from value: String) -> Int? {
-        let parts = value.replacingOccurrences(of: ",", with: ".")
+        let normalized = value.lowercased()
+            .replacingOccurrences(of: "小时", with: ":")
+            .replacingOccurrences(of: "分钟", with: "")
+            .replacingOccurrences(of: "时", with: ":")
+            .replacingOccurrences(of: "分", with: "")
+            .replacingOccurrences(of: "h", with: ":")
+            .replacingOccurrences(of: "m", with: "")
+            .replacingOccurrences(of: " ", with: "")
+        let parts = normalized.replacingOccurrences(of: ",", with: ".")
             .replacingOccurrences(of: ":", with: ".")
             .split(separator: ".", omittingEmptySubsequences: false)
         guard (1...2).contains(parts.count), let hours = Int(parts[0]), (0...24).contains(hours) else { return nil }
@@ -504,7 +512,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } ?? autoOffMinutes
         autoOffSlider?.doubleValue = Double(displayedMinutes) / 60
         if autoOffField?.currentEditor() == nil {
-            autoOffField?.stringValue = String(format: "%d:%02d", displayedMinutes / 60, displayedMinutes % 60)
+            let hours = displayedMinutes / 60
+            let minutes = displayedMinutes % 60
+            autoOffField?.stringValue = language == .chinese
+                ? String(format: "%d时%02d分", hours, minutes)
+                : String(format: "%dh %02dm", hours, minutes)
         }
     }
 

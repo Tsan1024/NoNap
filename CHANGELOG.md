@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- Renamed Auto-stop to Countdown, displayed it as hours:minutes, and made its value and slider track the remaining time even while the panel is open.
+- Renamed Auto-stop to Countdown, displayed it with explicit hour/minute units, and made its value and slider track the remaining time even while the panel is open.
 
 ## [0.0.1] - 2026-09-07
 
