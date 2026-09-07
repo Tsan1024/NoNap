@@ -108,6 +108,7 @@ private final class GlassView: NSVisualEffectView { override var isFlipped: Bool
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var timer: Timer?
+    private var countdownDisplayTimer: Timer?
     private let onGlyph = makeCupGlyph(.on)
     private let offGlyph = makeCupGlyph(.off)
     private let armedGlyph = makeCupGlyph(.armed)
@@ -171,8 +172,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         refresh()   // reflect TRUE system state on launch (never a stale assumption)
         restoreKeepAwakeTimer()
-        timer = Timer.scheduledTimer(timeInterval: pollInterval, target: self,
-                                     selector: #selector(poll), userInfo: nil, repeats: true)
+        timer = commonTimer(timeInterval: pollInterval, selector: #selector(poll), repeats: true)
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -221,11 +221,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         timerLabel = label(homePage, 18, 78, 132)
         timerLabel.font = .systemFont(ofSize: 12, weight: .medium)
         autoOffField = NSTextField(frame: NSRect(x: 204, y: 78, width: 40, height: 22))
-        let formatter = NumberFormatter()
-        formatter.minimum = 0
-        formatter.maximum = 24
-        formatter.maximumFractionDigits = 2
-        autoOffField.formatter = formatter
         autoOffField.alignment = .right
         autoOffField.font = .monospacedDigitSystemFont(ofSize: 12, weight: .regular)
         autoOffField.isBezeled = false
@@ -304,7 +299,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func updateLocalizedText() {
         titleLabel?.stringValue = "NoNap"
         timerLabel?.stringValue = text("Countdown", "倒计时时间")
-        autoOffUnitLabel?.stringValue = text("h later", "小时后")
+        autoOffUnitLabel?.stringValue = text("h.min", "时.分")
         timerHintLabel?.stringValue = text("No time limit", "不限时")
         timerMaxLabel?.stringValue = text("24 hours", "24 小时")
         floorLabel?.stringValue = text("Battery protection", "电量保护")
@@ -312,8 +307,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         languageLabel?.stringValue = text("Language", "语言")
         languagePicker?.selectItem(at: language.rawValue)
         quitButton?.title = text("Quit NoNap", "退出 NoNap")
-        autoOffField?.toolTip = text("Changing the countdown restarts it from now. Zero means no limit.",
-                                     "修改倒计时后将从现在重新计时；0 表示不限时。")
+        autoOffField?.toolTip = text("Enter hours.minutes, for example 9.59. Changing it restarts the countdown.",
+                                     "按小时.分钟输入，例如 9.59；修改后将重新开始倒计时。")
         loginSwitch?.toolTip = text("Starts the app without enabling keep-awake.", "仅启动应用，不自动保持唤醒。")
         quitButton?.toolTip = text("Quitting ends keep-awake.", "退出将结束当前保持唤醒。")
         floorSlider?.toolTip = text("Stops keep-awake at this battery level, on battery power only.", "仅在电池供电时，电量降至阈值会停止保持唤醒。")
@@ -321,8 +316,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         loginSwitch?.setAccessibilityLabel(text("Open at Login", "登录时打开"))
         languagePicker?.setAccessibilityLabel(text("Language", "语言"))
         toggleSwitch?.setAccessibilityLabel(text("Keep awake with lid closed", "合盖保持运行"))
-        autoOffSlider?.setAccessibilityLabel(text("Countdown in hours", "倒计时时间（小时）"))
-        autoOffField?.setAccessibilityLabel(text("Countdown in hours", "倒计时时间（小时）"))
+        autoOffSlider?.setAccessibilityLabel(text("Countdown", "倒计时时间"))
+        autoOffField?.setAccessibilityLabel(text("Countdown in hours and minutes", "倒计时时间（小时和分钟）"))
         floorSlider?.setAccessibilityLabel(text("Battery cutoff percentage", "电量保护阈值"))
         syncAutoOffControls()
         renderText()
@@ -341,6 +336,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         loginSwitch.state = loginItemEnabled() ? .on : .off
         syncAutoOffControls()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        countdownDisplayTimer = commonTimer(timeInterval: 1, selector: #selector(updateCountdownDisplay), repeats: true)
         popover.contentViewController?.view.window?.makeKey()
         popover.contentViewController?.view.window?.makeFirstResponder(nil)
         updateMainControl()
@@ -352,6 +348,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func closePopover() {
         popover.performClose(nil)
+        countdownDisplayTimer?.invalidate()
+        countdownDisplayTimer = nil
         if let monitor = clickMonitor { NSEvent.removeMonitor(monitor); clickMonitor = nil }
     }
 
@@ -456,6 +454,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         refresh()
     }
 
+    @objc private func updateCountdownDisplay() { syncAutoOffControls() }
+
+    private func commonTimer(timeInterval: TimeInterval, selector: Selector, repeats: Bool) -> Timer {
+        let timer = Timer(timeInterval: timeInterval, target: self, selector: selector, userInfo: nil, repeats: repeats)
+        RunLoop.main.add(timer, forMode: .common)
+        return timer
+    }
+
     // MARK: - Auto-off timer (Feature 1)
     @objc private func autoOffSliderChanged(_ sender: NSSlider) {
         let hours = (sender.doubleValue * 2).rounded() / 2
@@ -463,12 +469,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func autoOffFieldChanged(_ sender: NSTextField) {
-        let formatter = sender.formatter as? NumberFormatter
-        guard let hours = formatter?.number(from: sender.stringValue)?.doubleValue, hours.isFinite else {
+        guard let minutes = countdownMinutes(from: sender.stringValue) else {
             syncAutoOffControls()
             return
         }
-        setAutoOff(minutes: Int((min(max(hours, 0), 24) * 60).rounded()))
+        setAutoOff(minutes: minutes)
+    }
+
+    private func countdownMinutes(from value: String) -> Int? {
+        let parts = value.replacingOccurrences(of: ",", with: ".")
+            .replacingOccurrences(of: ":", with: ".")
+            .split(separator: ".", omittingEmptySubsequences: false)
+        guard (1...2).contains(parts.count), let hours = Int(parts[0]), (0...24).contains(hours) else { return nil }
+        var minutes = 0
+        if parts.count == 2 {
+            let minuteText = String(parts[1])
+            guard (1...2).contains(minuteText.count), let parsed = Int(minuteText) else { return nil }
+            minutes = minuteText.count == 1 ? parsed * 10 : parsed
+        }
+        guard minutes < 60, hours < 24 || minutes == 0 else { return nil }
+        return hours * 60 + minutes
     }
 
     private func setAutoOff(minutes: Int) {
@@ -483,16 +503,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func syncAutoOffControls() {
-        autoOffUnitLabel?.stringValue = text("hours", "小时")
+        autoOffUnitLabel?.stringValue = text("h.min", "时.分")
         let displayedMinutes = timerEndDate.map {
             min(max(Int(ceil($0.timeIntervalSinceNow / 60)), 0), 24 * 60)
         } ?? autoOffMinutes
-        let hours = Double(displayedMinutes) / 60
-        autoOffSlider?.doubleValue = hours
+        autoOffSlider?.doubleValue = Double(displayedMinutes) / 60
         if autoOffField?.currentEditor() == nil {
-            autoOffField?.stringValue = hours.rounded() == hours
-                ? String(Int(hours))
-                : String(format: "%.2f", hours).replacingOccurrences(of: #"0+$"#, with: "", options: .regularExpression)
+            autoOffField?.stringValue = String(format: "%d.%02d", displayedMinutes / 60, displayedMinutes % 60)
         }
     }
 
@@ -503,8 +520,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let end = Date().addingTimeInterval(seconds)
         timerEndDate = end
         UserDefaults.standard.set(end.timeIntervalSince1970, forKey: timerEndKey)
-        keepAwakeTimer = Timer.scheduledTimer(timeInterval: seconds, target: self,
-                                              selector: #selector(keepAwakeTimerFired), userInfo: nil, repeats: false)
+        keepAwakeTimer = commonTimer(timeInterval: seconds, selector: #selector(keepAwakeTimerFired), repeats: false)
         syncAutoOffControls()
         updateMainControl()
     }
@@ -523,8 +539,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             autoOffMinutes = 0
             syncAutoOffControls()
         } else {
-            keepAwakeTimer = Timer.scheduledTimer(timeInterval: pollInterval, target: self,
-                                                  selector: #selector(keepAwakeTimerFired), userInfo: nil, repeats: false)
+            keepAwakeTimer = commonTimer(timeInterval: pollInterval, selector: #selector(keepAwakeTimerFired), repeats: false)
         }
     }
 
@@ -542,8 +557,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if remaining <= 0 {
             keepAwakeTimerFired()
         } else {
-            keepAwakeTimer = Timer.scheduledTimer(timeInterval: remaining, target: self,
-                                                  selector: #selector(keepAwakeTimerFired), userInfo: nil, repeats: false)
+            keepAwakeTimer = commonTimer(timeInterval: remaining, selector: #selector(keepAwakeTimerFired), repeats: false)
         }
     }
 

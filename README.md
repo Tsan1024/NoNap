@@ -20,7 +20,7 @@ It changes the native `pmset disablesleep` setting. No daemon, kernel extension,
 ## What you get
 
 - One switch for lid-closed operation.
-- A 0–24 hour countdown whose value and slider decrease while running; `0` means no limit.
+- A 0–24 hour countdown shown as `hours.minutes` (`10.00 → 9.59`) with a matching slider; `0` means no limit.
 - A configurable battery cutoff from 5% to 50%.
 - Automatic stop when macOS Low Power Mode becomes active on battery.
 - A display-only battery-time estimate based on macOS IOKit data.
