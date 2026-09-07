@@ -14,7 +14,7 @@ mkdir -p "$TMP/NoNap"
 cp -R "$OUT/NoNap.app" "$TMP/NoNap/"
 ln -s /Applications "$TMP/NoNap/Applications"
 hdiutil create -quiet -volname NoNap -srcfolder "$TMP/NoNap" -ov -format UDZO "$DMG"
-shasum -a 256 "$DMG" > "$DMG.sha256"
+(cd "$OUT" && shasum -a 256 "$(basename "$DMG")" > "$(basename "$DMG").sha256")
 
 echo "✅ Packaged $DMG"
 echo "   Checksum: $DMG.sha256"
