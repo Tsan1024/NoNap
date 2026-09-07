@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sleepless: keep your Mac awake with the lid closed</title>
-<meta name="description" content="Sleepless keeps your MacBook awake with the lid (the laptop flap) closed, on battery, with no external display. A native menu-bar app using pmset disablesleep, with an auto-off timer and a battery-floor cutoff. Open source, MIT.">
-<link rel="canonical" href="https://aboudjem.github.io/Sleepless/">
+<title>NoNap: keep your laptop working with the lid closed</title>
+<meta name="description" content="NoNap keeps macOS and Windows laptops working with the lid closed, with a countdown and battery cutoff. Native, open source, MIT.">
+<link rel="canonical" href="https://tsan1024.github.io/NoNap/">
 <meta name="theme-color" content="#0A0A14">
 
 <meta property="og:type" content="website">
-<meta property="og:title" content="Sleepless: keep your Mac awake with the lid closed">
-<meta property="og:description" content="Native macOS menu-bar app that keeps your MacBook awake lid-closed, on battery, no external display. pmset disablesleep, done safely. Open source, MIT.">
-<meta property="og:url" content="https://aboudjem.github.io/Sleepless/">
-<meta property="og:image" content="https://aboudjem.github.io/Sleepless/og.png">
+<meta property="og:title" content="NoNap: keep your laptop working with the lid closed">
+<meta property="og:description" content="Native macOS menu-bar and Windows tray app that keeps your laptop working with the lid closed. Open source, MIT.">
+<meta property="og:url" content="https://tsan1024.github.io/NoNap/">
+<meta property="og:image" content="https://tsan1024.github.io/NoNap/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Sleepless: keep your Mac awake with the lid closed">
-<meta name="twitter:description" content="Native macOS menu-bar app. Lid closed, on battery, no external display. pmset disablesleep, done safely. Open source, MIT.">
-<meta name="twitter:image" content="https://aboudjem.github.io/Sleepless/og.png">
+<meta name="twitter:title" content="NoNap: keep your laptop working with the lid closed">
+<meta name="twitter:description" content="Native macOS menu-bar and Windows tray app. Close the lid and keep long-running work going. Open source, MIT.">
+<meta name="twitter:image" content="https://tsan1024.github.io/NoNap/og.png">
 
 <link rel="icon" type="image/png" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
@@ -29,14 +29,14 @@
 {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  "name": "Sleepless",
-  "operatingSystem": "macOS 26 (Apple Silicon)",
+  "name": "NoNap",
+  "operatingSystem": ["macOS 26 (Apple Silicon)", "Windows 10", "Windows 11"],
   "applicationCategory": "UtilitiesApplication",
-  "description": "A native macOS menu-bar app that keeps your MacBook awake with the lid closed, on battery, with no external display, using pmset disablesleep, with an auto-off timer and a battery-floor cutoff.",
+  "description": "A native macOS menu-bar and Windows tray app that keeps a laptop running with the lid closed, with a countdown and battery cutoff.",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
   "license": "https://opensource.org/licenses/MIT",
-  "url": "https://github.com/Aboudjem/Sleepless",
-  "author": { "@type": "Person", "name": "Adam Boudjemaa" }
+  "url": "https://github.com/Tsan1024/NoNap",
+  "author": { "@type": "Person", "name": "Tsan1024" }
 }
 </script>
 <script type="application/ld+json">
@@ -44,10 +44,10 @@
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
-    {"@type":"Question","name":"How do I keep my MacBook awake with the lid closed without a monitor?","acceptedAnswer":{"@type":"Answer","text":"Install Sleepless, click the coffee cup in the menu bar, flip the switch on, and close the lid (the laptop screen, also called the flap). It keeps the Mac awake on battery with no external display, using pmset disablesleep. No dummy HDMI plug or clamshell adapter is needed."}},
-    {"@type":"Question","name":"Why does my MacBook sleep when I close the lid even with Amphetamine or KeepingYouAwake?","acceptedAnswer":{"@type":"Answer","text":"Those tools are built on macOS power assertions, which stop the idle timer but cannot override the hardware lid-close trigger. KeepingYouAwake wraps caffeinate, which its maintainer confirms cannot do lid-close. pmset disablesleep, which Sleepless uses, is a lower-level setting that can."}},
+    {"@type":"Question","name":"How do I keep my MacBook awake with the lid closed without a monitor?","acceptedAnswer":{"@type":"Answer","text":"Install NoNap, click the coffee cup in the menu bar, flip the switch on, and close the lid (the laptop screen, also called the flap). It keeps the Mac awake on battery with no external display, using pmset disablesleep. No dummy HDMI plug or clamshell adapter is needed."}},
+    {"@type":"Question","name":"Why does my MacBook sleep when I close the lid even with Amphetamine or KeepingYouAwake?","acceptedAnswer":{"@type":"Answer","text":"Those tools are built on macOS power assertions, which stop the idle timer but cannot override the hardware lid-close trigger. KeepingYouAwake wraps caffeinate, which its maintainer confirms cannot do lid-close. pmset disablesleep, which NoNap uses, is a lower-level setting that can."}},
     {"@type":"Question","name":"Does pmset disablesleep still work on Apple Silicon?","acceptedAnswer":{"@type":"Answer","text":"Yes. pmset -a disablesleep 1 sets the kernel's SleepDisabled flag on Apple Silicon, confirmed firsthand on macOS 26.3, which keeps a MacBook awake with the lid closed on battery. Apple does not officially document the setting, so verify it with pmset -g | grep SleepDisabled. Most claims that it stopped working actually describe caffeinate, a different mechanism."}},
-    {"@type":"Question","name":"Do I need a dummy HDMI display plug to use clamshell mode?","acceptedAnswer":{"@type":"Answer","text":"No. Apple's official clamshell mode needs external power and a display, but Sleepless keeps the Mac awake with the lid closed on battery alone, with no display and no HDMI dongle."}}
+    {"@type":"Question","name":"Do I need a dummy HDMI display plug to use clamshell mode?","acceptedAnswer":{"@type":"Answer","text":"No. Apple's official clamshell mode needs external power and a display, but NoNap keeps the Mac awake with the lid closed on battery alone, with no display and no HDMI dongle."}}
   ]
 }
 </script>
@@ -288,13 +288,13 @@
 
 <nav class="nav" id="nav">
   <div class="nav-in">
-    <a class="brand" href="#top"><img src="icon.png" alt="">Sleepless</a>
+    <a class="brand" href="#top"><img src="icon.png" alt="">NoNap</a>
     <div class="nav-links">
       <a href="#why">How it works</a>
       <a href="#trust">Security</a>
       <a href="#compare">Compare</a>
       <a href="#faq">FAQ</a>
-      <a class="nav-gh" href="https://github.com/Aboudjem/Sleepless"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2A10 10 0 0 0 8.84 21.5c.5.08.66-.22.66-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.48A10 10 0 0 0 12 2Z"/></svg>GitHub</a>
+      <a class="nav-gh" href="https://github.com/Tsan1024/NoNap"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2A10 10 0 0 0 8.84 21.5c.5.08.66-.22.66-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.48A10 10 0 0 0 12 2Z"/></svg>GitHub</a>
     </div>
   </div>
 </nav>
@@ -302,30 +302,30 @@
 <header id="top">
   <div class="wrap hero">
     <div class="hero-copy">
-      <img class="hero-icon" src="icon.png" alt="Sleepless app icon, a coffee cup">
-      <h1>Keep your Mac awake.<br><span class="grad">Lid closed.</span></h1>
-      <p class="lead">Sleepless keeps your MacBook awake with the lid closed, on battery, with no external display. One native menu-bar switch, with an auto-off timer and a battery-floor cutoff so you never drain it flat.</p>
+      <img class="hero-icon" src="icon.png" alt="NoNap app icon, a coffee cup">
+      <h1>Keep your laptop working.<br><span class="grad">Lid closed.</span></h1>
+      <p class="lead">NoNap supports macOS and Windows with native menu-bar or tray controls, an auto-off timer, and a battery-floor cutoff for unattended work.</p>
       <div class="cta">
-        <a class="btn btn-primary" href="https://github.com/Aboudjem/Sleepless/releases/latest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>Download for macOS</a>
-        <a class="btn btn-ghost" href="https://github.com/Aboudjem/Sleepless">View source on GitHub</a>
+        <a class="btn btn-primary" href="https://github.com/Tsan1024/NoNap/releases/latest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>Download</a>
+        <a class="btn btn-ghost" href="https://github.com/Tsan1024/NoNap">View source on GitHub</a>
       </div>
       <div class="brewbar">
-        <span><span class="dollar">$ </span>brew install --cask aboudjem/tap/sleepless</span>
-        <button class="copy" id="copyBrew" data-cmd="brew install --cask aboudjem/tap/sleepless">Copy</button>
+        <span><span class="dollar">$ </span>git clone https://github.com/Tsan1024/NoNap.git</span>
+        <button class="copy" id="copyBrew" data-cmd="git clone https://github.com/Tsan1024/NoNap.git">Copy</button>
       </div>
       <div class="badges">
-        <a href="https://github.com/Aboudjem/Sleepless/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Aboudjem/Sleepless/ci.yml?branch=main&label=CI&logo=githubactions&logoColor=white&style=flat-square&color=8B5CF6&labelColor=14122A"></a>
-        <a href="https://github.com/Aboudjem/Sleepless/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/Aboudjem/Sleepless?label=release&logo=apple&logoColor=white&style=flat-square&color=8B5CF6&labelColor=14122A"></a>
+        <a href="https://github.com/Tsan1024/NoNap/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Tsan1024/NoNap/ci.yml?branch=main&label=CI&logo=githubactions&logoColor=white&style=flat-square&color=8B5CF6&labelColor=14122A"></a>
+        <a href="https://github.com/Tsan1024/NoNap/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/Tsan1024/NoNap?label=release&logo=apple&logoColor=white&style=flat-square&color=8B5CF6&labelColor=14122A"></a>
         <img alt="Build provenance: attested" src="https://img.shields.io/badge/build_provenance-attested-8B5CF6?style=flat-square&logo=githubactions&logoColor=white&labelColor=14122A">
         <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-D946EF?style=flat-square&labelColor=14122A"></a>
-        <a href="https://github.com/Aboudjem/Sleepless/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/Aboudjem/Sleepless?style=flat-square&color=6366F1&labelColor=14122A"></a>
+        <a href="https://github.com/Tsan1024/NoNap/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/Tsan1024/NoNap?style=flat-square&color=6366F1&labelColor=14122A"></a>
       </div>
-      <p class="meta">macOS 26 · Apple Silicon · MIT · no Dock icon, no daemon, no kext</p>
+      <p class="meta">macOS 26 Apple silicon · Windows 10/11 x64 · MIT · no telemetry</p>
     </div>
     <div class="hero-visual">
       <div class="shot-glow"></div>
       <div class="shot-plate">
-        <img src="screenshot-popover.png" alt="The Sleepless menu-bar popover: a switch, an auto-off timer, a battery-floor slider, and a launch-at-login toggle">
+        <img src="screenshot-popover.png" alt="The NoNap menu-bar popover: a switch, an auto-off timer, a battery-floor slider, and a launch-at-login toggle">
       </div>
     </div>
   </div>
@@ -343,12 +343,12 @@
         <div class="ts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg><div><b>Build provenance</b><span>SLSA attestation signed via Sigstore in CI. Verify with <code>gh attestation verify</code>.</span></div></div>
         <div class="ts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v6H4z"/><path d="M4 14h10v6H4z"/><path d="M18 14v6M21 17h-6"/></svg><div><b>SHA-256 checksums</b><span>Every release ships <code>SHA256SUMS</code>. No Apple account needed to check.</span></div></div>
         <div class="ts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/><path d="m4 4 16 16" opacity="0"/></svg><div><b>No telemetry</b><span>No analytics, no network calls. It only flips one local <code>pmset</code> flag.</span></div></div>
-        <div class="ts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18 22 12 16 6"/><path d="M8 6 2 12 8 18"/></svg><div><b>Open source, MIT</b><span>One AppKit file. No daemon, no kernel extension. Read every line.</span></div></div>
+        <div class="ts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18 22 12 16 6"/><path d="M8 6 2 12 8 18"/></svg><div><b>Open source, MIT</b><span>Separate native macOS and Windows implementations. No kernel extension. Read every line.</span></div></div>
       </div>
       <div class="verify">
-        <div class="vh"><span>verify a download</span><button class="copy" data-cmd="shasum -a 256 -c SHA256SUMS&#10;gh attestation verify Sleepless-1.2.0.zip -R Aboudjem/Sleepless">Copy</button></div>
+        <div class="vh"><span>verify a download</span><button class="copy" data-cmd="shasum -a 256 -c SHA256SUMS&#10;gh attestation verify NoNap-0.1.0-macOS-arm64.zip -R Tsan1024/NoNap">Copy</button></div>
         <pre><span class="tok-c">shasum</span> -a 256 -c SHA256SUMS
-<span class="tok-c">gh</span> attestation verify Sleepless-1.2.0.zip -R Aboudjem/Sleepless</pre>
+<span class="tok-c">gh</span> attestation verify NoNap-0.1.0-macOS-arm64.zip -R Tsan1024/NoNap</pre>
       </div>
     </div>
   </div>
@@ -358,11 +358,11 @@
   <div class="wrap reveal">
     <p class="eyebrow">The one that actually does it</p>
     <h2 class="sec">Why other keep-awake apps can't do this</h2>
-    <p class="lead">Most keep-awake apps ride on macOS power assertions. Assertions stop the idle timer, but they can't override the hardware lid-close trigger, so a closed lid still sleeps the Mac. Sleepless flips the one setting that can.</p>
+    <p class="lead">Most keep-awake apps ride on macOS power assertions. Assertions stop the idle timer, but they can't override the hardware lid-close trigger, so a closed lid still sleeps the Mac. NoNap flips the one setting that can.</p>
     <div class="steps">
       <div class="step glass"><span class="n">01</span><p>Power assertions (Caffeine, Theine, <code>caffeinate</code>) stop the idle timer, but not the lid-close trigger.</p></div>
       <div class="step glass"><span class="n">02</span><p>So a closed lid still sleeps the Mac, even with Amphetamine or KeepingYouAwake.</p></div>
-      <div class="step glass"><span class="n">03</span><p><code>pmset disablesleep</code> overrides lid-close sleep. Sleepless flips exactly that, reads it back, and adds safety nets.</p></div>
+      <div class="step glass"><span class="n">03</span><p><code>pmset disablesleep</code> overrides lid-close sleep. NoNap flips exactly that, reads it back, and adds safety nets.</p></div>
     </div>
     <blockquote class="quote glass">“I will probably never support this option because <code>caffeinate</code> doesn't support this. KYA uses <code>caffeinate</code> under the hood.”<cite>KeepingYouAwake maintainer, issue #66</cite></blockquote>
   </div>
@@ -387,7 +387,7 @@
       </div>
       <div class="spec glass">
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13c0-5 5-9 16-9 0 9-4 16-9 16Z"/><path d="M4 20c4-5 7-7 11-8"/></svg></div>
-        <h3>Low Power Mode aware</h3><p>On battery, if Low Power Mode is on, Sleepless steps aside and lets the Mac sleep.</p>
+        <h3>Low Power Mode aware</h3><p>On battery, if Low Power Mode is on, NoNap steps aside and lets the Mac sleep.</p>
       </div>
       <div class="spec glass">
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m4 3 16 16"/></svg></div>
@@ -406,28 +406,28 @@
   <div class="wrap reveal">
     <p class="eyebrow">How it works</p>
     <h2 class="sec">One setting, flipped safely</h2>
-    <p class="lead">Sleepless toggles <code>pmset disablesleep</code>, which flips the kernel's <code>SleepDisabled</code> flag, then reverts it at your battery floor, in Low Power Mode, or when the timer ends. A reboot also resets it. Because a GUI app can't type a password, the installer adds a tightly scoped sudoers rule that permits exactly two commands and nothing else.</p>
+    <p class="lead">NoNap toggles <code>pmset disablesleep</code>, which flips the kernel's <code>SleepDisabled</code> flag, then reverts it at your battery floor, in Low Power Mode, or when the timer ends. A reboot also resets it. Because a GUI app can't type a password, the installer adds a tightly scoped sudoers rule that permits exactly two commands and nothing else.</p>
     <div class="codeblock glass">
-      <div class="fname">/etc/sudoers.d/sleepless</div>
+      <div class="fname">/etc/sudoers.d/nonap-disablesleep</div>
       <pre>&lt;you&gt; ALL=(root) NOPASSWD: /usr/bin/pmset -a disablesleep 0, /usr/bin/pmset -a disablesleep 1</pre>
     </div>
     <div class="grid2">
       <div class="tile glass"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg></div><h3>Can't be widened</h3><p>sudoers matches arguments literally with no wildcards, so any other command re-prompts for a password.</p></div>
       <div class="tile glass"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h3>No mutable root script</h3><p>Setup atomically installs a fixed rule from the running app. Normal toggles call Apple's /usr/bin/pmset directly with an argv array.</p></div>
-      <div class="tile glass"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></div><h3>Always reversible</h3><p>Normal quit and reboot restore sleep, the floor and timer turn it off, and uninstall.sh removes the grant and proves it.</p></div>
+      <div class="tile glass"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></div><h3>Always reversible</h3><p>Normal quit, safety cutoffs, recovery, and platform uninstallers restore the settings NoNap owns.</p></div>
       <div class="tile glass"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div><h3>Verifiable downloads</h3><p>Releases ship SHA-256 sums and a Sigstore build-provenance attestation. No Apple account needed to check.</p></div>
     </div>
-    <p class="lead" style="margin-top:24px; font-size:16px">Full threat model and verification: <a href="https://github.com/Aboudjem/Sleepless/blob/main/SECURITY.md">SECURITY.md</a> and <a href="https://github.com/Aboudjem/Sleepless/blob/main/docs/AUDIT.md">AUDIT.md</a>.</p>
+    <p class="lead" style="margin-top:24px; font-size:16px">Full threat model and verification: <a href="https://github.com/Tsan1024/NoNap/blob/main/SECURITY.md">SECURITY.md</a> and <a href="https://github.com/Tsan1024/NoNap/blob/main/docs/AUDIT.md">AUDIT.md</a>.</p>
   </div>
 </section>
 
 <section id="compare">
   <div class="wrap reveal">
     <p class="eyebrow">As of 2026-06</p>
-    <h2 class="sec">Sleepless vs the alternatives</h2>
+    <h2 class="sec">NoNap vs the alternatives</h2>
     <div class="table-wrap glass">
       <table>
-        <thead><tr><th></th><th class="me"><span class="me-h"><img src="icon.png" alt="">Sleepless</span></th><th>Amphetamine</th><th>KeepingYouAwake</th><th>caffeinate</th></tr></thead>
+        <thead><tr><th></th><th class="me"><span class="me-h"><img src="icon.png" alt="">NoNap</span></th><th>Amphetamine</th><th>KeepingYouAwake</th><th>caffeinate</th></tr></thead>
         <tbody>
           <tr><td>Awake, lid closed, no monitor</td><td class="me yes">Yes ¹</td><td class="warn">Flaky ²</td><td class="no">No ³</td><td class="no">No</td></tr>
           <tr><td>On battery</td><td class="me yes">Yes</td><td class="yes">Yes</td><td>Lid open</td><td class="warn">Partial ⁴</td></tr>
@@ -438,7 +438,7 @@
         </tbody>
       </table>
     </div>
-    <p class="fn">¹ Sleepless uses <code>pmset disablesleep</code>, the mechanism built for lid-close, and reads the flag back so the UI reflects reality; behavior on any keep-awake tool is hardware and macOS-version dependent. ² Amphetamine documents closed-display mode but is widely reported to fail on Apple Silicon when the power source changes (Amphetamine-Enhancer #28); the app itself is closed source. ³ KeepingYouAwake cannot keep the lid closed by design, since it wraps <code>caffeinate</code> (issue #66). ⁴ <code>caffeinate -i</code> runs on battery; <code>-s</code> is AC-only.</p>
+    <p class="fn">¹ NoNap uses <code>pmset disablesleep</code>, the mechanism built for lid-close, and reads the flag back so the UI reflects reality; behavior on any keep-awake tool is hardware and macOS-version dependent. ² Amphetamine documents closed-display mode but is widely reported to fail on Apple Silicon when the power source changes (Amphetamine-Enhancer #28); the app itself is closed source. ³ KeepingYouAwake cannot keep the lid closed by design, since it wraps <code>caffeinate</code> (issue #66). ⁴ <code>caffeinate -i</code> runs on battery; <code>-s</code> is AC-only.</p>
   </div>
 </section>
 
@@ -446,24 +446,25 @@
   <div class="wrap reveal">
     <p class="eyebrow">Questions</p>
     <h2 class="sec">FAQ</h2>
-    <details><summary>How do I keep my MacBook awake with the lid closed without a monitor?</summary><p>Install Sleepless, click the coffee cup in the menu bar, flip the switch on, and close the lid (the laptop screen, also called the flap). It keeps the Mac awake on battery with no external display, using <code>pmset disablesleep</code>. No dummy HDMI plug or clamshell adapter is needed.</p></details>
-    <details><summary>Why does my MacBook sleep when I close the lid even with Amphetamine or KeepingYouAwake?</summary><p>Those tools are built on macOS power assertions, which stop the idle timer but cannot override the hardware lid-close trigger. KeepingYouAwake wraps <code>caffeinate</code>, which its maintainer confirms cannot do lid-close. <code>pmset disablesleep</code>, which Sleepless uses, is a lower-level setting that can.</p></details>
+    <details><summary>How does the Windows version keep running with the lid closed?</summary><p>It saves the current Windows power plan's plugged-in and battery lid actions, temporarily sets both to Do nothing, and holds a system-required power request. NoNap restores the saved actions when it stops and recovers an interrupted session at the next launch.</p></details>
+    <details><summary>How do I keep my MacBook awake with the lid closed without a monitor?</summary><p>Install NoNap, click the coffee cup in the menu bar, flip the switch on, and close the lid (the laptop screen, also called the flap). It keeps the Mac awake on battery with no external display, using <code>pmset disablesleep</code>. No dummy HDMI plug or clamshell adapter is needed.</p></details>
+    <details><summary>Why does my MacBook sleep when I close the lid even with Amphetamine or KeepingYouAwake?</summary><p>Those tools are built on macOS power assertions, which stop the idle timer but cannot override the hardware lid-close trigger. KeepingYouAwake wraps <code>caffeinate</code>, which its maintainer confirms cannot do lid-close. <code>pmset disablesleep</code>, which NoNap uses, is a lower-level setting that can.</p></details>
     <details><summary>Does pmset disablesleep still work on Apple Silicon (M1/M2/M3)?</summary><p>Yes. <code>pmset -a disablesleep 1</code> sets the kernel's <code>SleepDisabled</code> flag on Apple Silicon, confirmed firsthand on macOS 26.3, which keeps a MacBook awake with the lid closed on battery. Apple does not officially document the setting, so verify it with <code>pmset -g | grep SleepDisabled</code>. Most claims that it stopped working describe <code>caffeinate</code>, a different mechanism.</p></details>
-    <details><summary>Is it safe to run a MacBook with the lid closed? Will it overheat or drain the battery?</summary><p>It is safe for light, unattended work like downloads, syncs, or a hotspot. Heavy sustained load with the lid fully closed reduces airflow, so use judgement there. Sleepless turns itself off at the floor you set and in Low Power Mode, and the auto-off timer caps how long it stays on.</p></details>
-    <details><summary>Does Sleepless require sudo, a kernel extension, or a background daemon?</summary><p>It needs one tightly scoped <code>sudo</code> grant (two exact <code>pmset</code> commands, nothing else) so a GUI app can flip the setting without a password prompt. There is no kernel extension and no background daemon. The whole app is a single AppKit file.</p></details>
-    <details><summary>Can I run AI agents or long jobs overnight with the lid closed?</summary><p>Yes. Switch Sleepless on, set a battery floor, close the lid, and an agent run, build, render, or training job keeps going. Plug in for an all-nighter, or stay on battery with a floor and timer so it stops itself before the battery runs low.</p></details>
+    <details><summary>Is it safe to run a MacBook with the lid closed? Will it overheat or drain the battery?</summary><p>It is safe for light, unattended work like downloads, syncs, or a hotspot. Heavy sustained load with the lid fully closed reduces airflow, so use judgement there. NoNap turns itself off at the floor you set and in Low Power Mode, and the auto-off timer caps how long it stays on.</p></details>
+    <details><summary>Does NoNap require elevated privileges or a background service?</summary><p>On macOS it needs one tightly scoped <code>sudo</code> grant for two exact <code>pmset</code> commands. The Windows app runs per-user and requests no administrator elevation, though managed-device policy can reject power-plan changes. Neither version installs a kernel extension or persistent service.</p></details>
+    <details><summary>Can I run AI agents or long jobs overnight with the lid closed?</summary><p>Yes. Switch NoNap on, set a battery floor, close the lid, and an agent run, build, render, or training job keeps going. Plug in for an all-nighter, or stay on battery with a floor and timer so it stops itself before the battery runs low.</p></details>
   </div>
 </section>
 
 <section class="band">
   <div class="wrap reveal">
     <div class="band-card glass">
-      <img src="icon.png" alt="Sleepless app icon">
+      <img src="icon.png" alt="NoNap app icon">
       <h2 class="sec">Keep it awake in two minutes</h2>
       <p class="lead">Install with Homebrew, or build it from source and read every line first.</p>
       <div class="row">
-        <div class="brewbar"><span><span class="dollar">$ </span>brew install --cask aboudjem/tap/sleepless</span><button class="copy" data-cmd="brew install --cask aboudjem/tap/sleepless">Copy</button></div>
-        <a class="btn btn-primary" href="https://github.com/Aboudjem/Sleepless/releases/latest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>Download for macOS</a>
+        <div class="brewbar"><span><span class="dollar">$ </span>git clone https://github.com/Tsan1024/NoNap.git</span><button class="copy" data-cmd="git clone https://github.com/Tsan1024/NoNap.git">Copy</button></div>
+        <a class="btn btn-primary" href="https://github.com/Tsan1024/NoNap/releases/latest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>Download</a>
       </div>
     </div>
   </div>
@@ -472,13 +473,13 @@
 <footer>
   <div class="wrap">
     <div class="footlinks">
-      <a href="https://github.com/Aboudjem/Sleepless">GitHub</a>
-      <a href="https://github.com/Aboudjem/Sleepless/blob/main/README.md">Docs</a>
-      <a href="https://github.com/Aboudjem/Sleepless/blob/main/SECURITY.md">Security</a>
-      <a href="https://github.com/Aboudjem/Sleepless/blob/main/docs/AUDIT.md">Audit</a>
-      <a href="https://github.com/Aboudjem/Sleepless/releases/latest">Releases</a>
+      <a href="https://github.com/Tsan1024/NoNap">GitHub</a>
+      <a href="https://github.com/Tsan1024/NoNap/blob/main/README.md">Docs</a>
+      <a href="https://github.com/Tsan1024/NoNap/blob/main/SECURITY.md">Security</a>
+      <a href="https://github.com/Tsan1024/NoNap/blob/main/docs/AUDIT.md">Audit</a>
+      <a href="https://github.com/Tsan1024/NoNap/releases/latest">Releases</a>
     </div>
-    <p>Open source, MIT licensed. Built by <a href="https://github.com/Aboudjem">Adam Boudjemaa</a>.<br>Sleepless is not affiliated with Apple. macOS is a trademark of Apple Inc.</p>
+    <p>Open source, MIT licensed. Maintained at <a href="https://github.com/Tsan1024/NoNap">Tsan1024/NoNap</a>.<br>NoNap is not affiliated with Apple or Microsoft.</p>
   </div>
 </footer>
 

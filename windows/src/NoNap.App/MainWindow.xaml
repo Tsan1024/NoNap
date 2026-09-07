@@ -1,0 +1,83 @@
+<Window x:Class="NoNap.Windows.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="NoNap" Width="390" Height="470" ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen" ShowInTaskbar="False">
+  <Border Padding="24" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+
+      <Grid Grid.Row="0" Margin="0,0,0,18">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+          <TextBlock Text="NoNap" FontSize="22" FontWeight="SemiBold" />
+          <TextBlock x:Name="StateText" Margin="0,4,0,0" Foreground="Gray" />
+        </StackPanel>
+        <ToggleButton x:Name="KeepAwakeToggle" Grid.Column="1" VerticalAlignment="Center"
+                      Click="KeepAwakeToggle_Click" Padding="13,7" />
+      </Grid>
+
+      <Separator Grid.Row="1" />
+
+      <StackPanel Grid.Row="2" Margin="0,16,0,8">
+        <Grid>
+          <TextBlock x:Name="CountdownLabel" FontWeight="SemiBold" />
+          <TextBox x:Name="CountdownField" Width="92" HorizontalAlignment="Right"
+                   TextAlignment="Right" LostFocus="CountdownField_LostFocus"
+                   KeyDown="CountdownField_KeyDown" />
+        </Grid>
+        <Slider x:Name="CountdownSlider" Minimum="0" Maximum="24" TickFrequency="0.5"
+                IsSnapToTickEnabled="True" Margin="0,12,0,0"
+                ValueChanged="CountdownSlider_ValueChanged" />
+        <Grid Margin="0,2,0,0">
+          <TextBlock x:Name="NoLimitText" FontSize="11" Foreground="Gray" />
+          <TextBlock x:Name="MaxTimeText" HorizontalAlignment="Right" FontSize="11" Foreground="Gray" />
+        </Grid>
+      </StackPanel>
+
+      <StackPanel Grid.Row="3" Margin="0,12,0,8">
+        <Grid>
+          <TextBlock x:Name="BatteryLabel" FontWeight="SemiBold" />
+          <TextBlock x:Name="BatteryFloorText" HorizontalAlignment="Right" />
+        </Grid>
+        <Slider x:Name="BatterySlider" Minimum="5" Maximum="50" TickFrequency="1"
+                IsSnapToTickEnabled="True" Margin="0,12,0,0"
+                ValueChanged="BatterySlider_ValueChanged" />
+        <TextBlock x:Name="BatteryEstimateText" Margin="0,6,0,0" FontSize="11" Foreground="Gray" />
+      </StackPanel>
+
+      <Separator Grid.Row="4" Margin="0,10" />
+
+      <StackPanel Grid.Row="5" Margin="0,4,0,0">
+        <CheckBox x:Name="StartupCheckBox" Click="StartupCheckBox_Click" />
+        <Grid Margin="0,16,0,0">
+          <TextBlock x:Name="LanguageLabel" VerticalAlignment="Center" />
+          <ComboBox x:Name="LanguagePicker" Width="128" HorizontalAlignment="Right"
+                    SelectionChanged="LanguagePicker_SelectionChanged">
+            <ComboBoxItem Content="English" Tag="en" />
+            <ComboBoxItem Content="简体中文" Tag="zh-CN" />
+          </ComboBox>
+        </Grid>
+        <TextBlock x:Name="SafetyText" Margin="0,18,0,0" TextWrapping="Wrap"
+                   FontSize="11" Foreground="Gray" />
+      </StackPanel>
+
+      <Button x:Name="HideButton" Grid.Row="6" HorizontalAlignment="Right"
+              MinWidth="88" Padding="12,5" Click="HideButton_Click" />
+    </Grid>
+  </Border>
+</Window>

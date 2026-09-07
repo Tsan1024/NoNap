@@ -1,13 +1,12 @@
 name: Feature request
-description: Suggest an idea for Sleepless
+description: Suggest an idea for NoNap
 labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
-        Sleepless is deliberately small. Features that grow the privilege surface (more
-        sudo, a helper daemon, a kext) are unlikely to land — the tight security model is a
-        core feature. Ideas that keep it small, native, and honest are very welcome.
+        NoNap is deliberately small. Features that grow the platform privilege surface are
+        unlikely to land. Ideas that keep it small, native, and honest are very welcome.
   - type: textarea
     id: problem
     attributes:
@@ -33,5 +32,5 @@ body:
     attributes:
       label: Scope check
       options:
-        - label: This does not require additional sudo privileges or a background daemon/kext.
+        - label: This does not require broader privileges, a background service, or a kernel extension.
           required: false

@@ -1,106 +1,157 @@
 name: Release
 
-# Cut a release from a tag. Building on a GitHub-hosted runner, signing the build
-# provenance with Sigstore (SLSA Build L2), and publishing the zip + checksums means
-# anyone can verify the download came from this exact source, with no Apple account
-# involved. See docs/AUDIT.md for how to verify as a user.
-
 on:
   push:
     tags: ['v*']
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to (re)build a release for, e.g. v1.1.0'
+        description: 'Tag to build, for example v0.1.0'
         required: true
 
 permissions:
-  contents: write       # create the release + upload assets
-  id-token: write       # Sigstore OIDC, required by attest-build-provenance
-  attestations: write   # write the build-provenance attestation to this repo
+  contents: read
 
 jobs:
-  release:
-    name: Build, attest, and publish
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - id: version
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          TAG="${INPUT_TAG:-$REF_NAME}"
+          case "$TAG" in v*) ;; *) echo "Tag must start with v" >&2; exit 1 ;; esac
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+  macos:
+    needs: prepare
     runs-on: macos-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@v4
-
-      - name: Resolve tag and version
-        id: ver
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+      - name: Build macOS app
         run: |
           set -euo pipefail
-          TAG="${{ github.event.inputs.tag || github.ref_name }}"
-          echo "tag=$TAG"            >> "$GITHUB_OUTPUT"
-          echo "version=${TAG#v}"    >> "$GITHUB_OUTPUT"
+          TARGET="arm64-apple-macos13.0" ./macos/build.sh "$PWD/dist"
+          codesign --verify --deep --strict "dist/NoNap.app"
+          ditto -c -k --keepParent "dist/NoNap.app" "NoNap-${{ needs.prepare.outputs.version }}-macOS-arm64.zip"
+      - uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: NoNap-${{ needs.prepare.outputs.version }}-macOS-arm64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-macos
+          path: NoNap-${{ needs.prepare.outputs.version }}-macOS-arm64.zip
+          if-no-files-found: error
 
-      - name: Toolchain
+  windows:
+    needs: prepare
+    runs-on: windows-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Build Windows x64 app
+        shell: pwsh
         run: |
-          sw_vers
-          swiftc --version
-          echo "SDK: $(xcrun --sdk macosx --show-sdk-version 2>/dev/null || echo n/a)"
-
-      - name: Build NoNap.app
+          ./windows/build.ps1 -Version "${{ needs.prepare.outputs.version }}"
+          Compress-Archive -Path windows/dist/win-x64/NoNap.exe `
+            -DestinationPath "NoNap-${{ needs.prepare.outputs.version }}-Windows-x64-portable.zip"
+      - name: Build Windows installer
+        shell: pwsh
         run: |
-          set -euo pipefail
-          # Conservative deployment target so it compiles against the runner SDK and
-          # runs on macOS 13+. (Local + tested target is arm64-apple-macos26.0.)
-          TARGET="arm64-apple-macos13.0" ./build.sh "$PWD/dist"
-          codesign --verify --verbose=1 "dist/NoNap.app"
-
-      - name: Zip the app bundle
-        id: zip
-        run: |
-          set -euo pipefail
-          ASSET="NoNap-${{ steps.ver.outputs.version }}.zip"
-          ditto -c -k --keepParent "dist/NoNap.app" "$ASSET"
-          echo "asset=$ASSET" >> "$GITHUB_OUTPUT"
-          ls -la "$ASSET"
-
-      - name: SHA-256 checksums
-        run: |
-          set -euo pipefail
-          shasum -a 256 "${{ steps.zip.outputs.asset }}" | tee SHA256SUMS
-
-      - name: Attest build provenance (SLSA)
+          choco install innosetup --yes --no-progress
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" `
+            "/DMyAppVersion=${{ needs.prepare.outputs.version }}" `
+            "windows\installer\NoNap.iss"
+          Copy-Item "windows/dist/installer/NoNap-${{ needs.prepare.outputs.version }}-Windows-x64-Setup.exe" .
+      - name: Attest portable zip
         uses: actions/attest-build-provenance@v4
         with:
-          subject-path: ${{ steps.zip.outputs.asset }}
+          subject-path: NoNap-${{ needs.prepare.outputs.version }}-Windows-x64-portable.zip
+      - name: Attest installer
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: NoNap-${{ needs.prepare.outputs.version }}-Windows-x64-Setup.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: |
+            NoNap-${{ needs.prepare.outputs.version }}-Windows-x64-portable.zip
+            NoNap-${{ needs.prepare.outputs.version }}-Windows-x64-Setup.exe
+          if-no-files-found: error
 
-      - name: Extract release notes from CHANGELOG
+  publish:
+    needs: [prepare, macos, windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: release-assets
+      - name: Checksums and release notes
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
         run: |
           set -euo pipefail
-          VER="${{ steps.ver.outputs.version }}"
-          awk -v v="$VER" '
+          (cd release-assets && sha256sum NoNap-* | sort -k2 > SHA256SUMS)
+          awk -v v="$VERSION" '
             $0 ~ "^## \\[" v "\\]" {flag=1; next}
-            /^## \[/ && flag {exit}
+            /^## \\[/ && flag {exit}
             flag {print}
           ' CHANGELOG.md > NOTES.md
-          # Append verification footer.
+          if [ ! -s NOTES.md ]; then
+            awk '
+              /^## \\[Unreleased\\]/ {flag=1; next}
+              /^## \\[/ && flag {exit}
+              flag {print}
+            ' CHANGELOG.md > NOTES.md
+          fi
           {
             echo ""
             echo "---"
-            echo "### Verify this download"
+            echo "### Verify these downloads"
             echo '```sh'
-            echo "shasum -a 256 -c SHA256SUMS"
-            echo "gh attestation verify ${{ steps.zip.outputs.asset }} -R ${{ github.repository }}"
+            echo "sha256sum -c SHA256SUMS"
+            echo "gh attestation verify <asset> -R ${{ github.repository }}"
             echo '```'
-            echo "See [docs/AUDIT.md](https://github.com/${{ github.repository }}/blob/main/docs/AUDIT.md) for what each check proves."
           } >> NOTES.md
-          echo "----- NOTES.md -----"; cat NOTES.md
-
-      - name: Publish release
+      - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+          VERSION: ${{ needs.prepare.outputs.version }}
         run: |
           set -euo pipefail
-          TAG="${{ steps.ver.outputs.tag }}"
-          ASSET="${{ steps.zip.outputs.asset }}"
+          mapfile -t ASSETS < <(find release-assets -maxdepth 1 -type f -print | sort)
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$ASSET" SHA256SUMS --clobber
-            gh release edit "$TAG" --notes-file NOTES.md --title "NoNap ${{ steps.ver.outputs.version }}"
+            gh release upload "$TAG" "${ASSETS[@]}" --clobber
+            gh release edit "$TAG" --notes-file NOTES.md --title "NoNap $VERSION"
           else
-            gh release create "$TAG" "$ASSET" SHA256SUMS \
-              --title "NoNap ${{ steps.ver.outputs.version }}" \
-              --notes-file NOTES.md
+            gh release create "$TAG" "${ASSETS[@]}" --title "NoNap $VERSION" --notes-file NOTES.md
           fi

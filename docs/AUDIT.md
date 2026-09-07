@@ -1,6 +1,6 @@
-# Audit & verify Sleepless
+# Audit & verify NoNap
 
-Sleepless asks for a narrow slice of root, so it should be easy to check, not taken on
+The macOS build asks for a narrow slice of root, so it should be easy to check, not taken on
 faith. This page is the practical companion to [SECURITY.md](../SECURITY.md): the latter
 explains *why* the design is safe, this one shows you *how to confirm it yourself* and how
 to verify a download you did not build.
@@ -14,10 +14,11 @@ The whole app is one file. To satisfy yourself it does what it claims and nothin
 
 | Read | What you are checking |
 |---|---|
-| [`App.swift`](../App.swift) | Normal root calls are only `sudo -n /usr/bin/pmset -a disablesleep 0/1`. One-time setup uses a fixed in-memory command to atomically install the grant; no mutable bundle script is executed as root. No network calls. |
-| [`sleepless.sudoers.template`](../sleepless.sudoers.template) / [`grant.sh`](../grant.sh) | The passwordless grant permits exactly those two fully-specified commands, no wildcards, installed `root:wheel 0440`; its temporary file is created and validated in root-owned `/etc/sudoers.d`. |
-| [`build.sh`](../build.sh) | `swiftc` + a hand-assembled, ad-hoc-signed bundle. No downloaded blobs, no install-time scripts baked into the binary. |
-| [`uninstall.sh`](../uninstall.sh) | Removes the app, the login item, and the sudoers drop-in, then proves `sudo -n pmset …` prompts again. |
+| [`macos/App.swift`](../macos/App.swift) | Normal root calls are only `sudo -n /usr/bin/pmset -a disablesleep 0/1`. One-time setup uses a fixed in-memory command to atomically install the grant; no mutable bundle script is executed as root. No network calls. |
+| [`macos/nonap.sudoers.template`](../macos/nonap.sudoers.template) / [`macos/grant.sh`](../macos/grant.sh) | The passwordless grant permits exactly those two fully-specified commands, no wildcards, installed `root:wheel 0440`; its temporary file is created and validated in root-owned `/etc/sudoers.d`. |
+| [`macos/build.sh`](../macos/build.sh) | `swiftc` + a hand-assembled, ad-hoc-signed bundle. No downloaded blobs, no install-time scripts baked into the binary. |
+| [`macos/uninstall.sh`](../macos/uninstall.sh) | Removes the app, the login item, and the sudoers drop-in, then proves `sudo -n pmset …` prompts again. |
+| [`windows/src/NoNap.App/PowerController.cs`](../windows/src/NoNap.App/PowerController.cs) | Saves, changes, verifies, and restores the Windows AC/DC lid actions; the only native calls are visible in one file. |
 
 The single privileged file on your system is `/etc/sudoers.d/nonap-disablesleep`. Read
 it, and `sudo rm` it any time to revoke everything.
@@ -33,7 +34,7 @@ shasum -a 256 -c SHA256SUMS
 
 # 2. Provenance: this exact zip was built by NoNap's GitHub Actions release
 #    workflow, from this repo, at the released commit (SLSA Build L2, Sigstore-signed).
-gh attestation verify NoNap-<version>.zip -R Tsan1024/NoNap
+gh attestation verify <asset> -R Tsan1024/NoNap
 ```
 
 What each one proves:
@@ -61,10 +62,10 @@ cd NoNap && git checkout v<version>
 
 # Rebuild the executable with the release's deployment target.
 swiftc -O -parse-as-library -target arm64-apple-macos13.0 \
-  -framework AppKit -framework ServiceManagement App.swift BatteryEstimate.swift -o /tmp/NoNap-rebuilt
+  -framework AppKit -framework ServiceManagement macos/App.swift macos/BatteryEstimate.swift -o /tmp/NoNap-rebuilt
 
 # Unzip the release and compare the Mach-O inside the bundle.
-ditto -x -k NoNap-<version>.zip /tmp/rel
+ditto -x -k NoNap-<version>-macOS-arm64.zip /tmp/rel
 shasum -a 256 /tmp/NoNap-rebuilt /tmp/rel/NoNap.app/Contents/MacOS/NoNap
 ```
 
@@ -90,7 +91,7 @@ non-commercial, results public) for a multi-engine scan:
 # With a free VirusTotal API key:
 curl -s --request POST --url https://www.virustotal.com/api/v3/files \
   --header "x-apikey: $VT_API_KEY" \
-  --form file=@Sleepless-<version>.zip
+  --form file=@NoNap-<version>-macOS-arm64.zip
 # …then open the returned analysis URL, or just drag the zip onto virustotal.com.
 ```
 
@@ -104,7 +105,7 @@ That is the permalink for the v1.1.0 zip (the SHA-256 matches `SHA256SUMS`). It 
 
 ## Notarization (planned, not yet done)
 
-Sleepless is ad-hoc signed and **not notarized** today, because notarization needs a paid
+NoNap is ad-hoc signed and **not notarized** today, because notarization needs a paid
 Apple Developer ID. It is on the roadmap. The exact steps, for transparency and so anyone can
 do it from a fork, are:
 
@@ -125,6 +126,6 @@ xcrun stapler staple NoNap.app
 Prerequisite: [Apple Developer Program, $99/yr](https://developer.apple.com/programs/whats-included/),
 and a "Developer ID Application" certificate. Notarization removes the
 "Apple could not verify this app" first-launch block; it does not change anything about how
-the app works. The `/etc/sudoers.d` install step is what makes Sleepless ineligible for the
+the app works. The `/etc/sudoers.d` install step is what makes NoNap ineligible for the
 Mac App **Store**, but it does not block notarized *direct* distribution (notarization is an
 automated malware scan, not a behavioral policy review).

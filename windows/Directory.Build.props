@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <Version>0.0.2</Version>
+    <Authors>NoNap contributors</Authors>
+    <Copyright>Copyright © 2026 NoNap contributors</Copyright>
+    <RepositoryUrl>https://github.com/Tsan1024/NoNap</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Deterministic>true</Deterministic>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>

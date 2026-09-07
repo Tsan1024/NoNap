@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Moved platform implementations into dedicated `macos/` and `windows/` areas.
+
+### Added
+- A native Windows 10/11 x64 tray app with lid-close operation, countdown, battery cutoff,
+  Battery Saver protection, startup registration, and English / Simplified Chinese UI.
+- A Windows power-session journal that restores the prior AC and battery lid actions after
+  normal exit, safety shutdown, uninstall, or recovery from an interrupted session.
+- Separate macOS and Windows CI jobs and release assets, including a Windows installer and
+  portable zip.
+
 ## [0.0.2] - 2026-09-07
 
 ### Changed

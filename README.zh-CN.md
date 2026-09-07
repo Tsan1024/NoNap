@@ -7,9 +7,9 @@
 <p align="center"><strong>合盖不停工。</strong></p>
 <p align="center"><a href="README.md">English</a></p>
 
-NoNap 是一个轻量的 macOS 菜单栏工具，适合需要长时间运行本地任务的人。合盖前打开开关，MacBook 即使没有外接显示器，也可以继续编译、下载、训练模型或运行智能体任务。
+NoNap 是一个轻量的 macOS 菜单栏和 Windows 托盘工具，适合需要长时间运行本地任务的人。合盖前打开开关，电脑可以继续编译、下载、训练模型或运行智能体任务。
 
-它使用 macOS 原生的 `pmset disablesleep` 设置，不安装守护进程或内核扩展，不需要账号，也不收集遥测数据。
+macOS 和 Windows 版本分别使用所在系统的原生电源管理接口，不需要账号，也不收集遥测数据。
 
 ## 界面
 
@@ -22,20 +22,29 @@ NoNap 是一个轻量的 macOS 菜单栏工具，适合需要长时间运行本�
 - 一个开关控制合盖后是否继续运行。
 - 倒计时可设为 0–24 小时，使用明确单位显示（`10时00分 → 9时59分`）并与滑杆同步递减；`0` 表示不限时。
 - 电量保护阈值可设为 5%–50%。
-- 使用电池且进入低电量模式时自动停止。
-- 根据 macOS IOKit 数据显示预计可用时间，仅供参考。
+- 使用电池且进入低电量模式或 Windows 节电模式时自动停止。
+- 根据系统原生数据显示预计可用时间，仅供参考。
 - 可选“登录时打开”，界面支持简体中文和英文。
 
 首次启动时，Mac 的首选语言以 `zh` 开头便使用简体中文，否则使用英文。手动选择语言后，NoNap 会记住该选择。
 
-## 安装
+## 支持平台
+
+| 平台 | 支持范围 | 实现方式 |
+|---|---|---|
+| macOS | macOS 26 或更高版本的 Apple 芯片 Mac | Swift、AppKit、IOKit、`pmset` |
+| Windows | Windows 10/11 x64 | C#/.NET 8、WPF、Windows Power API |
+
+两套实现分别位于 [`macos/`](macos/) 和 [`windows/`](windows/)，保持相同的产品行为，使用各自的原生代码和安装包。
+
+## 在 macOS 安装
 
 NoNap 目前面向运行 macOS 26 或更高版本的 Apple 芯片 Mac。
 
 ```sh
 git clone https://github.com/Tsan1024/NoNap.git
 cd NoNap
-./install.sh
+./macos/install.sh
 ```
 
 安装脚本会构建 `/Applications/NoNap.app`，请求一次管理员授权，写入一条严格限定的 sudoers 规则，然后启动应用。
@@ -50,19 +59,33 @@ cd NoNap
 只构建应用、不安装：
 
 ```sh
-./build.sh
+./macos/build.sh
 ```
 
 制作 DMG 安装包：
 
 ```sh
-./package.sh
+./macos/package.sh
 ```
 
-## 卸载
+## 在 Windows 安装
+
+从 [Releases](https://github.com/Tsan1024/NoNap/releases) 下载
+`NoNap-<版本>-Windows-x64-Setup.exe`，也可以使用免安装压缩包。
+受管理电脑上的组策略可能禁止修改电源方案；遇到这种情况，NoNap 会报告错误并保持关闭。
+
+从源码构建需要安装 .NET 8 SDK，然后在 PowerShell 运行：
+
+```powershell
+.\windows\build.ps1
+```
+
+Windows 电源设置及异常恢复机制见 [`windows/README.md`](windows/README.md)。
+
+## 在 macOS 卸载
 
 ```sh
-./uninstall.sh
+./macos/uninstall.sh
 ```
 
 卸载脚本会恢复正常睡眠、移除应用和登录项、删除 sudoers 规则，并验证 `pmset` 已无法免密执行。

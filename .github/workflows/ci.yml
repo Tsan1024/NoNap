@@ -10,43 +10,61 @@ permissions:
   contents: read
 
 jobs:
-  build:
-    name: Build (swiftc, macos-latest)
+  macos:
+    name: macOS (Swift)
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Toolchain
         run: |
           sw_vers
           swiftc --version
           echo "SDK: $(xcrun --sdk macosx --show-sdk-version 2>/dev/null || echo n/a)"
-
-      - name: Compile App.swift (zero-warning gate)
-        run: |
-          set -euo pipefail
-          # Local + release builds target arm64-apple-macos26.0. CI compiles against the
-          # runner's SDK (which may predate macOS 26) purely as a clean-compile smoke test,
-          # so it does not force the 26.0 deployment target here.
-          swiftc -O -parse-as-library -framework AppKit App.swift BatteryEstimate.swift -o /tmp/NoNap 2> build.log \
-            || { echo "::group::swiftc output"; cat build.log; echo "::endgroup::"; exit 1; }
-          cat build.log
-          if grep -q "warning:" build.log; then
-            echo "::error::swiftc emitted warnings — zero-warning gate failed"
-            exit 1
-          fi
-          file /tmp/NoNap
-
+      - name: Smoke checks
+        run: bash macos/tests/smoke.sh
       - name: Assemble app bundle
         run: |
           set -euo pipefail
-          # Build the full bundle (conservative target so it works on the runner's SDK).
-          TARGET="arm64-apple-macos13.0" ./build.sh "$PWD/dist"
-          ls -la "dist/NoNap.app/Contents" "dist/NoNap.app/Contents/MacOS"
-
-      - name: Upload app artifact
+          TARGET="arm64-apple-macos13.0" ./macos/build.sh "$PWD/dist/macos"
+          codesign --verify --deep --strict "dist/macos/NoNap.app"
+      - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
-          name: NoNap-app
-          path: dist/NoNap.app
+          name: NoNap-macOS-app
+          path: dist/macos/NoNap.app
+          if-no-files-found: error
+
+  windows:
+    name: Windows 10/11 x64 (.NET)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Build and run checks
+        shell: pwsh
+        run: |
+          dotnet --info
+          dotnet build windows/NoNap.sln --configuration Release
+          dotnet run --project windows/tests/NoNap.Checks/NoNap.Checks.csproj --configuration Release
+      - name: Publish self-contained x64 app
+        shell: pwsh
+        run: |
+          ./windows/build.ps1
+          $process = Start-Process windows/dist/win-x64/NoNap.exe `
+            -ArgumentList "--restore-and-exit" -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "NoNap startup smoke test failed" }
+      - name: Build installer
+        shell: pwsh
+        run: |
+          choco install innosetup --yes --no-progress
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "windows\installer\NoNap.iss"
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NoNap-Windows-x64
+          path: |
+            windows/dist/win-x64/NoNap.exe
+            windows/dist/installer/NoNap-0.0.2-Windows-x64-Setup.exe
           if-no-files-found: error

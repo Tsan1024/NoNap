@@ -1,18 +1,17 @@
 # Security Policy
 
-NoNap asks for a narrow piece of root privilege, so it owes you a precise account
-of what that privilege is and why it is safe. This document is that account. Nothing
-here is hand-waved; every claim is something you can verify on your own machine.
+NoNap changes a security-sensitive power setting, so it owes you a precise account of
+what changes on each supported platform and how those changes are reversed.
 
 ## Reporting a vulnerability
 
-If you find a security issue, please **do not open a public issue**. Email
-**boudjemaa.adam@gmail.com** with details and steps to reproduce. You'll get an
-acknowledgement within a few days. Coordinated disclosure is appreciated.
+If you find a security issue, please **do not open a public issue**. Use GitHub's
+private vulnerability reporting for this repository with details and reproduction steps.
+Coordinated disclosure is appreciated.
 
 Supported version: the latest release on the `main` branch.
 
-## What NoNap actually does
+## What NoNap actually does on macOS
 
 NoNap keeps a Mac awake with the lid closed by toggling an undocumented but
 long-standing `pmset` setting:
@@ -33,10 +32,10 @@ Because it is undocumented, Apple could change or remove it in a future macOS. N
 reads the live value back after every toggle, so the menu-bar state always reflects
 reality rather than assuming the command worked.
 
-## The passwordless grant — exactly what it permits
+## The macOS passwordless grant — exactly what it permits
 
 A GUI app has no terminal to type a password into, so NoNap runs `pmset` through a
-tightly scoped `/etc/sudoers.d` drop-in. The first in-app toggle (or `grant.sh` for a
+tightly scoped `/etc/sudoers.d` drop-in. The first in-app toggle (or `macos/grant.sh` for a
 source install) writes this, owned `root:wheel`, mode `0440`:
 
 ```
@@ -55,7 +54,7 @@ Consequences you can rely on:
   or any other argument vector **do not match** the rule and will demand a password. The
   grant cannot be widened by appending flags.
 - Normal toggles call `sudo` with an **argv array**, not a shell string
-  (`Process.arguments` in `App.swift`), so there is no command substitution or
+  (`Process.arguments` in `macos/App.swift`), so there is no command substitution or
   word-splitting surface in the recurring privileged path.
 - The one-time setup runs a fixed command from the already-running app. It validates the
   account name and creates, validates, and renames its temporary file entirely inside
@@ -71,7 +70,7 @@ case is *"your Mac was kept awake, or allowed to sleep."* It is **not** data exf
 and **not** root code execution — the two pinned arguments to one Apple binary do not
 provide either.
 
-If that trade is not acceptable to you, build from source and **don't** run `install.sh`;
+If that trade is not acceptable to you, build from source and **don't** run `macos/install.sh`;
 you can toggle `sudo pmset -a disablesleep 1/0` manually instead and skip the grant.
 
 ## Reboot resets it (a safety net you can verify)
@@ -85,6 +84,27 @@ that flips the flag back to `0` while the Mac is awake and discharging, so a for
 "on" state can't drain the battery to empty. Normal app termination also restores sleep.
 Force-killing or crashing any user-space app can bypass its in-process timer and battery
 monitor; reboot remains the recovery path for that case.
+
+## What NoNap does on Windows
+
+The Windows app is a per-user WPF tray application. It does not install a service or driver
+and its manifest requests `asInvoker`, not administrator elevation. When the user enables
+NoNap, it:
+
+1. Reads the active power-plan GUID and the existing AC and DC lid-close actions.
+2. Journals those values under `%LOCALAPPDATA%\NoNap\power-session.json`.
+3. Sets both lid-close actions to `Do nothing` through the Windows Power APIs.
+4. Holds a `PowerRequestSystemRequired` request while the session is active.
+
+On turn-off, safety cutoff, normal exit, or uninstall, NoNap clears its power request and
+restores the journaled actions. At the next launch it restores an unfinished journal before
+doing anything else. If a user or administrator changes either lid action away from the
+value NoNap wrote while a session is active, restoration preserves that newer value.
+
+Group Policy or device-management policy may reject the change. NoNap reports the failure
+and stays off. Windows cannot guarantee identical closed-lid behavior on every firmware and
+Modern Standby implementation, so the Windows build should be treated as best effort and
+tested on the target laptop before unattended use.
 
 ## Code signing, notarization, and Gatekeeper
 
@@ -123,7 +143,7 @@ project's build, with no Apple account and no shared secret:
 
 ```sh
 shasum -a 256 -c SHA256SUMS                                  # bytes match what was published
-gh attestation verify NoNap-<version>.zip -R Tsan1024/NoNap   # built by this repo's release workflow
+gh attestation verify <asset> -R Tsan1024/NoNap               # built by this repo's release workflow
 ```
 
 The full walkthrough (what each check proves, how to reproduce the build, and a VirusTotal
@@ -131,7 +151,7 @@ scan) is in **[docs/AUDIT.md](docs/AUDIT.md)**.
 
 ## Completely removing the privilege
 
-`./uninstall.sh` restores normal sleep, removes the app and login item, deletes the
+`./macos/uninstall.sh` restores normal sleep, removes the app and login item, deletes the
 sudoers drop-in, and then **proves** revocation by showing that `sudo -n pmset …` prompts
 for a password again. The single file to audit or delete by hand is
 `/etc/sudoers.d/nonap-disablesleep`.

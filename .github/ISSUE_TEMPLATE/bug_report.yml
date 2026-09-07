@@ -5,15 +5,14 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting. Sleepless is verified on macOS 26 (Tahoe) / Apple Silicon;
-        behavior elsewhere isn't guaranteed because `disablesleep` is undocumented — please
-        include your versions below so we can tell drift from a real bug.
+        Thanks for reporting. NoNap supports macOS 26 on Apple silicon and Windows 10/11
+        on x64. Please include your platform details below.
   - type: textarea
     id: what-happened
     attributes:
       label: What happened?
       description: What did you expect, and what happened instead?
-      placeholder: I turned Sleepless on, closed the lid, and the Mac still slept…
+      placeholder: I turned NoNap on, closed the lid, and the computer still slept…
     validations:
       required: true
   - type: textarea
@@ -21,42 +20,45 @@ body:
     attributes:
       label: Steps to reproduce
       placeholder: |
-        1. Click the coffee cup in the menu bar
+        1. Open NoNap from the menu bar or system tray
         2. Toggle the switch on
         3. Close the lid (on battery)
     validations:
       required: true
-  - type: input
-    id: macos
+  - type: dropdown
+    id: platform
     attributes:
-      label: macOS version
-      description: "Output of: sw_vers -productVersion"
-      placeholder: "26.5"
+      label: Platform
+      options:
+        - macOS (Apple silicon)
+        - Windows 10 x64
+        - Windows 11 x64
     validations:
       required: true
   - type: input
-    id: model
+    id: os-version
     attributes:
-      label: Mac model
-      description: "Output of: sysctl -n hw.model"
-      placeholder: "Mac17,7"
+      label: OS version and computer model
+      placeholder: "macOS 26.5 / Mac17,7 or Windows 11 24H2 / laptop model"
     validations:
       required: true
-  - type: input
-    id: sleepdisabled
+  - type: textarea
+    id: power-state
     attributes:
-      label: pmset state
-      description: "Output of: pmset -g | grep SleepDisabled"
-      placeholder: "SleepDisabled 1"
+      label: Power state
+      description: "macOS: pmset -g | grep SleepDisabled. Windows: powercfg /query SCHEME_CURRENT SUB_BUTTONS LIDACTION"
+      render: shell
     validations:
       required: false
   - type: dropdown
     id: install-method
     attributes:
-      label: How did you install Sleepless?
+      label: How did you install NoNap?
       options:
-        - Built from source (build.sh / install.sh)
-        - Downloaded the release .zip
+        - Built from source
+        - Downloaded the macOS release zip
+        - Downloaded the Windows installer
+        - Downloaded the Windows portable zip
         - Homebrew tap (brew install --cask)
     validations:
       required: true

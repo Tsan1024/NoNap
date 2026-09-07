@@ -7,9 +7,9 @@
 <p align="center"><strong>Close the lid. Keep it working.</strong></p>
 <p align="center"><a href="README.zh-CN.md">简体中文</a></p>
 
-NoNap is a small macOS menu-bar utility for long-running local work. Turn it on before closing your MacBook and the system can continue compiling, downloading, training, or running an agent without an external display.
+NoNap is a small macOS menu-bar and Windows tray utility for long-running local work. Turn it on before closing your laptop and the system can continue compiling, downloading, training, or running an agent.
 
-It changes the native `pmset disablesleep` setting. No daemon, kernel extension, account, or telemetry is involved.
+The macOS and Windows apps use their platform's native power-management interfaces. No account or telemetry is involved.
 
 ## Interface
 
@@ -22,20 +22,30 @@ It changes the native `pmset disablesleep` setting. No daemon, kernel extension,
 - One switch for lid-closed operation.
 - A 0–24 hour countdown shown with explicit units (`10h 00m → 9h 59m`) and a matching slider; `0` means no limit.
 - A configurable battery cutoff from 5% to 50%.
-- Automatic stop when macOS Low Power Mode becomes active on battery.
-- A display-only battery-time estimate based on macOS IOKit data.
+- Automatic stop when Low Power Mode or Battery Saver becomes active on battery.
+- A display-only battery-time estimate based on native system data.
 - Optional Open at Login and English / Simplified Chinese UI.
 
 NoNap remembers a manual language selection. On first launch, it uses Simplified Chinese when the Mac's preferred language starts with `zh`; otherwise it uses English.
 
-## Install
+## Platforms
+
+| Platform | Support | Implementation |
+|---|---|---|
+| macOS | Apple silicon, macOS 26 or later | Swift, AppKit, IOKit, `pmset` |
+| Windows | Windows 10/11 x64 | C#/.NET 8, WPF, Windows Power APIs |
+
+The implementations live in [`macos/`](macos/) and [`windows/`](windows/). They share the
+same product behavior but use separate native code and release packages.
+
+## Install on macOS
 
 NoNap currently targets Apple silicon Macs running macOS 26 or later.
 
 ```sh
 git clone https://github.com/Tsan1024/NoNap.git
 cd NoNap
-./install.sh
+./macos/install.sh
 ```
 
 The installer builds `/Applications/NoNap.app`, asks once for administrator approval, installs a narrowly scoped sudoers rule, and launches the app.
@@ -50,26 +60,41 @@ That rule permits only these two commands for the current user:
 To build without installing anything:
 
 ```sh
-./build.sh
+./macos/build.sh
 ```
 
 To create a DMG:
 
 ```sh
-./package.sh
+./macos/package.sh
 ```
 
-## Remove
+## Install on Windows
+
+Download `NoNap-<version>-Windows-x64-Setup.exe` from
+[Releases](https://github.com/Tsan1024/NoNap/releases), or use the portable x64 zip.
+Windows Group Policy can prevent power-plan changes on managed computers; NoNap reports
+that condition and remains off.
+
+To build from source, install the .NET 8 SDK and run:
+
+```powershell
+.\windows\build.ps1
+```
+
+See [`windows/README.md`](windows/README.md) for the Windows power and recovery model.
+
+## Remove on macOS
 
 ```sh
-./uninstall.sh
+./macos/uninstall.sh
 ```
 
 The uninstaller restores normal sleep, removes the app and login item, deletes the sudoers rule, and verifies that passwordless `pmset` access is gone.
 
 ## Safety notes
 
-Lid-closed operation can increase heat and battery use. Keep the Mac ventilated, choose a battery cutoff, and use a finite timer when leaving work unattended. The battery-time estimate changes with workload and never controls the safety cutoff.
+Lid-closed operation can increase heat and battery use. Keep the computer ventilated, choose a battery cutoff, and use a finite timer when leaving work unattended. The battery-time estimate changes with workload and never controls the safety cutoff.
 
 See [SECURITY.md](SECURITY.md) for the permission model and [docs/AUDIT.md](docs/AUDIT.md) for verification steps.
 

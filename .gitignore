@@ -1,6 +1,7 @@
 # Build output
 build/
 *.app/
+!windows/src/NoNap.App/
 Sleepless.iconset/
 
 # Compiled binaries / intermediates
@@ -24,3 +25,11 @@ Sleepless.iconset/
 .idea/
 *.swp
 .omc/
+# Platform build outputs
+macos/build/
+macos/dist/
+windows/bin/
+windows/obj/
+windows/dist/
+windows/**/bin/
+windows/**/obj/
