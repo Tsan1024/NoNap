@@ -32,14 +32,16 @@ macOS 和 Windows 版本分别使用所在系统的原生电源管理接口，�
 
 | 平台 | 支持范围 | 实现方式 |
 |---|---|---|
-| macOS | macOS 26 或更高版本的 Apple 芯片 Mac | Swift、AppKit、IOKit、`pmset` |
+| macOS | macOS 26 或更高版本，支持 Apple 芯片（arm64）和 Intel（x86_64） | Swift、AppKit、IOKit、`pmset` |
 | Windows | Windows 10/11 x64 | C#/.NET 8、WPF、Windows Power API |
 
 两套实现分别位于 [`macos/`](macos/) 和 [`windows/`](windows/)，保持相同的产品行为，使用各自的原生代码和安装包。
 
 ## 在 macOS 安装
 
-NoNap 目前面向运行 macOS 26 或更高版本的 Apple 芯片 Mac。
+NoNap 支持运行 macOS 26 或更高版本的 Apple 芯片和 Intel x86_64 Mac。
+请从 [Releases](https://github.com/Tsan1024/NoNap/releases) 下载对应压缩包：
+Apple 芯片选择 `macOS-arm64`，Intel Mac 选择 `macOS-x86_64`。
 
 ```sh
 git clone https://github.com/Tsan1024/NoNap.git

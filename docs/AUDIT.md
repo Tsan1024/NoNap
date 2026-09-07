@@ -60,12 +60,13 @@ The compile is deterministic for a given toolchain, so you can rebuild and compa
 git clone https://github.com/Tsan1024/NoNap.git
 cd NoNap && git checkout v<version>
 
-# Rebuild the executable with the release's deployment target.
-swiftc -O -parse-as-library -target arm64-apple-macos13.0 \
+# Choose arm64 or x86_64 to match the archive, then rebuild the executable.
+ARCH=arm64
+swiftc -O -parse-as-library -target "$ARCH-apple-macos26.0" \
   -framework AppKit -framework ServiceManagement macos/App.swift macos/BatteryEstimate.swift -o /tmp/NoNap-rebuilt
 
 # Unzip the release and compare the Mach-O inside the bundle.
-ditto -x -k NoNap-<version>-macOS-arm64.zip /tmp/rel
+ditto -x -k "NoNap-<version>-macOS-$ARCH.zip" /tmp/rel
 shasum -a 256 /tmp/NoNap-rebuilt /tmp/rel/NoNap.app/Contents/MacOS/NoNap
 ```
 
@@ -91,7 +92,7 @@ non-commercial, results public) for a multi-engine scan:
 # With a free VirusTotal API key:
 curl -s --request POST --url https://www.virustotal.com/api/v3/files \
   --header "x-apikey: $VT_API_KEY" \
-  --form file=@NoNap-<version>-macOS-arm64.zip
+  --form file=@NoNap-<version>-macOS-<arch>.zip
 # …then open the returned analysis URL, or just drag the zip onto virustotal.com.
 ```
 

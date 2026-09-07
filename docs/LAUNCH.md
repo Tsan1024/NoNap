@@ -165,7 +165,7 @@ fresh launch window.
 - **Description:** the AlternativeTo description above.
 - **Release notes (1.0.0):** Initial release. Keep a Mac awake with the lid closed, on
   battery, no external display; battery-floor auto-off; native menu-bar app.
-- **Requirements:** macOS 26 (Tahoe), Apple Silicon.
+- **Requirements:** macOS 26 (Tahoe), Apple silicon or Intel x86_64.
 - Lower priority; mainly an SEO/listing presence.
 
 ---

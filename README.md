@@ -32,7 +32,7 @@ NoNap remembers a manual language selection. On first launch, it uses Simplified
 
 | Platform | Support | Implementation |
 |---|---|---|
-| macOS | Apple silicon, macOS 26 or later | Swift, AppKit, IOKit, `pmset` |
+| macOS | Apple silicon (arm64) and Intel (x86_64), macOS 26 or later | Swift, AppKit, IOKit, `pmset` |
 | Windows | Windows 10/11 x64 | C#/.NET 8, WPF, Windows Power APIs |
 
 The implementations live in [`macos/`](macos/) and [`windows/`](windows/). They share the
@@ -40,7 +40,9 @@ same product behavior but use separate native code and release packages.
 
 ## Install on macOS
 
-NoNap currently targets Apple silicon Macs running macOS 26 or later.
+NoNap supports Apple silicon and Intel x86_64 Macs running macOS 26 or later.
+Download the archive matching your Mac from [Releases](https://github.com/Tsan1024/NoNap/releases):
+`macOS-arm64` for Apple silicon or `macOS-x86_64` for Intel.
 
 ```sh
 git clone https://github.com/Tsan1024/NoNap.git

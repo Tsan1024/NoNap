@@ -32,7 +32,18 @@ jobs:
 
   macos:
     needs: prepare
-    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-26
+            target: arm64-apple-macos26.0
+          - arch: x86_64
+            runner: macos-26-intel
+            target: x86_64-apple-macos26.0
+    name: macOS ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
       id-token: write
@@ -44,16 +55,17 @@ jobs:
       - name: Build macOS app
         run: |
           set -euo pipefail
-          TARGET="arm64-apple-macos13.0" ./macos/build.sh "$PWD/dist"
+          TARGET="${{ matrix.target }}" ./macos/build.sh "$PWD/dist"
+          file "dist/NoNap.app/Contents/MacOS/NoNap" | grep -q "${{ matrix.arch }}"
           codesign --verify --deep --strict "dist/NoNap.app"
-          ditto -c -k --keepParent "dist/NoNap.app" "NoNap-${{ needs.prepare.outputs.version }}-macOS-arm64.zip"
+          ditto -c -k --keepParent "dist/NoNap.app" "NoNap-${{ needs.prepare.outputs.version }}-macOS-${{ matrix.arch }}.zip"
       - uses: actions/attest-build-provenance@v4
         with:
-          subject-path: NoNap-${{ needs.prepare.outputs.version }}-macOS-arm64.zip
+          subject-path: NoNap-${{ needs.prepare.outputs.version }}-macOS-${{ matrix.arch }}.zip
       - uses: actions/upload-artifact@v4
         with:
-          name: release-macos
-          path: NoNap-${{ needs.prepare.outputs.version }}-macOS-arm64.zip
+          name: release-macos-${{ matrix.arch }}
+          path: NoNap-${{ needs.prepare.outputs.version }}-macOS-${{ matrix.arch }}.zip
           if-no-files-found: error
 
   windows:

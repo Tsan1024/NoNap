@@ -11,8 +11,18 @@ permissions:
 
 jobs:
   macos:
-    name: macOS (Swift)
-    runs-on: macos-latest
+    name: macOS ${{ matrix.arch }} (Swift)
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-26
+            target: arm64-apple-macos26.0
+          - arch: x86_64
+            runner: macos-26-intel
+            target: x86_64-apple-macos26.0
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
       - name: Toolchain
@@ -24,13 +34,13 @@ jobs:
         run: bash macos/tests/smoke.sh
       - name: Assemble app bundle
         run: |
-          set -euo pipefail
-          TARGET="arm64-apple-macos13.0" ./macos/build.sh "$PWD/dist/macos"
+          TARGET="${{ matrix.target }}" ./macos/build.sh "$PWD/dist/macos"
+          file "dist/macos/NoNap.app/Contents/MacOS/NoNap" | grep -q "${{ matrix.arch }}"
           codesign --verify --deep --strict "dist/macos/NoNap.app"
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
-          name: NoNap-macOS-app
+          name: NoNap-macOS-${{ matrix.arch }}-app
           path: dist/macos/NoNap.app
           if-no-files-found: error
 
@@ -66,5 +76,5 @@ jobs:
           name: NoNap-Windows-x64
           path: |
             windows/dist/win-x64/NoNap.exe
-            windows/dist/installer/NoNap-0.0.3-Windows-x64-Setup.exe
+            windows/dist/installer/NoNap-*-Windows-x64-Setup.exe
           if-no-files-found: error

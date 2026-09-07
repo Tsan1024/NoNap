@@ -30,7 +30,7 @@
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "NoNap",
-  "operatingSystem": ["macOS 26 (Apple Silicon)", "Windows 10", "Windows 11"],
+  "operatingSystem": ["macOS 26 (Apple silicon and Intel x86_64)", "Windows 10", "Windows 11"],
   "applicationCategory": "UtilitiesApplication",
   "description": "A native macOS menu-bar and Windows tray app that keeps a laptop running with the lid closed, with a countdown and battery cutoff.",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -320,7 +320,7 @@
         <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-D946EF?style=flat-square&labelColor=14122A"></a>
         <a href="https://github.com/Tsan1024/NoNap/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/Tsan1024/NoNap?style=flat-square&color=6366F1&labelColor=14122A"></a>
       </div>
-      <p class="meta">macOS 26 Apple silicon · Windows 10/11 x64 · MIT · no telemetry</p>
+      <p class="meta">macOS 26 arm64 / x86_64 · Windows 10/11 x64 · MIT · no telemetry</p>
     </div>
     <div class="hero-visual">
       <div class="shot-glow"></div>
@@ -346,9 +346,9 @@
         <div class="ts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18 22 12 16 6"/><path d="M8 6 2 12 8 18"/></svg><div><b>Open source, MIT</b><span>Separate native macOS and Windows implementations. No kernel extension. Read every line.</span></div></div>
       </div>
       <div class="verify">
-        <div class="vh"><span>verify a download</span><button class="copy" data-cmd="shasum -a 256 -c SHA256SUMS&#10;gh attestation verify NoNap-0.1.0-macOS-arm64.zip -R Tsan1024/NoNap">Copy</button></div>
+        <div class="vh"><span>verify a download</span><button class="copy" data-cmd="shasum -a 256 -c SHA256SUMS&#10;gh attestation verify NoNap-&lt;version&gt;-macOS-&lt;arch&gt;.zip -R Tsan1024/NoNap">Copy</button></div>
         <pre><span class="tok-c">shasum</span> -a 256 -c SHA256SUMS
-<span class="tok-c">gh</span> attestation verify NoNap-0.1.0-macOS-arm64.zip -R Tsan1024/NoNap</pre>
+<span class="tok-c">gh</span> attestation verify NoNap-&lt;version&gt;-macOS-&lt;arch&gt;.zip -R Tsan1024/NoNap</pre>
       </div>
     </div>
   </div>

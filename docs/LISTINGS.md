@@ -109,7 +109,7 @@ https://en.uptodown.com/developers-console (must be the rights-holder; icon ≥2
 
 ### Softpedia (Mac)
 https://mac.softpedia.com/ (editor-reviewed). The "100% Clean" badge is a nice README asset.
-> Category: Utilities. Description as above. Note macOS 26 / Apple Silicon requirement.
+> Category: Utilities. Description as above. Note macOS 26 and the separate Apple silicon / Intel downloads.
 
 ### opensourcealternative.to
 https://www.opensourcealternative.to/submit (OSS-only; NoNap qualifies).

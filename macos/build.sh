@@ -16,9 +16,14 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_NAME="NoNap"
-# macOS arm64 target. NoNap is verified on macOS 26 (Tahoe) / Apple Silicon.
-# Override with TARGET=... (e.g. CI on a runner whose SDK predates macOS 26).
-TARGET="${TARGET:-arm64-apple-macos26.0}"
+# Build for the current Mac by default. Release CI overrides TARGET explicitly to
+# produce separate Apple silicon (arm64) and Intel (x86_64) archives.
+HOST_ARCH="$(uname -m)"
+case "$HOST_ARCH" in
+  arm64|x86_64) ;;
+  *) echo "error: unsupported macOS architecture: $HOST_ARCH" >&2; exit 1 ;;
+esac
+TARGET="${TARGET:-$HOST_ARCH-apple-macos26.0}"
 
 # Destination: first non-flag arg, else $DEST, else ./build
 DEST="${DEST:-}"

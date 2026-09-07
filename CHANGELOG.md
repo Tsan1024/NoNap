@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.4] - 2026-09-08
+
+### Added
+- Native macOS x86_64 builds and release archives for Intel Macs running macOS 26.
+- Architecture-specific macOS CI checks and build-provenance attestations for arm64 and x86_64.
+
+### Changed
+- macOS source builds now target the current Mac architecture by default.
+
 ## [0.0.3] - 2026-09-08
 
 ### Changed
@@ -195,7 +204,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README in 6 languages (English, 简体中文, Español, 日本語, Français, Deutsch).
 - MIT license, security model (`SECURITY.md`), and community-health files.
 
-[Unreleased]: https://github.com/Tsan1024/NoNap/compare/v0.0.3...HEAD
+[Unreleased]: https://github.com/Tsan1024/NoNap/compare/v0.0.4...HEAD
+[0.0.4]: https://github.com/Tsan1024/NoNap/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/Tsan1024/NoNap/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/Tsan1024/NoNap/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/Tsan1024/NoNap/releases/tag/v0.0.1
