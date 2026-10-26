@@ -7,7 +7,7 @@ trap 'rm -rf "$TMP"' EXIT
 
 env CLANG_MODULE_CACHE_PATH="$TMP/cache" SWIFT_MODULECACHE_PATH="$TMP/cache" \
   swiftc -typecheck -parse-as-library -framework AppKit -framework ServiceManagement "$REPO/App.swift" "$REPO/BatteryEstimate.swift"
-bash -n "$REPO"/{build,grant,install,package,uninstall}.sh
+bash -n "$REPO"/{build,grant,install,package,notarize,uninstall}.sh
 env CLANG_MODULE_CACHE_PATH="$TMP/cache" SWIFT_MODULECACHE_PATH="$TMP/cache" \
   swiftc "$REPO/BatteryEstimate.swift" "$REPO/tests/BatteryEstimateChecks.swift" -o "$TMP/battery-checks"
 "$TMP/battery-checks"

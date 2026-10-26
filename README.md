@@ -71,6 +71,10 @@ To create a DMG:
 ./macos/package.sh
 ```
 
+For Developer ID signing and Apple notarization, follow
+[Signed macOS distribution](docs/MACOS-DISTRIBUTION.md). The default build above
+is ad-hoc signed for local development; it is not a notarized release.
+
 ## Install on Windows
 
 Download `NoNap-<version>-Windows-x64-Setup.exe` from

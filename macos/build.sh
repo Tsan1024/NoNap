@@ -2,7 +2,7 @@
 # build.sh — compile NoNap.app from source with the Command Line Tools only.
 #
 # No Xcode project, no Package.swift: just `swiftc` + a hand-assembled .app bundle,
-# ad-hoc signed. Works from any clone (no hardcoded paths or usernames).
+# ad-hoc signed by default; set SIGNING_IDENTITY for Developer ID distribution.
 #
 # Usage:
 #   ./build.sh                      # build into ./build/NoNap.app
@@ -79,10 +79,15 @@ cp "$REPO/grant.sh" "$REPO/uninstall.sh" "$CONTENTS/Resources/"
 chmod +x "$CONTENTS/Resources/grant.sh" "$CONTENTS/Resources/uninstall.sh"
 rm -rf "$BIN_TMP"
 
-# 4. Ad-hoc sign (no Apple Developer ID needed; trust comes from building it yourself).
-echo "==> Ad-hoc signing"
-codesign --force --deep --sign - "$APP"
-codesign --verify --verbose=1 "$APP" 2>&1 | sed 's/^/    /' || true
+# 4. Developer ID releases require Hardened Runtime and a secure timestamp.
+if [ -n "${SIGNING_IDENTITY:-}" ]; then
+  echo "==> Developer ID signing"
+  codesign --force --options runtime --timestamp --sign "$SIGNING_IDENTITY" "$APP"
+else
+  echo "==> Ad-hoc signing (local development only)"
+  codesign --force --sign - "$APP"
+fi
+codesign --verify --deep --strict --verbose=1 "$APP"
 
 echo ""
 echo "✅ Built $APP"
