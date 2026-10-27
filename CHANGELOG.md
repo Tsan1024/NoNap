@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-27
+
+### Added
+- Developer ID-signed and Apple-notarized macOS DMGs for Apple silicon and Intel Macs.
+- Hardened Runtime, secure timestamps, stapled notarization tickets, and a repeatable local distribution workflow.
+
+### Installation
+- macOS 26 or later: download the architecture-specific `-notarized.dmg`, open it, and drag NoNap to Applications.
+- Lid-closed operation is preserved. First-time power-management setup still requires administrator approval.
+- Verify the notarized DMGs with `shasum -a 256 -c NOTARIZED-SHA256SUMS`. These locally signed builds do not carry GitHub Actions provenance attestations.
+- GitHub Actions ZIP/EXE assets have separate checksums and provenance verification instructions below.
+
 ## [0.0.4] - 2026-09-08
 
 ### Added
